@@ -1,0 +1,84 @@
+//cd ~/projects/friendly-backup
+//build-bin/protoc --proto_path=proto --java_out=src-gen proto/basic.proto
+
+
+package geekcommune.friendlybackup;
+
+option java_package = "com.geekcommune.friendlybackup.proto";
+//option java_outer_classname = "Basic";
+
+message HashIdentifier {
+  optional int32 version = 1 [default = 1];
+
+  enum HashEncoding {
+    SHA1_160_BITS = 0;
+  }
+
+  required HashEncoding encoding = 2 [default  = SHA1_160_BITS];
+  required bytes data = 3;
+}
+
+message RemoteNodeHandle {
+  optional int32 version = 1 [default = 1];
+  required string name = 2;
+  required string email = 3;
+  required string connectString = 4;
+}
+
+message Erasure {
+  optional int32 version = 1 [default = 1];
+  required int32 index = 2;
+  required bytes data = 3;
+}
+
+message ErasureManifest {
+  optional int32 version = 1 [default = 1];
+  required int32 contentSize = 2;
+  required int32 erasuresNeeded = 3;
+  required int32 totalErasures = 4;
+
+//  enum PhoneType {
+//    MOBILE = 0;
+//    HOME = 1;
+//    WORK = 2;
+//  }
+
+  message FetchInfo {
+    required HashIdentifier erasureId = 1;
+    required RemoteNodeHandle storingNode = 2;
+    //optional RemoteNodeHandle storingNode = 2 [default = HOME];
+  }
+
+  repeated FetchInfo fetchInfo = 5;
+}
+
+message PublicIdentityHandle {
+  optional int32 version = 1 [default = 1];
+  required bytes fingerprint = 2;
+}
+
+message Signature {
+  optional int32 version = 1 [default = 1];
+  required bytes signature = 2;
+}
+
+message LabelledData {
+  optional int32 version = 1 [default = 1];
+
+  message HashedPortion {
+    required string label = 1;
+    required PublicIdentityHandle ownerHandle = 2;
+  }
+  
+  required HashedPortion hashedPortion = 2;
+  required HashIdentifier pointingAt = 3;
+  required Signature signature = 4;
+}
+
+message BackupManifest {
+  optional int32 version = 1 [default = 1];
+  required string backupStreamName = 2;
+  required int64 backupTimestampMillis = 3;
+  
+  repeated HashIdentifier backupFileLabelIds = 4;
+}

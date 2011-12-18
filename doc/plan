@@ -1,0 +1,141 @@
+Backup:
+  Note to customer
+    8 gb
+    get at least three friends (and no more than 60)
+    as long as at least 2/3 of your friends respond, your backup can be recovered
+    May not back up files that changed during the backup process
+      -- only way to avoid this is to copy each file before backing up, which could take lots of space and would make backup slower
+
+  Next features:
+    good test suite
+    nice install script
+    work through firewall
+    auto update software
+    java security policy to make what sw can do very explicit
+    UI
+    reconstitute files in other than their original location
+    allow changing the friends list... initially can only exchange one person for another
+    block attack where someone sends you a crapload of data and you only figure out at the end that it's bogus - require header that is signed, recent timestamp + originating IP? 
+    work as a service
+    run faster
+    More distributed?  FreePastry?  Remove need to configure friends?
+    
+  Technical notes
+    use 60 erasures for each file (nice composite number)
+    no rabin chunks
+    queue of files to process
+    queue of outgoing message prep for each friend
+    queue of outgoing messages for each friend
+    queue of incoming messages from each friend
+    http://nsis.sourceforge.net/Java_Launcher_with_automatic_JRE_installation
+    later: reject unsigned messages to prevent DOS?
+    later: only back up if can get a quorum from friends?
+    later: how to deal with file changed between erasure hash snapshot & transmission?
+    later: report "bad friends" (offline too much)
+    later: report fragile backup (not enough redundancy)
+    later: "friends" who don't use any of your space (i.e. for-pay services)
+    later: record an error/blank entry for things we can't store
+    later: add/remove friend from backup circle
+    later: hook in to windows/linux authentication system  (kerberos?) so it can be used in place of password
+
+  *MINIMAL* use cases
+    user creates identity
+    user defines backup circle
+    user backs up system
+    user restores system (with backup client & identity still around)
+    user restores system (installed new backup client, reconstitute identity)
+
+
+  Data structures:
+    bottom level structures are stored directly.  Every other structure is built of bottom level structures.
+
+    {Raw Data} - bottom level.  Includes Erasures.  Stored only on one node in circle for erasure, usually on every node for others.
+      type: 1
+      implicit hashcode
+      owner identity
+      signature (sign hashcode+expiry date)
+      expiry date
+      contents (indexed by hash)
+
+    {Named data} - bottom level.  Stored on every node in circle
+      type: 2
+      implicit hashcode of name + identity
+      owner identity
+      signature (of name+exiry date+hashcode-ref-data)
+      expiry date
+      name
+      hashcode-ref-data (of data pointed to by this label; typically of erasure manifest)
+
+    {Erasure manifest} - intermediate level
+      type: 3
+      implicit hashcode
+      [
+        hash, storing-friend;  (erasure index is implicit in order)
+        hash, storing-friend;  (erasure index is implicit in order)
+        ...
+      ]
+
+    {Backup manifest} - high level
+      type: 4
+      implicit hashcode
+      date
+      [
+        named data hash (for file 1, name=computername:filename),
+        named data hash (for file 2, name=computername:filename),
+        ...
+      ]
+
+
+  Pseudocode:  DONE!!!
+    def do-backup:
+      clean-out-old-queues()
+
+      new backup-manifest(date)
+      for each file in walk each dir tree to be backed up, blacklisting as necessary:
+        erasure-manifest=build-erasure-manifest(file)
+        named-data=build-named-data(computername:filename, erasure-manifest.hash)
+        backup-manifest.add(named-data.hash)
+      erasure-manifest=build-erasure-manifest(backup-manifest)
+      named-data=build-named-data(computername:'backup', erasure-manifest)
+
+    # also preps erasures and manifest to be transmitted to their destination (treat them as sent)
+    def build-erasure-manifest(dataHolder):
+      erasure-manifest = new erasure-manifest()
+      #TODO maybe slice up file if it's way too big
+      erasures=erasurize(dataHolder.data)
+      for each erasure in erasures:
+        hash=hash(erasure)
+        storing-friend=calculateFriend(erasure.index)
+        queue_message_prep(storing-friend, new verify-maybe-send-message(hash, dataHolder.erasureFinder(), erasure.index)))
+        erasure-manifest.add(hash, storing-friend)
+
+      #upload erasure manifest
+      #TODO maybe only upload to 1/3 of friends + 1; maybe store reference from erasure manifest id to local erasure + index instead (60 * (32 + 2) bytes across all friends)
+      for each friend in circle:
+        queue_message_prep(friend, new verify-maybe-send-message(erasure-manifest.hash, erasure-manifest.data))
+      return erasure-manifest
+
+    # also preps named-data to be transmitted to its destination (treat it as sent)
+    def build-named-data(name, hashcode):
+      named-data=new named-data(identity, identity.privkey, name, hashcode)
+      #TODO maybe only upload to 1/3 of friends + 1
+      for each friend in circle:
+        queue_message_prep(friend, new verify-maybe-send-message(named-data.hash, named-data-location(named-data)))
+      return named-data
+
+  Pseudocode: TODO implement
+    def do-restore:
+      clean-out-old-queues()
+
+      bakmanId = LabelledData.getHashID(bakcfg.getBackupManifestName())
+      download-labelled-data(bakmanId, new RestoreBackupAction()))
+
+    def download-labelled-data(id):
+      #TODO needs more work - doesn't quite work
+      register-listener(new DownloadFromErasureManifestListener(id))
+      for each friend in circle:
+        queue_message_prep(friend, new retrieve-data(id))
+
+    def download-labelled-data(id, action)
+      register-listener(new LabelledDataDownloadCompleteListener(id, action)
+      download-labelled-data(id)
