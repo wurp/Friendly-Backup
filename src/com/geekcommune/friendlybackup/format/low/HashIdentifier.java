@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import com.geekcommune.friendlybackup.format.BaseData;
 import com.geekcommune.friendlybackup.proto.Basic;
+import com.geekcommune.util.StringUtil;
 import com.google.protobuf.ByteString;
 
 /**
@@ -60,7 +61,7 @@ public class HashIdentifier extends BaseData<Basic.HashIdentifier> {
 
     @Override
     public int hashCode() {
-        return getData().hashCode();
+        return Arrays.hashCode(getData());
     }
     
     public Basic.HashIdentifier toProto() {
@@ -80,5 +81,11 @@ public class HashIdentifier extends BaseData<Basic.HashIdentifier> {
         HashIdentifier retval = new HashIdentifier(proto.getData().toByteArray());
         
         return retval;
+    }
+    
+    @Override
+    public String toString() {
+        //only send a fingerprint of the data
+        return StringUtil.hexdump(this.digest, this.digest.length - 4, 4);
     }
 }

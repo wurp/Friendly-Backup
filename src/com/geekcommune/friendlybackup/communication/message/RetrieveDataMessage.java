@@ -14,7 +14,7 @@ public class RetrieveDataMessage implements Message {
         this.responseHandler = responseHandler;
     }
 
-    public HashIdentifier getHashID() {
+    public HashIdentifier getHashIDOfDataToRetrieve() {
         return id;
     }
 

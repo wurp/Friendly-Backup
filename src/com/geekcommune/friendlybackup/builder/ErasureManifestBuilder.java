@@ -12,7 +12,7 @@ import com.geekcommune.friendlybackup.erasurefinder.ErasureFinder;
 import com.geekcommune.friendlybackup.erasurefinder.ErasureUtil;
 import com.geekcommune.friendlybackup.erasurefinder.FileErasureFinder;
 import com.geekcommune.friendlybackup.erasurefinder.FileUtil;
-import com.geekcommune.friendlybackup.format.low.BufferData;
+import com.geekcommune.friendlybackup.format.low.Erasure;
 import com.geekcommune.friendlybackup.format.low.ErasureManifest;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.onionnetworks.util.Buffer;
@@ -46,7 +46,7 @@ public class ErasureManifestBuilder {
 		
 		int idx = 0;
 		for(Buffer erasureBuffer : erasures) {
-		    BufferData erasure = new BufferData(erasureBuffer, idx);
+		    Erasure erasure = new Erasure(erasureBuffer, idx);
 			HashIdentifier erasureId = erasure.getHashID();
 			
 			//store the erasure on its correct node
@@ -58,15 +58,15 @@ public class ErasureManifestBuilder {
 			
 			++idx;
 		}
+        
+        manifest.setContentSize(data.length);
+        manifest.setErasuresNeeded(erasuresNeeded);
+        manifest.setTotalErasures(totalErasures);
 
 		//for now, store the manifest on all storing nodes
 		for(RemoteNodeHandle node : storingNodes) {
 			MessageUtil.instance().queueMessage(node, new VerifyMaybeSendDataMessage(manifest.getHashID(), manifest.toProto().toByteArray()));
 		}
-		
-		manifest.setContentSize(data.length);
-		manifest.setErasuresNeeded(erasuresNeeded);
-		manifest.setTotalErasures(totalErasures);
 		
 		return manifest;
 	}

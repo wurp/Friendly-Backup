@@ -94,7 +94,7 @@ public class Backup extends Action {
 						erasureManifest.getHashID(),
 						storingNodes,
 						expiryDate);
-				
+
 				bakman.add(labelledData.getHashID());
 			} catch(Exception e) {
 				String filePath = "unknown file";
@@ -110,7 +110,7 @@ public class Backup extends Action {
 
 			ErasureManifest erasureManifest = ErasureManifestBuilder.instance().buildFromBytes(
 					storingNodes,
-					bakman.toProto().toByteArray(),
+					bakman.getData(),
 					bakcfg.getErasuresNeeded(),
 					bakcfg.getTotalErasures());
 			

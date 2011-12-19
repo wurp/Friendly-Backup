@@ -3,9 +3,7 @@ package com.geekcommune.communication;
 import java.util.List;
 
 import com.geekcommune.communication.message.Message;
-import com.geekcommune.friendlybackup.format.Data;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
-import com.geekcommune.util.UnaryContinuation;
 
 public class MessageUtil {
 
@@ -21,9 +19,10 @@ public class MessageUtil {
         
     }
 
-    public void cancelListen(List<HashIdentifier> ids) {
-        // TODO Auto-generated method stub
-        
+    public final void cancelListen(List<HashIdentifier> ids) {
+        for(HashIdentifier id : ids) {
+            cancelListen(id);
+        }
     }
 
     public static void setInstance(MessageUtil messageUtil) {
@@ -32,6 +31,11 @@ public class MessageUtil {
 
     public void queueMessage(RemoteNodeHandle storingNode,
             Message msg) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void cancelListen(HashIdentifier id) {
         // TODO Auto-generated method stub
         
     }

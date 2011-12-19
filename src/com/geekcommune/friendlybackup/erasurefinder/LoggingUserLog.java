@@ -6,8 +6,13 @@ public class LoggingUserLog extends UserLog {
     private static final Logger log = Logger.getLogger(LoggingUserLog.class);
 
     @Override
-    public void logError(String string, Exception e) {
-        log.error(string, e);
+    public void logError(String message, Exception e) {
+        log.error(message, e);
+    }
+
+    @Override
+    public void logError(String message) {
+        log.error(message);
     }
 
 }

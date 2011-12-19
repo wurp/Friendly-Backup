@@ -12,7 +12,7 @@ import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
 import com.geekcommune.friendlybackup.erasurefinder.ErasureUtil;
 import com.geekcommune.friendlybackup.erasurefinder.UserLog;
-import com.geekcommune.friendlybackup.format.low.BufferData;
+import com.geekcommune.friendlybackup.format.low.Erasure;
 import com.geekcommune.friendlybackup.format.low.ErasureManifest;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
@@ -50,6 +50,7 @@ public class DataStore {
                         new UnaryContinuation<byte[]>() {
 
                         public void run(byte[] data) {
+                            MessageUtil.instance().cancelListen(id);
                             storeData(id, data);
                             continuation.run();
                         }
@@ -57,7 +58,10 @@ public class DataStore {
     }
 
     /**
-     * Pull in a piece of data, retrieving from any/all of storingNodes if necessary.
+     * Pull in a piece of data, retrieving from any/all of storingNodes if necessary.  Also
+     * resolves erasure manifest, retrieving the chunks necessary to reconstitute the original data
+     * from the erasures.
+     * 
      * @param storingNodes 
      * @param id
      * @param continuation
@@ -69,6 +73,8 @@ public class DataStore {
                 try {
                     final LabelledData labelledData = LabelledData.fromProto(Basic.LabelledData.parseFrom(DataStore.instance().getData(id)));
                     final HashIdentifier erasureManifestId = labelledData.getPointingAt();
+                    
+                    log.info("Retrieved " + labelledData.getLabel());
                     
                     DataStore.instance().retrieve(storingNodes, erasureManifestId, new Continuation() {
 
@@ -94,11 +100,11 @@ public class DataStore {
                                                     MessageUtil.instance().cancelListen(erasureIds);
                                                     
                                                     //reconstitute the erasure blocks into the original data
-                                                    List<BufferData> erasures = new ArrayList<BufferData>(dataList.size());
+                                                    List<Erasure> erasures = new ArrayList<Erasure>(dataList.size());
                                                     for(byte[] erasureObj : dataList) {
                                                         //TODO no need to bail on decoding altogether if parse throws exception; could
                                                         //wait for more erasures we get enough that work OR are sure we will never get enough
-                                                        BufferData erasure = BufferData.fromProto(Basic.Erasure.parseFrom(erasureObj));
+                                                        Erasure erasure = Erasure.fromProto(Basic.Erasure.parseFrom(erasureObj));
                                                         erasure.setIndex(erasureManifest.getIndex(erasure.getHashID()));
                                                         erasures.add(erasure);
                                                     }
@@ -109,6 +115,7 @@ public class DataStore {
                                                             erasureManifest.getErasuresNeeded(),
                                                             erasureManifest.getTotalErasures(),
                                                             erasures);
+                                                    log.info("Rebuilt contents of " + labelledData.getLabel());
 
                                                     continuation.run(labelledData.getLabel(), fullContents);
                                                 }
@@ -141,16 +148,21 @@ public class DataStore {
      */
     public byte[] getData(HashIdentifier id) {
         // TODO long term solution?
-        return dataMap.get(id);
+        byte[] retval = dataMap.get(id);
+        log.info("Got " + (retval == null ? null : retval.length) + " bytes for " + id);
+        return retval;
     }
 
     public void storeData(HashIdentifier id, byte[] data) {
         // TODO long term solution?
         dataMap.put(id, data);
-    }
+        log.info("Writing " + (data == null ? null : data.length) + " bytes for " + id);
+     }
     
-    public void retrieve(RemoteNodeHandle node, final HashIdentifier id,
-            Continuation continuation) {
+    public void retrieve(
+            RemoteNodeHandle node,
+            final HashIdentifier id,
+            final Continuation continuation) {
         MessageUtil.instance().queueMessage(
                 node,
                 new RetrieveDataMessage(id,
@@ -158,6 +170,7 @@ public class DataStore {
 
                         public void run(byte[] data) {
                             storeData(id, data);
+                            continuation.run();
                         }
                     }));
     }

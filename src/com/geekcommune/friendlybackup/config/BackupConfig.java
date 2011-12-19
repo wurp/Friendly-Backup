@@ -16,7 +16,8 @@ import com.geekcommune.identity.PrivateIdentity;
 
 public class BackupConfig {
 
-	private static final String FRIENDS_KEY = "friends";
+	private static final String DELIM = "~";
+    private static final String FRIENDS_KEY = "friends";
     private static final String BACKUP_ROOT_DIR_KEY = "backupRootDir";
     private static final String BACKUP_STREAM_NAME_KEY = "backupName";
     private static final String COMPUTER_NAME_KEY = "computerName";
@@ -56,9 +57,18 @@ public class BackupConfig {
 		            myProps.getProperty(FRIEND_PREFIX+friends[i]+EMAIL_SUFFIX),
 		            myProps.getProperty(FRIEND_PREFIX+friends[i]+CONNECT_INFO_SUFFIX));
 		}
-		
+
+		retval.validate();
 		return retval;
 	}
+
+    private void validate() {
+        if( computerName.indexOf(DELIM) != -1 ) {
+            UserLog.instance().logError("Computer name may not contain " + DELIM);
+            throw new RuntimeException("Computer name may not contain " + DELIM);
+        }
+        
+    }
 
     private File backupRootDir;
     private String backupStreamName;
@@ -71,9 +81,19 @@ public class BackupConfig {
 		return backupStreamName;
 	}
 
-	public String getFullFilePath(File f) throws IOException {
-		return getComputerName() + ":" + f.getCanonicalPath();
-	}
+    public String getFullFilePath(File f) throws IOException {
+        return getComputerName() + DELIM + f.getCanonicalPath();
+    }
+
+    /**
+     * For valid fullFilePath, will return computer name as the 0th element
+     * and full file path as the 1st element.
+     * @param fullFilePath
+     * @return
+     */
+    public String[] parseFullFilePath(String fullFilePath) {
+        return fullFilePath.split(DELIM);
+    }
 
 	public String getComputerName() {
 		return computerName;

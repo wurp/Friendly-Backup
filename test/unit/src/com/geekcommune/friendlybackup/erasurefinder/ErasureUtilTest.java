@@ -10,7 +10,7 @@ import junit.framework.TestCase;
 
 import org.bouncycastle.util.Arrays;
 
-import com.geekcommune.friendlybackup.format.low.BufferData;
+import com.geekcommune.friendlybackup.format.low.Erasure;
 import com.onionnetworks.util.Buffer;
 
 public class ErasureUtilTest extends TestCase {
@@ -165,16 +165,16 @@ public class ErasureUtilTest extends TestCase {
             Order order) {
         Buffer[] erasures = ErasureUtil.encode(input, erasuresNeeded, totalErasures);
 
-        List<BufferData> erasureWrappers = new ArrayList<BufferData>();
+        List<Erasure> erasureWrappers = new ArrayList<Erasure>();
         for(int i = 0; i < erasures.length; ++i) {
             if( !bufferKiller.shouldKill(i, erasures.length) ) {
-                erasureWrappers.add(new BufferData(erasures[i], i));
+                erasureWrappers.add(new Erasure(erasures[i], i));
             }
         }
         
         if( order == Order.SCRAMBLE ) {
-            Collections.sort(erasureWrappers, new Comparator<BufferData>() {
-                public int compare(BufferData o1, BufferData o2) {
+            Collections.sort(erasureWrappers, new Comparator<Erasure>() {
+                public int compare(Erasure o1, Erasure o2) {
                     double rand = Math.random();
                     return rand < 0.33 ? -1 : (rand > 0.66 ? 1 : 0);
                 }

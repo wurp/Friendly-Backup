@@ -40,6 +40,11 @@ public class RemoteNodeHandle extends BaseData<Basic.RemoteNodeHandle> {
         return (name + "~" + email + "~" + connectString).hashCode();
     }
     
+    @Override
+    public String toString() {
+        return "RemoteNodeHandle(" + name + ", " + email + ", " + connectString + ")"; 
+    }
+    
     public static RemoteNodeHandle fromProto(Basic.RemoteNodeHandle proto) {
         versionCheck(1, proto.getVersion(), proto);
         

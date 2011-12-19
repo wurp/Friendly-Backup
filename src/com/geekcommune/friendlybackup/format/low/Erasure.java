@@ -2,22 +2,17 @@ package com.geekcommune.friendlybackup.format.low;
 
 import com.geekcommune.friendlybackup.format.BaseData;
 import com.geekcommune.friendlybackup.proto.Basic;
-import com.geekcommune.friendlybackup.proto.Basic.Erasure;
 import com.google.protobuf.ByteString;
 import com.onionnetworks.util.Buffer;
 
-public class BufferData extends BaseData<Basic.Erasure> implements HasHashID {
+public class Erasure extends BaseData<Basic.Erasure> {
 
     private byte[] data;
     private int index;
 
-    public BufferData(Buffer buffer, int i) {
+    public Erasure(Buffer buffer, int i) {
         data = buffer.getBytes();
         index = i;
-    }
-
-    public HashIdentifier getHashID() {
-        return HashIdentifier.hashForBytes(toProto().toByteArray());
     }
 
     public void setIndex(int index) {
@@ -28,10 +23,11 @@ public class BufferData extends BaseData<Basic.Erasure> implements HasHashID {
         return index;
     }
 
-    public byte[] getData() {
+    public byte[] getErasureContents() {
         return data;
     }
 
+    @Override
     public String toString() {
         return getClass().getName() + ": idx " + index;
     }
@@ -45,11 +41,11 @@ public class BufferData extends BaseData<Basic.Erasure> implements HasHashID {
         return proto.build();
     }
 
-    public static BufferData fromProto(Erasure proto) {
+    public static Erasure fromProto(Basic.Erasure proto) {
         versionCheck(1, proto.getVersion(), proto);
         
         int index = proto.getIndex();
         byte[] data = proto.getData().toByteArray();
-        return new BufferData(new Buffer(data), index);
+        return new Erasure(new Buffer(data), index);
     }
 }

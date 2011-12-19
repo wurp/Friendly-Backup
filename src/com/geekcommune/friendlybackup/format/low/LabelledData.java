@@ -6,7 +6,7 @@ import com.geekcommune.identity.PrivateIdentity;
 import com.geekcommune.identity.PublicIdentityHandle;
 import com.geekcommune.identity.Signature;
 
-public class LabelledData extends BaseData<Basic.LabelledData> implements HasHashID {
+public class LabelledData extends BaseData<Basic.LabelledData> {
 
 	private String label;
     private PublicIdentityHandle owner;

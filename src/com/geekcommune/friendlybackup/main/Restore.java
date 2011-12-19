@@ -54,64 +54,57 @@ public class Restore extends Action {
         
         //retrieve my latest backup erasure manifest
         //TODO we only need one, but we'll just send out requests to everyone for now
-        DataStore.instance().retrieve(bakcfg.getStoringNodes(), backupLabelId, new Continuation() {
-
-            public void run() {
+        DataStore.instance().retrieveLabelledData(bakcfg.getStoringNodes(), backupLabelId, new BinaryContinuation<String,byte[]>() {
+            public void run(String label, byte[] backupManifestContents) {
                 try {
-                    LabelledData labelledData = LabelledData.fromProto(Basic.LabelledData.parseFrom(DataStore.instance().getData(backupLabelId)));
-                    final HashIdentifier erasureManifestId = labelledData.getPointingAt();
-                    
-                    //TODO progressTracker updates
-                    DataStore.instance().retrieveLabelledData(bakcfg.getStoringNodes(), erasureManifestId, new BinaryContinuation<String, byte[]>() {
-
-                        public void run(String label, byte[] backupManifestContents) {
-                            try {
-                                BackupManifest bakman = BackupManifest.fromProto(
-                                        Basic.BackupManifest.parseFrom(backupManifestContents));
+                    BackupManifest bakman = BackupManifest.fromProto(
+                            Basic.BackupManifest.parseFrom(backupManifestContents));
                                 
-                                //loop over each label id in the backup manifest
-                                for(HashIdentifier fileLabelId : bakman.getFileLabelIDs()) {
-                                    //  retrieve the label
-                                    DataStore.instance().retrieveLabelledData(bakcfg.getStoringNodes(), fileLabelId, new BinaryContinuation<String, byte[]>() {
+                    //loop over each label id in the backup manifest
+                    for(HashIdentifier fileLabelId : bakman.getFileLabelIDs()) {
+                        //  retrieve the label
+                        DataStore.instance().retrieveLabelledData(bakcfg.getStoringNodes(), fileLabelId, new BinaryContinuation<String, byte[]>() {
 
-                                        public void run(String label, byte[] t) {
-                                            //Danger, Will Robinson!  Overwriting the file!  TODO
-                                            File file = new File(label);
-                                            file.getParentFile().mkdirs();
-                                            BufferedOutputStream out = null;
-                                            try {
-                                                out = new BufferedOutputStream(new FileOutputStream(file));
-                                                out.write(t);
-                                            } catch (FileNotFoundException e) {
-                                                log.error(e.getMessage(), e);
-                                                userlog.logError("No directory in which to create file " + label, e);
-                                            } catch (IOException e) {
-                                                log.error(e.getMessage(), e);
-                                                userlog.logError("Failed to create file " + label + ", " + e.getMessage(), e);
-                                            } finally {
-                                                if( out != null ) {
-                                                    try {
-                                                        out.close();
-                                                    } catch (IOException e) {
-                                                        log.error("Failed while closing file " + label + ": " + e.getMessage(), e);
-                                                        userlog.logError("Probably failed to create file " + label + ", " + e.getMessage(), e);
-                                                    }
-                                                }
-                                            }
+                            public void run(String label, byte[] t) {
+                                //Danger, Will Robinson!  Overwriting the file!  TODO
+                                File file = new File(bakcfg.parseFullFilePath(label)[1]);
+                                            
+                                if( file.exists() ) {
+                                    userlog.logError(file + " already exists; not overwriting");
+                                } else {
+                                    log.info("Saving " + label);
+                                }//end if(file.exists())
+                                
+                                file.getParentFile().mkdirs();
+                                BufferedOutputStream out = null;
+                                try {
+                                    out = new BufferedOutputStream(new FileOutputStream(file));
+                                    out.write(t);
+                                } catch (FileNotFoundException e) {
+                                    log.error(e.getMessage(), e);
+                                    userlog.logError("No directory in which to create file " + label, e);
+                                } catch (IOException e) {
+                                    log.error(e.getMessage(), e);
+                                    userlog.logError("Failed to create file " + label + ", " + e.getMessage(), e);
+                                } finally {
+                                    if( out != null ) {
+                                        try {
+                                            out.close();
+                                        } catch (IOException e) {
+                                            log.error("Failed while closing file " + label + ": " + e.getMessage(), e);
+                                            userlog.logError("Probably failed to create file " + label + ", " + e.getMessage(), e);
                                         }
-                                    });
-                                }
-                            } catch (InvalidProtocolBufferException e1) {
-                                log.error(e1.getMessage(), e1);
-                            }
-                        }
-                    });
-                } catch (InvalidProtocolBufferException e) {
-                    log.error(e.getMessage(), e);
-                }
-            }
-        });
-	}
+                                    }
+                                } //end try/finally
+                            }//end run()
+                        });//end retrieveLabelledData(fileLabelId)
+                    }//end for(fileLabelId)
+                } catch (InvalidProtocolBufferException e1) {
+                    log.error(e1.getMessage(), e1);
+                } //end try/catch
+            }//end run()
+        });//end retrieveLabelledData(backupLabelId)
+	}//end start()
 	
 	public ProgressTracker getProgressTracker() {
 		return progressTracker;

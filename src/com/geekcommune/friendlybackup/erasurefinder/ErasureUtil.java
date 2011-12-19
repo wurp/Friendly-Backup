@@ -1,16 +1,20 @@
 package com.geekcommune.friendlybackup.erasurefinder;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.geekcommune.friendlybackup.format.low.BufferData;
+import com.geekcommune.friendlybackup.format.low.Erasure;
+import com.geekcommune.util.Pair;
 import com.onionnetworks.fec.FECCode;
 import com.onionnetworks.fec.FECCodeFactory;
 import com.onionnetworks.util.Buffer;
 
 public class ErasureUtil {
     private static final Logger log = Logger.getLogger(ErasureUtil.class);
+    private static Map<Pair<Integer,Integer>, FECCode> fecCodeMap = new HashMap<Pair<Integer, Integer>, FECCode>();;
 
     /**
      * Creates 'erasures', blocks of data that can be used to reconstitute the original data.
@@ -71,7 +75,7 @@ public class ErasureUtil {
         }
 
         //create our fec code
-        FECCode fec = FECCodeFactory.getDefault().createFECCode(erasuresNeeded,totalErasures);
+        FECCode fec = getFECCode(erasuresNeeded, totalErasures);
 
         //encode the data
         fec.encode(sourceBuffers, repairBuffers, repairIndex);
@@ -84,6 +88,17 @@ public class ErasureUtil {
         
 		return allErasureBuffers;
 	}
+
+    private static synchronized FECCode getFECCode(int erasuresNeeded, int totalErasures) {
+        Pair<Integer,Integer> key = new Pair<Integer,Integer>(erasuresNeeded,totalErasures);
+        FECCode retval = fecCodeMap.get(key);
+        if( retval == null ) {
+            retval = FECCodeFactory.getDefault().createFECCode(erasuresNeeded,totalErasures);
+            fecCodeMap.put(key, retval);
+        }
+        
+        return retval;
+    }
 
     private static int calcErasureBufferLength(int erasuresNeeded,
             int dataLength) {
@@ -107,14 +122,14 @@ public class ErasureUtil {
      * @return
      */
     public static void decode(byte[] result, int erasuresNeeded,
-            int totalErasures, List<BufferData> erasures) {
+            int totalErasures, List<Erasure> erasures) {
         decode(result, erasuresNeeded, totalErasures, erasures, Safety.SAFE);
     }
     
     public static enum Safety { SAFE, UNSAFE };
     
     public static void decode(byte[] result, int erasuresNeeded,
-            int totalErasures, List<BufferData> erasures, Safety safety) {
+            int totalErasures, List<Erasure> erasures, Safety safety) {
         //TODO if BufferData in erasures already pointed into result, this would use half as much memory...
         
         if( safety == Safety.SAFE && erasures.size() < erasuresNeeded) {
@@ -151,15 +166,15 @@ public class ErasureUtil {
 
         //copy the data from the BufferData into the byte[]s for our buffers
         for (int i = 0; i < erasuresNeeded; i++) {
-            BufferData erasure = erasures.get(i);
+            Erasure erasure = erasures.get(i);
             
             receiverIndex[i] = erasure.getIndex();
-            System.arraycopy(erasure.getData(), 0, fakeBuffers[i].data, fakeBuffers[i].startIndex, packetsize);
+            System.arraycopy(erasure.getErasureContents(), 0, fakeBuffers[i].data, fakeBuffers[i].startIndex, packetsize);
         }
         
         //finally we can decode, which for all buffers that receive data but the last will write to result
         //the last buffer that gets data in it may be spillover to lastReceiver
-        FECCode fec = FECCodeFactory.getDefault().createFECCode(erasuresNeeded,totalErasures);
+        FECCode fec = getFECCode(erasuresNeeded, totalErasures);
         fec.decode(receiverBuffer, receiverIndex);
         
         //copy over that bit of the last block and we're done!

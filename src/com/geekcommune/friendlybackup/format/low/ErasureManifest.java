@@ -15,7 +15,7 @@ import com.geekcommune.util.Pair;
  * @author bobbym
  *
  */
-public class ErasureManifest extends BaseData<Basic.ErasureManifest> implements HasHashID {
+public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
 	private List<Pair<HashIdentifier, RemoteNodeHandle>> erasureFetchList = new ArrayList<Pair<HashIdentifier, RemoteNodeHandle>>();
     private int contentSize;
     private int erasuresNeeded;
@@ -23,22 +23,10 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> implements 
 
     public ErasureManifest() {
     }
-    
-    public ErasureManifest(Basic.ErasureManifest proto) {
-        //TODO populate from proto
-    }
-    
-    public HashIdentifier getHashID() {
-		return HashIdentifier.hashForBytes(getData());
-	}
 
 	public void add(HashIdentifier erasureId, RemoteNodeHandle storingNode) {
 		erasureFetchList.add(new Pair<HashIdentifier, RemoteNodeHandle>(erasureId, storingNode));
 		
-	}
-
-	public byte[] getData() {
-		return toProto().toByteArray();
 	}
 
     public List<Pair<HashIdentifier, RemoteNodeHandle>> getRetrievalData() {
@@ -84,7 +72,7 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> implements 
         return idx;
     }
 
-    public com.geekcommune.friendlybackup.proto.Basic.ErasureManifest toProto() {
+    public Basic.ErasureManifest toProto() {
         Basic.ErasureManifest.Builder proto = Basic.ErasureManifest.newBuilder();
         proto.setContentSize(contentSize);
         proto.setErasuresNeeded(erasuresNeeded);

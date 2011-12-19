@@ -33,4 +33,23 @@ public class Pair<T1, T2> {
         return retval;
     }
     
+    @Override
+    public int hashCode() {
+        return (t1.hashCode() + 1) ^ t2.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if( obj instanceof Pair<?, ?> ) {
+            Pair<?,?> rhs = (Pair<?, ?>) obj;
+            return t1.equals(rhs.t1) && t2.equals(rhs.t2);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Pair(" + t1 + ", " + t2 + ")";
+    }
 }
