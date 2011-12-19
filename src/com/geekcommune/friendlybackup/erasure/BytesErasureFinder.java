@@ -1,4 +1,4 @@
-package com.geekcommune.friendlybackup.erasurefinder;
+package com.geekcommune.friendlybackup.erasure;
 
 import com.onionnetworks.util.Buffer;
 

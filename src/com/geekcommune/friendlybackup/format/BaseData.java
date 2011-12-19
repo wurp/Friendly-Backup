@@ -1,7 +1,7 @@
 package com.geekcommune.friendlybackup.format;
 
-import com.geekcommune.friendlybackup.erasurefinder.UserLog;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
+import com.geekcommune.friendlybackup.logging.UserLog;
 import com.google.protobuf.AbstractMessage;
 
 public abstract class BaseData<ProtoType extends AbstractMessage> implements Data<ProtoType> {

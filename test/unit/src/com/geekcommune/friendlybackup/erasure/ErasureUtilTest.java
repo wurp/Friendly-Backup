@@ -1,4 +1,4 @@
-package com.geekcommune.friendlybackup.erasurefinder;
+package com.geekcommune.friendlybackup.erasure;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,7 +10,9 @@ import junit.framework.TestCase;
 
 import org.bouncycastle.util.Arrays;
 
-import com.geekcommune.friendlybackup.format.low.Erasure;
+import com.geekcommune.friendlybackup.erasure.Erasure;
+import com.geekcommune.friendlybackup.erasure.ErasureUtil;
+import com.geekcommune.friendlybackup.erasure.PrimeGenerator;
 import com.onionnetworks.util.Buffer;
 
 public class ErasureUtilTest extends TestCase {

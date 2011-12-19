@@ -9,10 +9,10 @@ import org.apache.log4j.Logger;
 
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.communication.message.Message;
-import com.geekcommune.friendlybackup.DataStore;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendMessage;
+import com.geekcommune.friendlybackup.datastore.DataStore;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.util.Pair;
 

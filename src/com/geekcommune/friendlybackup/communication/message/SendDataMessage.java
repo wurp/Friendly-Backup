@@ -1,4 +1,4 @@
-package com.geekcommune.friendlybackup.builder;
+package com.geekcommune.friendlybackup.communication.message;
 
 import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;

@@ -8,16 +8,15 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
-import com.geekcommune.friendlybackup.DataStore;
 import com.geekcommune.friendlybackup.config.BackupConfig;
-import com.geekcommune.friendlybackup.erasurefinder.UserLog;
+import com.geekcommune.friendlybackup.datastore.DataStore;
 import com.geekcommune.friendlybackup.format.high.BackupManifest;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
+import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.friendlybackup.proto.Basic;
 import com.geekcommune.identity.PrivateIdentity;
 import com.geekcommune.util.BinaryContinuation;
-import com.geekcommune.util.Continuation;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
@@ -59,7 +58,9 @@ public class Restore extends Action {
                 try {
                     BackupManifest bakman = BackupManifest.fromProto(
                             Basic.BackupManifest.parseFrom(backupManifestContents));
-                                
+
+                    progressTracker.rebase(bakman.getFileLabelIDs().size() * 2);
+                    
                     //loop over each label id in the backup manifest
                     for(HashIdentifier fileLabelId : bakman.getFileLabelIDs()) {
                         //  retrieve the label
@@ -68,34 +69,43 @@ public class Restore extends Action {
                             public void run(String label, byte[] t) {
                                 //Danger, Will Robinson!  Overwriting the file!  TODO
                                 File file = new File(bakcfg.parseFullFilePath(label)[1]);
-                                            
+
                                 if( file.exists() ) {
                                     userlog.logError(file + " already exists; not overwriting");
+                                    progressTracker.changeMessage("Not writing " + label, 2);
                                 } else {
                                     log.info("Saving " + label);
+
+                                    progressTracker.changeMessage("Writing " + label, 1);
+
+                                    file.getParentFile().mkdirs();
+                                    BufferedOutputStream out = null;
+                                    try {
+                                        out = new BufferedOutputStream(new FileOutputStream(file));
+                                        out.write(t);
+                                    } catch (FileNotFoundException e) {
+                                        log.error(e.getMessage(), e);
+                                        userlog.logError("No directory in which to create file " + label, e);
+                                    } catch (IOException e) {
+                                        log.error(e.getMessage(), e);
+                                        userlog.logError("Failed to create file " + label + ", " + e.getMessage(), e);
+                                    } finally {
+                                        if( out != null ) {
+                                            try {
+                                                out.close();
+                                            } catch (IOException e) {
+                                                log.error("Failed while closing file " + label + ": " + e.getMessage(), e);
+                                                userlog.logError("Probably failed to create file " + label + ", " + e.getMessage(), e);
+                                            }
+                                        }
+                                    } //end try/finally
+                                    
+                                    progressTracker.changeMessage("Wrote " + label, 1);
                                 }//end if(file.exists())
                                 
-                                file.getParentFile().mkdirs();
-                                BufferedOutputStream out = null;
-                                try {
-                                    out = new BufferedOutputStream(new FileOutputStream(file));
-                                    out.write(t);
-                                } catch (FileNotFoundException e) {
-                                    log.error(e.getMessage(), e);
-                                    userlog.logError("No directory in which to create file " + label, e);
-                                } catch (IOException e) {
-                                    log.error(e.getMessage(), e);
-                                    userlog.logError("Failed to create file " + label + ", " + e.getMessage(), e);
-                                } finally {
-                                    if( out != null ) {
-                                        try {
-                                            out.close();
-                                        } catch (IOException e) {
-                                            log.error("Failed while closing file " + label + ": " + e.getMessage(), e);
-                                            userlog.logError("Probably failed to create file " + label + ", " + e.getMessage(), e);
-                                        }
-                                    }
-                                } //end try/finally
+                                if( progressTracker.stepsRemaining() == 0 ) {
+                                    progressTracker.setFinished(true);
+                                }
                             }//end run()
                         });//end retrieveLabelledData(fileLabelId)
                     }//end for(fileLabelId)

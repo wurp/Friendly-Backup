@@ -12,10 +12,10 @@ import com.geekcommune.friendlybackup.builder.ErasureManifestBuilder;
 import com.geekcommune.friendlybackup.builder.LabelledDataBuilder;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.config.BackupConfig;
-import com.geekcommune.friendlybackup.erasurefinder.UserLog;
 import com.geekcommune.friendlybackup.format.high.BackupManifest;
 import com.geekcommune.friendlybackup.format.low.ErasureManifest;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
+import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.identity.PrivateIdentity;
 
 /**

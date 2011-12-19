@@ -1,4 +1,4 @@
-package com.geekcommune.friendlybackup.erasurefinder;
+package com.geekcommune.friendlybackup.logging;
 
 import org.apache.log4j.Logger;
 

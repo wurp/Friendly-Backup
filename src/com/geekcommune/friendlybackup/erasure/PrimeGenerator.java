@@ -1,4 +1,4 @@
-package com.geekcommune.friendlybackup.erasurefinder;
+package com.geekcommune.friendlybackup.erasure;
 
 import java.util.ArrayList;
 import java.util.List;

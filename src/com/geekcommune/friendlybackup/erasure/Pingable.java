@@ -1,4 +1,4 @@
-package com.geekcommune.friendlybackup.erasurefinder;
+package com.geekcommune.friendlybackup.erasure;
 
 /**
  * Pingable objects can be 'ping'ed, in response to which they may or may not do something.

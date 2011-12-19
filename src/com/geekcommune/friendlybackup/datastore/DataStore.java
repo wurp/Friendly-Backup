@@ -1,4 +1,4 @@
-package com.geekcommune.friendlybackup;
+package com.geekcommune.friendlybackup.datastore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,12 +10,12 @@ import org.apache.log4j.Logger;
 import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
-import com.geekcommune.friendlybackup.erasurefinder.ErasureUtil;
-import com.geekcommune.friendlybackup.erasurefinder.UserLog;
+import com.geekcommune.friendlybackup.erasure.ErasureUtil;
 import com.geekcommune.friendlybackup.format.low.Erasure;
 import com.geekcommune.friendlybackup.format.low.ErasureManifest;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
+import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.friendlybackup.proto.Basic;
 import com.geekcommune.util.BinaryContinuation;
 import com.geekcommune.util.Continuation;
@@ -32,7 +32,7 @@ public class DataStore {
     protected DataStore() {
         this.dataMap = new HashMap<HashIdentifier,byte[]>();
     }
-    
+
     public static DataStore instance() {
         return instance ;
     }
@@ -94,19 +94,20 @@ public class DataStore {
                                             try {
                                                 //check if enough of the blocks have come in to reconstitute the data
                                                 List<byte[]> dataList = DataStore.instance().getDataList(erasureIds);
-                                                
+
                                                 if( dataList.size() >= erasureManifest.getErasuresNeeded() ) {
                                                     //stop listening for any other blocks to come in
                                                     MessageUtil.instance().cancelListen(erasureIds);
                                                     
                                                     //reconstitute the erasure blocks into the original data
-                                                    List<Erasure> erasures = new ArrayList<Erasure>(dataList.size());
+                                                    List<com.geekcommune.friendlybackup.erasure.Erasure> erasures =
+                                                            new ArrayList<com.geekcommune.friendlybackup.erasure.Erasure>(dataList.size());
                                                     for(byte[] erasureObj : dataList) {
                                                         //TODO no need to bail on decoding altogether if parse throws exception; could
                                                         //wait for more erasures we get enough that work OR are sure we will never get enough
                                                         Erasure erasure = Erasure.fromProto(Basic.Erasure.parseFrom(erasureObj));
                                                         erasure.setIndex(erasureManifest.getIndex(erasure.getHashID()));
-                                                        erasures.add(erasure);
+                                                        erasures.add(erasure.getPlainErasure());
                                                     }
                                                     
                                                     byte[] fullContents = new byte[erasureManifest.getContentSize()];

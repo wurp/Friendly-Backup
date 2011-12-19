@@ -1,6 +1,6 @@
 package com.geekcommune.friendlybackup.communication.message;
 
-import com.geekcommune.friendlybackup.erasurefinder.ErasureFinder;
+import com.geekcommune.friendlybackup.erasure.ErasureFinder;
 import com.geekcommune.friendlybackup.format.low.Erasure;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.onionnetworks.util.Buffer;

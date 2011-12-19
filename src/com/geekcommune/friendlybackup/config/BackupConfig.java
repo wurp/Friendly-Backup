@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Properties;
 
 import com.geekcommune.communication.RemoteNodeHandle;
-import com.geekcommune.friendlybackup.erasurefinder.LoggingUserLog;
-import com.geekcommune.friendlybackup.erasurefinder.UserLog;
+import com.geekcommune.friendlybackup.logging.LoggingUserLog;
+import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.identity.PrivateIdentity;
 
 public class BackupConfig {
