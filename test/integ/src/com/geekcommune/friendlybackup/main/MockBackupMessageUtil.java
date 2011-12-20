@@ -1,5 +1,6 @@
 package com.geekcommune.friendlybackup.main;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,8 +13,12 @@ import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendMessage;
+import com.geekcommune.friendlybackup.config.BackupConfig;
 import com.geekcommune.friendlybackup.datastore.DataStore;
+import com.geekcommune.friendlybackup.datastore.Lease;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
+import com.geekcommune.identity.Signature;
+import com.geekcommune.util.DateUtil;
 import com.geekcommune.util.Pair;
 
 public class MockBackupMessageUtil extends BackupMessageUtil {
@@ -23,7 +28,8 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
 
     private List<HashIdentifier> dontListenList = new ArrayList<HashIdentifier>();
 
-    public MockBackupMessageUtil() {
+    public MockBackupMessageUtil(BackupConfig backupConfig) {
+        this.bakcfg = backupConfig;
     }
     
     @Override
@@ -60,7 +66,17 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
             log.info("Putting " + vmsm.getDataToSend().length + " bytes for key " + key);
             dataSent.put(key, vmsm.getDataToSend());
             
-            DataStore.instance().storeData(vmsm.getDataHashID(), vmsm.getDataToSend());
+            try {
+                DataStore.instance().storeData(
+                        vmsm.getDataHashID(),
+                        vmsm.getDataToSend(),
+                        new Lease(
+                                DateUtil.oneHourHence(),
+                                getBackupConfig().getOwner().getHandle(),
+                                Signature.INTERNAL_SELF_SIGNED));
+            } catch (SQLException e) {
+                log.error(e.getMessage(), e);
+            }
         } else if( msg instanceof RetrieveDataMessage ){
             RetrieveDataMessage rdm = (RetrieveDataMessage) msg;
             
@@ -72,9 +88,13 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
                 log.info("Retrieved " + (data == null ? null : data.length) + " bytes for key " + key);
                 
                 if( data == null ) {
-                    byte[] dsdata = DataStore.instance().getData(rdm.getHashIDOfDataToRetrieve());
-                    log.info("Retrieved " + (dsdata == null ? null : dsdata.length) + " bytes for key " + rdm.getHashIDOfDataToRetrieve());
-                    rdm.handleResponse(dsdata);
+                    try {
+                        byte[] dsdata = DataStore.instance().getData(rdm.getHashIDOfDataToRetrieve());
+                        log.info("Retrieved " + (dsdata == null ? null : dsdata.length) + " bytes for key " + rdm.getHashIDOfDataToRetrieve());
+                        rdm.handleResponse(dsdata);
+                    } catch (SQLException e) {
+                        log.error(e.getMessage(), e);
+                    }
                 } else {
                     rdm.handleResponse(data);
                 }

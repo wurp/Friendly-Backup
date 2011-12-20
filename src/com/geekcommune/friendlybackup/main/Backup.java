@@ -33,6 +33,9 @@ public class Backup extends Action {
 	private Thread thread;
 	private ProgressTracker progressTracker;
 
+	public Backup() throws IOException {
+	}
+	
 	public void start(final PrivateIdentity authenticatedOwner) throws IOException {
 		if( thread != null ) {
 			throw new RuntimeException("Already started");
@@ -40,7 +43,7 @@ public class Backup extends Action {
 		
 		progressTracker = new ProgressTracker(105);
 
-		final BackupConfig bakcfg = getBackupConfig();
+		final BackupConfig bakcfg = App.getBackupConfig();
 		
 		thread = new Thread(new Runnable() {
 			public void run() {
@@ -56,7 +59,7 @@ public class Backup extends Action {
 	}
 	
 	public void doBackup(String password) throws IOException, InterruptedException {
-	    start(getBackupConfig().getAuthenticatedOwner(password));
+	    start(App.getBackupConfig().getAuthenticatedOwner(password));
 	    thread.join();
 	}
 	

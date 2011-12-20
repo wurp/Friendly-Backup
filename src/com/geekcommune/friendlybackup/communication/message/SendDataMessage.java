@@ -1,9 +1,9 @@
 package com.geekcommune.friendlybackup.communication.message;
 
-import com.geekcommune.communication.message.Message;
+import com.geekcommune.communication.message.AbstractMessage;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
-public class SendDataMessage implements Message {
+public class SendDataMessage extends AbstractMessage {
 
     private HashIdentifier id;
     private byte[] data;

@@ -3,7 +3,7 @@ package com.geekcommune.communication.message;
 import com.geekcommune.communication.handler.Handler;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
-public class RetrieveLabelledFileMessage implements Message {
+public class RetrieveLabelledFileMessage extends AbstractMessage {
 
     public RetrieveLabelledFileMessage(HashIdentifier first) {
         // TODO Auto-generated constructor stub

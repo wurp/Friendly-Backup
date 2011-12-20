@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.config.BackupConfig;
 import com.geekcommune.friendlybackup.datastore.DataStore;
 import com.geekcommune.friendlybackup.format.high.BackupManifest;
@@ -34,13 +35,17 @@ public class Restore extends Action {
 	
 	private ProgressTracker progressTracker;
 
+    public Restore() throws IOException {
+        super();
+    }
+
     /**
 	 * Initiates a restore.  The restore will automatically continue in another thread - start returns immediately
 	 * after the backup manifest is retrieved.
      * @throws IOException 
 	 */
 	public void start(final PrivateIdentity authenticatedOwner) throws IOException {
-	    final BackupConfig bakcfg = getBackupConfig();
+	    final BackupConfig bakcfg = App.getBackupConfig();
 	    
         final UserLog userlog = UserLog.instance();
 
@@ -53,7 +58,7 @@ public class Restore extends Action {
         
         //retrieve my latest backup erasure manifest
         //TODO we only need one, but we'll just send out requests to everyone for now
-        DataStore.instance().retrieveLabelledData(bakcfg.getStoringNodes(), backupLabelId, new BinaryContinuation<String,byte[]>() {
+        BackupMessageUtil.instance().retrieveLabelledData(bakcfg.getStoringNodes(), backupLabelId, new BinaryContinuation<String,byte[]>() {
             public void run(String label, byte[] backupManifestContents) {
                 try {
                     BackupManifest bakman = BackupManifest.fromProto(
@@ -64,7 +69,7 @@ public class Restore extends Action {
                     //loop over each label id in the backup manifest
                     for(HashIdentifier fileLabelId : bakman.getFileLabelIDs()) {
                         //  retrieve the label
-                        DataStore.instance().retrieveLabelledData(bakcfg.getStoringNodes(), fileLabelId, new BinaryContinuation<String, byte[]>() {
+                        BackupMessageUtil.instance().retrieveLabelledData(bakcfg.getStoringNodes(), fileLabelId, new BinaryContinuation<String, byte[]>() {
 
                             public void run(String label, byte[] t) {
                                 //Danger, Will Robinson!  Overwriting the file!  TODO
@@ -128,7 +133,7 @@ public class Restore extends Action {
 	}
 	
 	public void doRestore(String password) throws InterruptedException, IOException {
-        start(getBackupConfig().getAuthenticatedOwner(password));
+        start(App.getBackupConfig().getAuthenticatedOwner(password));
         ProgressTracker progressTracker = getProgressTracker();
         while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
             System.out.println(progressTracker.getStatusMessage());

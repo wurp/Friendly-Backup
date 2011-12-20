@@ -1,6 +1,6 @@
 package com.geekcommune.friendlybackup.communication.message;
 
-import com.geekcommune.communication.message.Message;
+import com.geekcommune.communication.message.AbstractMessage;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
 /**
@@ -11,7 +11,7 @@ import com.geekcommune.friendlybackup.format.low.HashIdentifier;
  * @author bobbym
  *
  */
-public abstract class VerifyMaybeSendMessage implements Message {
+public abstract class VerifyMaybeSendMessage extends AbstractMessage {
     private HashIdentifier dataHashID;
     
     public VerifyMaybeSendMessage(HashIdentifier dataHashID) {

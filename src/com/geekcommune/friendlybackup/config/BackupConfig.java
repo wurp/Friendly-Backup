@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Properties;
 
 import com.geekcommune.communication.RemoteNodeHandle;
-import com.geekcommune.friendlybackup.logging.LoggingUserLog;
 import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.identity.PrivateIdentity;
+import com.geekcommune.identity.PublicIdentity;
 
 public class BackupConfig {
 
@@ -26,9 +26,6 @@ public class BackupConfig {
     private static final String CONNECT_INFO_SUFFIX = ".connectinfo";
 
     public BackupConfig() {
-        if( UserLog.instance() == null ) {
-            UserLog.setInstance(new LoggingUserLog());
-        }
     }
 
     public static BackupConfig parseConfigFile(File backupConfig) throws IOException {
@@ -159,8 +156,27 @@ public class BackupConfig {
         return retval;
 	}
 
+	/**
+	 * Get the directory to be backed up.  This is temporary
+	 * until I get the infrastructure in place to pull from many directories, with the ability to blacklist subtrees.
+	 * @return
+	 */
     private File getBackupRootDir() {
         return backupRootDir;
     }
 
+    public String getDbConnectString() {
+        return "jdbc:hsqldb:file:" + getDbFile().getAbsolutePath().replace('\\', '/');
+    }
+
+    private File getDbFile() {
+        File dbDir = new File(getRoot(), "db");
+        dbDir.mkdirs();
+        return new File(dbDir, "friendbackups");
+    }
+
+    public PublicIdentity getOwner() {
+        //TODO
+        return new PublicIdentity();
+    }
 }

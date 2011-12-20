@@ -7,11 +7,13 @@ import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 
 public class BackupRestoreTest extends TestCase {
     public void testBackupRestoreFakeMessageUtil() throws Exception {
-        BackupMessageUtil.setInstance(new MockBackupMessageUtil());
+        System.setProperty(App.BACKUP_CONFIG_PROP_KEY, "test/integ/happy1/config/BackupConfig.properties");
+        App.wire();
+        
+        BackupMessageUtil.setInstance(new MockBackupMessageUtil(App.getBackupConfig()));
         MessageUtil.setInstance(BackupMessageUtil.instance());
         
         String password = "password";
-        System.setProperty(Action.BACKUP_CONFIG_PROP_KEY, "test/integ/happy1/config/BackupConfig.properties");
 
         Backup backup = new Backup();
         backup.doBackup(password);
