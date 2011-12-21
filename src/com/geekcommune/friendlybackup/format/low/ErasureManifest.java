@@ -16,7 +16,8 @@ import com.geekcommune.util.Pair;
  *
  */
 public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
-	private List<Pair<HashIdentifier, RemoteNodeHandle>> erasureFetchList = new ArrayList<Pair<HashIdentifier, RemoteNodeHandle>>();
+	private List<Pair<HashIdentifier, RemoteNodeHandle>> erasureFetchList =
+	        new ArrayList<Pair<HashIdentifier, RemoteNodeHandle>>();
     private int contentSize;
     private int erasuresNeeded;
     private int totalErasures;

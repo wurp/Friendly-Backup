@@ -12,12 +12,10 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 public class BackupManifest extends BaseData<Basic.BackupManifest>{
 
-	private String backupStreamName;
     private Date backupDate;
     private List<HashIdentifier> backupFileLabelIds = new ArrayList<HashIdentifier>();
 
-    public BackupManifest(String backupStreamName, Date backupDate) {
-		this.backupStreamName = backupStreamName;
+    public BackupManifest(Date backupDate) {
 		this.backupDate = backupDate;
 	}
 
@@ -33,7 +31,6 @@ public class BackupManifest extends BaseData<Basic.BackupManifest>{
         versionCheck(1, proto.getVersion(), proto);
         
         BackupManifest retval = new BackupManifest(
-                proto.getBackupStreamName(),
                 new Date(proto.getBackupTimestampMillis()));
         for(Basic.HashIdentifier fileLabelId : proto.getBackupFileLabelIdsList()) {
             retval.add(HashIdentifier.fromProto(fileLabelId));
@@ -45,7 +42,6 @@ public class BackupManifest extends BaseData<Basic.BackupManifest>{
     public Basic.BackupManifest toProto() {
         Basic.BackupManifest.Builder bldr = Basic.BackupManifest.newBuilder();
         bldr.setVersion(1);
-        bldr.setBackupStreamName(backupStreamName);
         bldr.setBackupTimestampMillis(backupDate.getTime());
         
         for(HashIdentifier fileLabelId : backupFileLabelIds) {

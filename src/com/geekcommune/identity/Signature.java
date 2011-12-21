@@ -14,6 +14,14 @@ public class Signature implements Data<Basic.Signature>{
     
     private PGPSignature pgpSignature;
 
+    public Signature() {
+        // TODO Auto-generated constructor stub
+    }
+
+    public Signature(String sigString) {
+        // TODO Auto-generated constructor stub
+    }
+
     public Basic.Signature toProto() {
         Basic.Signature.Builder bldr = Basic.Signature.newBuilder();
         bldr.setVersion(1);

@@ -71,7 +71,7 @@ public class Backup extends Action {
 		BackupMessageUtil.instance().cleanOutBackupMessageQueue();
 		RemoteNodeHandle[] storingNodes = bakcfg.getStoringNodes();
 
-		BackupManifest bakman = new BackupManifest(bakcfg.getBackupStreamName(), new Date());
+		BackupManifest bakman = new BackupManifest(new Date());
 
 		progressTracker.changeMessage("Building list of files to back up", 1);
 		List<File> files = bakcfg.getFilesToBackup();

@@ -1,0 +1,27 @@
+How data is stored:
+
+1) The list of files to be backed up is put together as a text file, along with the date of the backup.  This is called the backup manifest.
+2) Each of the files in the backup manifest are backed up, using the computer name + file name as a label.
+3) The backup manifest itself is backed up, using the backup stream as a label.
+  * (The backup stream is just a way of naming your backups so you can have multiple different serieses of backups.)
+
+
+How a file is backed up:
+1) The file to be backed up is broken into 60 erasure blocks, each 1/40th the size of the whole file.
+  * Any 40 of these blocks can be used to recover the original file.
+2) Each erasure block is stored on a "friend node".
+  * The identifier for the data is the SHA1 hash of the contents of the block.
+  * The friend is determined by going through your friend list round-robin for each erasure block.
+3) An erasure manifest is created, listing the SHA1 hashes of all the erasure blocks.
+4) The erasure manifest is stored on all friend nodes.
+  * The identifier for the data is the SHA1 hash of the contents of the manifest.
+4) A label is created which contains the identifier of the erasure manifest, the owner's identity, the label name itself, and a signature of all the data.
+  *  The identifier of the label is the hash of the owner + label name.
+
+
+How data is deleted:
+Lease blah blah
+
+How data is encrypted:
+
+How nodes communicate:

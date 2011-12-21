@@ -77,8 +77,7 @@ message LabelledData {
 
 message BackupManifest {
   optional int32 version = 1 [default = 1];
-  required string backupStreamName = 2;
-  required int64 backupTimestampMillis = 3;
+  required int64 backupTimestampMillis = 2;
   
-  repeated HashIdentifier backupFileLabelIds = 4;
+  repeated HashIdentifier backupFileLabelIds = 3;
 }

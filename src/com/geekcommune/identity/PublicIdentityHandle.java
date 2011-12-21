@@ -6,6 +6,14 @@ import com.google.protobuf.ByteString;
 
 public class PublicIdentityHandle implements Data<Basic.PublicIdentityHandle>{
 
+    public PublicIdentityHandle() {
+        // TODO Auto-generated constructor stub
+    }
+
+    public PublicIdentityHandle(String handle) {
+        // TODO Auto-generated constructor stub
+    }
+
     public Basic.PublicIdentityHandle toProto() {
         Basic.PublicIdentityHandle.Builder bldr = Basic.PublicIdentityHandle.newBuilder();
         //TODO BOBBY
@@ -18,6 +26,11 @@ public class PublicIdentityHandle implements Data<Basic.PublicIdentityHandle>{
             com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle ownerHandle) {
         //TODO BOBBY
         return new PublicIdentityHandle();
+    }
+
+    public String fingerprintString() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
