@@ -2,7 +2,9 @@ package com.geekcommune.friendlybackup.format.low;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.format.BaseData;
@@ -79,10 +81,22 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
         proto.setErasuresNeeded(erasuresNeeded);
         proto.setTotalErasures(totalErasures);
         
+        Map<RemoteNodeHandle, Integer> rnhIdx = new HashMap<RemoteNodeHandle, Integer>();
+        for(Pair<HashIdentifier, RemoteNodeHandle> fetchInfo : erasureFetchList) {
+            RemoteNodeHandle rnh = fetchInfo.getSecond();
+            if( rnhIdx.get(rnh) == null ) {
+                proto.addStoringNode(rnh.toProto());
+                rnhIdx.put(rnh, proto.getStoringNodeCount() - 1);
+            }
+        }
+        
         for(Pair<HashIdentifier, RemoteNodeHandle> fetchInfo : erasureFetchList) {
             Basic.ErasureManifest.FetchInfo.Builder fiBuilder = Basic.ErasureManifest.FetchInfo.newBuilder();
             fiBuilder.setErasureId(fetchInfo.getFirst().toProto());
-            fiBuilder.setStoringNode(fetchInfo.getSecond().toProto());
+            if( rnhIdx.get(fetchInfo.getSecond()) == null ) {
+                throw new NullPointerException("Error building rnhIdx");
+            }
+            fiBuilder.setStoringNodeIndex(rnhIdx.get(fetchInfo.getSecond()));
             
             proto.addFetchInfo(fiBuilder.build());
         }
@@ -97,11 +111,16 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
         retval.setErasuresNeeded(proto.getErasuresNeeded());
         retval.setTotalErasures(proto.getTotalErasures());
         
+        List<RemoteNodeHandle> rnhs = new ArrayList<RemoteNodeHandle>();
+        for(Basic.RemoteNodeHandle rnh : proto.getStoringNodeList()) {
+            rnhs.add(RemoteNodeHandle.fromProto(rnh));
+        }
+        
         for(FetchInfo fetchInfo : proto.getFetchInfoList()) {
             HashIdentifier erasureId =
                     HashIdentifier.fromProto(fetchInfo.getErasureId());
             RemoteNodeHandle storingNode =
-                    RemoteNodeHandle.fromProto(fetchInfo.getStoringNode());
+                    rnhs.get(fetchInfo.getStoringNodeIndex());
             retval.add(erasureId, storingNode);
         }
         

@@ -6,6 +6,7 @@ import java.io.IOException;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.config.BackupConfig;
 import com.geekcommune.friendlybackup.datastore.DataStore;
+import com.geekcommune.friendlybackup.datastore.InMemoryDataStore;
 import com.geekcommune.friendlybackup.logging.LoggingUserLog;
 import com.geekcommune.friendlybackup.logging.UserLog;
 
@@ -32,7 +33,7 @@ public class App {
             bakcfg = BackupConfig.parseConfigFile(cfgFile);
 
             //DataStore
-            DataStore.setInstance(new DataStore(bakcfg.getDbConnectString()));
+            DataStore.setInstance(new InMemoryDataStore());
             
             //BackupMessageUtil
             BackupMessageUtil.setInstance(new BackupMessageUtil());

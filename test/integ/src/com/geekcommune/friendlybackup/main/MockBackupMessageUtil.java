@@ -45,24 +45,16 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
     }
 
     @Override
-    public void queueMessages(RemoteNodeHandle[] remoteNodeHandles,
-            Message msg) {
-        for(RemoteNodeHandle sn : remoteNodeHandles) {
-            queueMessage(sn, msg);
-        }
-    }
-
-    @Override
     public void cancelListen(HashIdentifier id) {
         dontListenList.add(id);
     }
 
     @Override
-    public void queueMessage(RemoteNodeHandle storingNode,
+    public void queueMessage(
             Message msg) {
         if( msg instanceof VerifyMaybeSendMessage ) {
             VerifyMaybeSendMessage vmsm = (VerifyMaybeSendMessage) msg;
-            Pair<RemoteNodeHandle,HashIdentifier> key = new Pair<RemoteNodeHandle,HashIdentifier>(storingNode, vmsm.getDataHashID());
+            Pair<RemoteNodeHandle,HashIdentifier> key = new Pair<RemoteNodeHandle,HashIdentifier>(msg.getDestination(), vmsm.getDataHashID());
             log.info("Putting " + vmsm.getDataToSend().length + " bytes for key " + key);
             dataSent.put(key, vmsm.getDataToSend());
             
@@ -83,7 +75,7 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
             if( dontListenList.contains(rdm.getHashIDOfDataToRetrieve()) ) {
                 log.info("not listening to " + rdm.getHashIDOfDataToRetrieve());
             } else {
-                Pair<RemoteNodeHandle,HashIdentifier> key = new Pair<RemoteNodeHandle,HashIdentifier>(storingNode, rdm.getHashIDOfDataToRetrieve());
+                Pair<RemoteNodeHandle,HashIdentifier> key = new Pair<RemoteNodeHandle,HashIdentifier>(msg.getDestination(), rdm.getHashIDOfDataToRetrieve());
                 byte[] data = dataSent.get(key);
                 log.info("Retrieved " + (data == null ? null : data.length) + " bytes for key " + key);
                 

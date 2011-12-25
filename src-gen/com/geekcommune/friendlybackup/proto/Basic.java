@@ -1688,7 +1688,17 @@ public final class Basic {
     boolean hasTotalErasures();
     int getTotalErasures();
     
-    // repeated .geekcommune.friendlybackup.ErasureManifest.FetchInfo fetchInfo = 5;
+    // repeated .geekcommune.friendlybackup.RemoteNodeHandle storingNode = 5;
+    java.util.List<com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle> 
+        getStoringNodeList();
+    com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle getStoringNode(int index);
+    int getStoringNodeCount();
+    java.util.List<? extends com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder> 
+        getStoringNodeOrBuilderList();
+    com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder getStoringNodeOrBuilder(
+        int index);
+    
+    // repeated .geekcommune.friendlybackup.ErasureManifest.FetchInfo fetchInfo = 6;
     java.util.List<com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo> 
         getFetchInfoList();
     com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo getFetchInfo(int index);
@@ -1734,10 +1744,9 @@ public final class Basic {
       com.geekcommune.friendlybackup.proto.Basic.HashIdentifier getErasureId();
       com.geekcommune.friendlybackup.proto.Basic.HashIdentifierOrBuilder getErasureIdOrBuilder();
       
-      // required .geekcommune.friendlybackup.RemoteNodeHandle storingNode = 2;
-      boolean hasStoringNode();
-      com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle getStoringNode();
-      com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder getStoringNodeOrBuilder();
+      // required int32 storingNodeIndex = 2;
+      boolean hasStoringNodeIndex();
+      int getStoringNodeIndex();
     }
     public static final class FetchInfo extends
         com.google.protobuf.GeneratedMessage
@@ -1781,22 +1790,19 @@ public final class Basic {
         return erasureId_;
       }
       
-      // required .geekcommune.friendlybackup.RemoteNodeHandle storingNode = 2;
-      public static final int STORINGNODE_FIELD_NUMBER = 2;
-      private com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle storingNode_;
-      public boolean hasStoringNode() {
+      // required int32 storingNodeIndex = 2;
+      public static final int STORINGNODEINDEX_FIELD_NUMBER = 2;
+      private int storingNodeIndex_;
+      public boolean hasStoringNodeIndex() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle getStoringNode() {
-        return storingNode_;
-      }
-      public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder getStoringNodeOrBuilder() {
-        return storingNode_;
+      public int getStoringNodeIndex() {
+        return storingNodeIndex_;
       }
       
       private void initFields() {
         erasureId_ = com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.getDefaultInstance();
-        storingNode_ = com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.getDefaultInstance();
+        storingNodeIndex_ = 0;
       }
       private byte memoizedIsInitialized = -1;
       public final boolean isInitialized() {
@@ -1807,15 +1813,11 @@ public final class Basic {
           memoizedIsInitialized = 0;
           return false;
         }
-        if (!hasStoringNode()) {
+        if (!hasStoringNodeIndex()) {
           memoizedIsInitialized = 0;
           return false;
         }
         if (!getErasureId().isInitialized()) {
-          memoizedIsInitialized = 0;
-          return false;
-        }
-        if (!getStoringNode().isInitialized()) {
           memoizedIsInitialized = 0;
           return false;
         }
@@ -1830,7 +1832,7 @@ public final class Basic {
           output.writeMessage(1, erasureId_);
         }
         if (((bitField0_ & 0x00000002) == 0x00000002)) {
-          output.writeMessage(2, storingNode_);
+          output.writeInt32(2, storingNodeIndex_);
         }
         getUnknownFields().writeTo(output);
       }
@@ -1847,7 +1849,7 @@ public final class Basic {
         }
         if (((bitField0_ & 0x00000002) == 0x00000002)) {
           size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(2, storingNode_);
+            .computeInt32Size(2, storingNodeIndex_);
         }
         size += getUnknownFields().getSerializedSize();
         memoizedSerializedSize = size;
@@ -1966,7 +1968,6 @@ public final class Basic {
         private void maybeForceBuilderInitialization() {
           if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
             getErasureIdFieldBuilder();
-            getStoringNodeFieldBuilder();
           }
         }
         private static Builder create() {
@@ -1981,11 +1982,7 @@ public final class Basic {
             erasureIdBuilder_.clear();
           }
           bitField0_ = (bitField0_ & ~0x00000001);
-          if (storingNodeBuilder_ == null) {
-            storingNode_ = com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.getDefaultInstance();
-          } else {
-            storingNodeBuilder_.clear();
-          }
+          storingNodeIndex_ = 0;
           bitField0_ = (bitField0_ & ~0x00000002);
           return this;
         }
@@ -2036,11 +2033,7 @@ public final class Basic {
           if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
             to_bitField0_ |= 0x00000002;
           }
-          if (storingNodeBuilder_ == null) {
-            result.storingNode_ = storingNode_;
-          } else {
-            result.storingNode_ = storingNodeBuilder_.build();
-          }
+          result.storingNodeIndex_ = storingNodeIndex_;
           result.bitField0_ = to_bitField0_;
           onBuilt();
           return result;
@@ -2060,8 +2053,8 @@ public final class Basic {
           if (other.hasErasureId()) {
             mergeErasureId(other.getErasureId());
           }
-          if (other.hasStoringNode()) {
-            mergeStoringNode(other.getStoringNode());
+          if (other.hasStoringNodeIndex()) {
+            setStoringNodeIndex(other.getStoringNodeIndex());
           }
           this.mergeUnknownFields(other.getUnknownFields());
           return this;
@@ -2072,15 +2065,11 @@ public final class Basic {
             
             return false;
           }
-          if (!hasStoringNode()) {
+          if (!hasStoringNodeIndex()) {
             
             return false;
           }
           if (!getErasureId().isInitialized()) {
-            
-            return false;
-          }
-          if (!getStoringNode().isInitialized()) {
             
             return false;
           }
@@ -2119,13 +2108,9 @@ public final class Basic {
                 setErasureId(subBuilder.buildPartial());
                 break;
               }
-              case 18: {
-                com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder subBuilder = com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.newBuilder();
-                if (hasStoringNode()) {
-                  subBuilder.mergeFrom(getStoringNode());
-                }
-                input.readMessage(subBuilder, extensionRegistry);
-                setStoringNode(subBuilder.buildPartial());
+              case 16: {
+                bitField0_ |= 0x00000002;
+                storingNodeIndex_ = input.readInt32();
                 break;
               }
             }
@@ -2224,94 +2209,25 @@ public final class Basic {
           return erasureIdBuilder_;
         }
         
-        // required .geekcommune.friendlybackup.RemoteNodeHandle storingNode = 2;
-        private com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle storingNode_ = com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.getDefaultInstance();
-        private com.google.protobuf.SingleFieldBuilder<
-            com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder> storingNodeBuilder_;
-        public boolean hasStoringNode() {
+        // required int32 storingNodeIndex = 2;
+        private int storingNodeIndex_ ;
+        public boolean hasStoringNodeIndex() {
           return ((bitField0_ & 0x00000002) == 0x00000002);
         }
-        public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle getStoringNode() {
-          if (storingNodeBuilder_ == null) {
-            return storingNode_;
-          } else {
-            return storingNodeBuilder_.getMessage();
-          }
+        public int getStoringNodeIndex() {
+          return storingNodeIndex_;
         }
-        public Builder setStoringNode(com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle value) {
-          if (storingNodeBuilder_ == null) {
-            if (value == null) {
-              throw new NullPointerException();
-            }
-            storingNode_ = value;
-            onChanged();
-          } else {
-            storingNodeBuilder_.setMessage(value);
-          }
+        public Builder setStoringNodeIndex(int value) {
           bitField0_ |= 0x00000002;
-          return this;
-        }
-        public Builder setStoringNode(
-            com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder builderForValue) {
-          if (storingNodeBuilder_ == null) {
-            storingNode_ = builderForValue.build();
-            onChanged();
-          } else {
-            storingNodeBuilder_.setMessage(builderForValue.build());
-          }
-          bitField0_ |= 0x00000002;
-          return this;
-        }
-        public Builder mergeStoringNode(com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle value) {
-          if (storingNodeBuilder_ == null) {
-            if (((bitField0_ & 0x00000002) == 0x00000002) &&
-                storingNode_ != com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.getDefaultInstance()) {
-              storingNode_ =
-                com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.newBuilder(storingNode_).mergeFrom(value).buildPartial();
-            } else {
-              storingNode_ = value;
-            }
-            onChanged();
-          } else {
-            storingNodeBuilder_.mergeFrom(value);
-          }
-          bitField0_ |= 0x00000002;
-          return this;
-        }
-        public Builder clearStoringNode() {
-          if (storingNodeBuilder_ == null) {
-            storingNode_ = com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.getDefaultInstance();
-            onChanged();
-          } else {
-            storingNodeBuilder_.clear();
-          }
-          bitField0_ = (bitField0_ & ~0x00000002);
-          return this;
-        }
-        public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder getStoringNodeBuilder() {
-          bitField0_ |= 0x00000002;
+          storingNodeIndex_ = value;
           onChanged();
-          return getStoringNodeFieldBuilder().getBuilder();
+          return this;
         }
-        public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder getStoringNodeOrBuilder() {
-          if (storingNodeBuilder_ != null) {
-            return storingNodeBuilder_.getMessageOrBuilder();
-          } else {
-            return storingNode_;
-          }
-        }
-        private com.google.protobuf.SingleFieldBuilder<
-            com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder> 
-            getStoringNodeFieldBuilder() {
-          if (storingNodeBuilder_ == null) {
-            storingNodeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-                com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder>(
-                    storingNode_,
-                    getParentForChildren(),
-                    isClean());
-            storingNode_ = null;
-          }
-          return storingNodeBuilder_;
+        public Builder clearStoringNodeIndex() {
+          bitField0_ = (bitField0_ & ~0x00000002);
+          storingNodeIndex_ = 0;
+          onChanged();
+          return this;
         }
         
         // @@protoc_insertion_point(builder_scope:geekcommune.friendlybackup.ErasureManifest.FetchInfo)
@@ -2366,8 +2282,29 @@ public final class Basic {
       return totalErasures_;
     }
     
-    // repeated .geekcommune.friendlybackup.ErasureManifest.FetchInfo fetchInfo = 5;
-    public static final int FETCHINFO_FIELD_NUMBER = 5;
+    // repeated .geekcommune.friendlybackup.RemoteNodeHandle storingNode = 5;
+    public static final int STORINGNODE_FIELD_NUMBER = 5;
+    private java.util.List<com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle> storingNode_;
+    public java.util.List<com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle> getStoringNodeList() {
+      return storingNode_;
+    }
+    public java.util.List<? extends com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder> 
+        getStoringNodeOrBuilderList() {
+      return storingNode_;
+    }
+    public int getStoringNodeCount() {
+      return storingNode_.size();
+    }
+    public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle getStoringNode(int index) {
+      return storingNode_.get(index);
+    }
+    public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder getStoringNodeOrBuilder(
+        int index) {
+      return storingNode_.get(index);
+    }
+    
+    // repeated .geekcommune.friendlybackup.ErasureManifest.FetchInfo fetchInfo = 6;
+    public static final int FETCHINFO_FIELD_NUMBER = 6;
     private java.util.List<com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo> fetchInfo_;
     public java.util.List<com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo> getFetchInfoList() {
       return fetchInfo_;
@@ -2392,6 +2329,7 @@ public final class Basic {
       contentSize_ = 0;
       erasuresNeeded_ = 0;
       totalErasures_ = 0;
+      storingNode_ = java.util.Collections.emptyList();
       fetchInfo_ = java.util.Collections.emptyList();
     }
     private byte memoizedIsInitialized = -1;
@@ -2410,6 +2348,12 @@ public final class Basic {
       if (!hasTotalErasures()) {
         memoizedIsInitialized = 0;
         return false;
+      }
+      for (int i = 0; i < getStoringNodeCount(); i++) {
+        if (!getStoringNode(i).isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
       }
       for (int i = 0; i < getFetchInfoCount(); i++) {
         if (!getFetchInfo(i).isInitialized()) {
@@ -2436,8 +2380,11 @@ public final class Basic {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt32(4, totalErasures_);
       }
+      for (int i = 0; i < storingNode_.size(); i++) {
+        output.writeMessage(5, storingNode_.get(i));
+      }
       for (int i = 0; i < fetchInfo_.size(); i++) {
-        output.writeMessage(5, fetchInfo_.get(i));
+        output.writeMessage(6, fetchInfo_.get(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -2464,9 +2411,13 @@ public final class Basic {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(4, totalErasures_);
       }
+      for (int i = 0; i < storingNode_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, storingNode_.get(i));
+      }
       for (int i = 0; i < fetchInfo_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(5, fetchInfo_.get(i));
+          .computeMessageSize(6, fetchInfo_.get(i));
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -2584,6 +2535,7 @@ public final class Basic {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getStoringNodeFieldBuilder();
           getFetchInfoFieldBuilder();
         }
       }
@@ -2601,9 +2553,15 @@ public final class Basic {
         bitField0_ = (bitField0_ & ~0x00000004);
         totalErasures_ = 0;
         bitField0_ = (bitField0_ & ~0x00000008);
+        if (storingNodeBuilder_ == null) {
+          storingNode_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000010);
+        } else {
+          storingNodeBuilder_.clear();
+        }
         if (fetchInfoBuilder_ == null) {
           fetchInfo_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000010);
+          bitField0_ = (bitField0_ & ~0x00000020);
         } else {
           fetchInfoBuilder_.clear();
         }
@@ -2661,10 +2619,19 @@ public final class Basic {
           to_bitField0_ |= 0x00000008;
         }
         result.totalErasures_ = totalErasures_;
-        if (fetchInfoBuilder_ == null) {
+        if (storingNodeBuilder_ == null) {
           if (((bitField0_ & 0x00000010) == 0x00000010)) {
-            fetchInfo_ = java.util.Collections.unmodifiableList(fetchInfo_);
+            storingNode_ = java.util.Collections.unmodifiableList(storingNode_);
             bitField0_ = (bitField0_ & ~0x00000010);
+          }
+          result.storingNode_ = storingNode_;
+        } else {
+          result.storingNode_ = storingNodeBuilder_.build();
+        }
+        if (fetchInfoBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) == 0x00000020)) {
+            fetchInfo_ = java.util.Collections.unmodifiableList(fetchInfo_);
+            bitField0_ = (bitField0_ & ~0x00000020);
           }
           result.fetchInfo_ = fetchInfo_;
         } else {
@@ -2698,11 +2665,37 @@ public final class Basic {
         if (other.hasTotalErasures()) {
           setTotalErasures(other.getTotalErasures());
         }
+        if (storingNodeBuilder_ == null) {
+          if (!other.storingNode_.isEmpty()) {
+            if (storingNode_.isEmpty()) {
+              storingNode_ = other.storingNode_;
+              bitField0_ = (bitField0_ & ~0x00000010);
+            } else {
+              ensureStoringNodeIsMutable();
+              storingNode_.addAll(other.storingNode_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.storingNode_.isEmpty()) {
+            if (storingNodeBuilder_.isEmpty()) {
+              storingNodeBuilder_.dispose();
+              storingNodeBuilder_ = null;
+              storingNode_ = other.storingNode_;
+              bitField0_ = (bitField0_ & ~0x00000010);
+              storingNodeBuilder_ = 
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   getStoringNodeFieldBuilder() : null;
+            } else {
+              storingNodeBuilder_.addAllMessages(other.storingNode_);
+            }
+          }
+        }
         if (fetchInfoBuilder_ == null) {
           if (!other.fetchInfo_.isEmpty()) {
             if (fetchInfo_.isEmpty()) {
               fetchInfo_ = other.fetchInfo_;
-              bitField0_ = (bitField0_ & ~0x00000010);
+              bitField0_ = (bitField0_ & ~0x00000020);
             } else {
               ensureFetchInfoIsMutable();
               fetchInfo_.addAll(other.fetchInfo_);
@@ -2715,7 +2708,7 @@ public final class Basic {
               fetchInfoBuilder_.dispose();
               fetchInfoBuilder_ = null;
               fetchInfo_ = other.fetchInfo_;
-              bitField0_ = (bitField0_ & ~0x00000010);
+              bitField0_ = (bitField0_ & ~0x00000020);
               fetchInfoBuilder_ = 
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    getFetchInfoFieldBuilder() : null;
@@ -2740,6 +2733,12 @@ public final class Basic {
         if (!hasTotalErasures()) {
           
           return false;
+        }
+        for (int i = 0; i < getStoringNodeCount(); i++) {
+          if (!getStoringNode(i).isInitialized()) {
+            
+            return false;
+          }
         }
         for (int i = 0; i < getFetchInfoCount(); i++) {
           if (!getFetchInfo(i).isInitialized()) {
@@ -2794,6 +2793,12 @@ public final class Basic {
               break;
             }
             case 42: {
+              com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder subBuilder = com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addStoringNode(subBuilder.buildPartial());
+              break;
+            }
+            case 50: {
               com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo.Builder subBuilder = com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo.newBuilder();
               input.readMessage(subBuilder, extensionRegistry);
               addFetchInfo(subBuilder.buildPartial());
@@ -2889,13 +2894,199 @@ public final class Basic {
         return this;
       }
       
-      // repeated .geekcommune.friendlybackup.ErasureManifest.FetchInfo fetchInfo = 5;
+      // repeated .geekcommune.friendlybackup.RemoteNodeHandle storingNode = 5;
+      private java.util.List<com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle> storingNode_ =
+        java.util.Collections.emptyList();
+      private void ensureStoringNodeIsMutable() {
+        if (!((bitField0_ & 0x00000010) == 0x00000010)) {
+          storingNode_ = new java.util.ArrayList<com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle>(storingNode_);
+          bitField0_ |= 0x00000010;
+         }
+      }
+      
+      private com.google.protobuf.RepeatedFieldBuilder<
+          com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder> storingNodeBuilder_;
+      
+      public java.util.List<com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle> getStoringNodeList() {
+        if (storingNodeBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(storingNode_);
+        } else {
+          return storingNodeBuilder_.getMessageList();
+        }
+      }
+      public int getStoringNodeCount() {
+        if (storingNodeBuilder_ == null) {
+          return storingNode_.size();
+        } else {
+          return storingNodeBuilder_.getCount();
+        }
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle getStoringNode(int index) {
+        if (storingNodeBuilder_ == null) {
+          return storingNode_.get(index);
+        } else {
+          return storingNodeBuilder_.getMessage(index);
+        }
+      }
+      public Builder setStoringNode(
+          int index, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle value) {
+        if (storingNodeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureStoringNodeIsMutable();
+          storingNode_.set(index, value);
+          onChanged();
+        } else {
+          storingNodeBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      public Builder setStoringNode(
+          int index, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder builderForValue) {
+        if (storingNodeBuilder_ == null) {
+          ensureStoringNodeIsMutable();
+          storingNode_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          storingNodeBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      public Builder addStoringNode(com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle value) {
+        if (storingNodeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureStoringNodeIsMutable();
+          storingNode_.add(value);
+          onChanged();
+        } else {
+          storingNodeBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      public Builder addStoringNode(
+          int index, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle value) {
+        if (storingNodeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureStoringNodeIsMutable();
+          storingNode_.add(index, value);
+          onChanged();
+        } else {
+          storingNodeBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      public Builder addStoringNode(
+          com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder builderForValue) {
+        if (storingNodeBuilder_ == null) {
+          ensureStoringNodeIsMutable();
+          storingNode_.add(builderForValue.build());
+          onChanged();
+        } else {
+          storingNodeBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      public Builder addStoringNode(
+          int index, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder builderForValue) {
+        if (storingNodeBuilder_ == null) {
+          ensureStoringNodeIsMutable();
+          storingNode_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          storingNodeBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      public Builder addAllStoringNode(
+          java.lang.Iterable<? extends com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle> values) {
+        if (storingNodeBuilder_ == null) {
+          ensureStoringNodeIsMutable();
+          super.addAll(values, storingNode_);
+          onChanged();
+        } else {
+          storingNodeBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      public Builder clearStoringNode() {
+        if (storingNodeBuilder_ == null) {
+          storingNode_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000010);
+          onChanged();
+        } else {
+          storingNodeBuilder_.clear();
+        }
+        return this;
+      }
+      public Builder removeStoringNode(int index) {
+        if (storingNodeBuilder_ == null) {
+          ensureStoringNodeIsMutable();
+          storingNode_.remove(index);
+          onChanged();
+        } else {
+          storingNodeBuilder_.remove(index);
+        }
+        return this;
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder getStoringNodeBuilder(
+          int index) {
+        return getStoringNodeFieldBuilder().getBuilder(index);
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder getStoringNodeOrBuilder(
+          int index) {
+        if (storingNodeBuilder_ == null) {
+          return storingNode_.get(index);  } else {
+          return storingNodeBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      public java.util.List<? extends com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder> 
+           getStoringNodeOrBuilderList() {
+        if (storingNodeBuilder_ != null) {
+          return storingNodeBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(storingNode_);
+        }
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder addStoringNodeBuilder() {
+        return getStoringNodeFieldBuilder().addBuilder(
+            com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.getDefaultInstance());
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder addStoringNodeBuilder(
+          int index) {
+        return getStoringNodeFieldBuilder().addBuilder(
+            index, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.getDefaultInstance());
+      }
+      public java.util.List<com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder> 
+           getStoringNodeBuilderList() {
+        return getStoringNodeFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder> 
+          getStoringNodeFieldBuilder() {
+        if (storingNodeBuilder_ == null) {
+          storingNodeBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandle.Builder, com.geekcommune.friendlybackup.proto.Basic.RemoteNodeHandleOrBuilder>(
+                  storingNode_,
+                  ((bitField0_ & 0x00000010) == 0x00000010),
+                  getParentForChildren(),
+                  isClean());
+          storingNode_ = null;
+        }
+        return storingNodeBuilder_;
+      }
+      
+      // repeated .geekcommune.friendlybackup.ErasureManifest.FetchInfo fetchInfo = 6;
       private java.util.List<com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo> fetchInfo_ =
         java.util.Collections.emptyList();
       private void ensureFetchInfoIsMutable() {
-        if (!((bitField0_ & 0x00000010) == 0x00000010)) {
+        if (!((bitField0_ & 0x00000020) == 0x00000020)) {
           fetchInfo_ = new java.util.ArrayList<com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo>(fetchInfo_);
-          bitField0_ |= 0x00000010;
+          bitField0_ |= 0x00000020;
          }
       }
       
@@ -3011,7 +3202,7 @@ public final class Basic {
       public Builder clearFetchInfo() {
         if (fetchInfoBuilder_ == null) {
           fetchInfo_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000010);
+          bitField0_ = (bitField0_ & ~0x00000020);
           onChanged();
         } else {
           fetchInfoBuilder_.clear();
@@ -3067,7 +3258,7 @@ public final class Basic {
           fetchInfoBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
               com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo, com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo.Builder, com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfoOrBuilder>(
                   fetchInfo_,
-                  ((bitField0_ & 0x00000010) == 0x00000010),
+                  ((bitField0_ & 0x00000020) == 0x00000020),
                   getParentForChildren(),
                   isClean());
           fetchInfo_ = null;
@@ -5262,15 +5453,11 @@ public final class Basic {
     boolean hasVersion();
     int getVersion();
     
-    // required string backupStreamName = 2;
-    boolean hasBackupStreamName();
-    String getBackupStreamName();
-    
-    // required int64 backupTimestampMillis = 3;
+    // required int64 backupTimestampMillis = 2;
     boolean hasBackupTimestampMillis();
     long getBackupTimestampMillis();
     
-    // repeated .geekcommune.friendlybackup.HashIdentifier backupFileLabelIds = 4;
+    // repeated .geekcommune.friendlybackup.HashIdentifier backupFileLabelIds = 3;
     java.util.List<com.geekcommune.friendlybackup.proto.Basic.HashIdentifier> 
         getBackupFileLabelIdsList();
     com.geekcommune.friendlybackup.proto.Basic.HashIdentifier getBackupFileLabelIds(int index);
@@ -5319,50 +5506,18 @@ public final class Basic {
       return version_;
     }
     
-    // required string backupStreamName = 2;
-    public static final int BACKUPSTREAMNAME_FIELD_NUMBER = 2;
-    private java.lang.Object backupStreamName_;
-    public boolean hasBackupStreamName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    public String getBackupStreamName() {
-      java.lang.Object ref = backupStreamName_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          backupStreamName_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getBackupStreamNameBytes() {
-      java.lang.Object ref = backupStreamName_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        backupStreamName_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // required int64 backupTimestampMillis = 3;
-    public static final int BACKUPTIMESTAMPMILLIS_FIELD_NUMBER = 3;
+    // required int64 backupTimestampMillis = 2;
+    public static final int BACKUPTIMESTAMPMILLIS_FIELD_NUMBER = 2;
     private long backupTimestampMillis_;
     public boolean hasBackupTimestampMillis() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     public long getBackupTimestampMillis() {
       return backupTimestampMillis_;
     }
     
-    // repeated .geekcommune.friendlybackup.HashIdentifier backupFileLabelIds = 4;
-    public static final int BACKUPFILELABELIDS_FIELD_NUMBER = 4;
+    // repeated .geekcommune.friendlybackup.HashIdentifier backupFileLabelIds = 3;
+    public static final int BACKUPFILELABELIDS_FIELD_NUMBER = 3;
     private java.util.List<com.geekcommune.friendlybackup.proto.Basic.HashIdentifier> backupFileLabelIds_;
     public java.util.List<com.geekcommune.friendlybackup.proto.Basic.HashIdentifier> getBackupFileLabelIdsList() {
       return backupFileLabelIds_;
@@ -5384,7 +5539,6 @@ public final class Basic {
     
     private void initFields() {
       version_ = 1;
-      backupStreamName_ = "";
       backupTimestampMillis_ = 0L;
       backupFileLabelIds_ = java.util.Collections.emptyList();
     }
@@ -5393,10 +5547,6 @@ public final class Basic {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized != -1) return isInitialized == 1;
       
-      if (!hasBackupStreamName()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
       if (!hasBackupTimestampMillis()) {
         memoizedIsInitialized = 0;
         return false;
@@ -5418,13 +5568,10 @@ public final class Basic {
         output.writeInt32(1, version_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getBackupStreamNameBytes());
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeInt64(3, backupTimestampMillis_);
+        output.writeInt64(2, backupTimestampMillis_);
       }
       for (int i = 0; i < backupFileLabelIds_.size(); i++) {
-        output.writeMessage(4, backupFileLabelIds_.get(i));
+        output.writeMessage(3, backupFileLabelIds_.get(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -5441,15 +5588,11 @@ public final class Basic {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getBackupStreamNameBytes());
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(3, backupTimestampMillis_);
+          .computeInt64Size(2, backupTimestampMillis_);
       }
       for (int i = 0; i < backupFileLabelIds_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, backupFileLabelIds_.get(i));
+          .computeMessageSize(3, backupFileLabelIds_.get(i));
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -5578,13 +5721,11 @@ public final class Basic {
         super.clear();
         version_ = 1;
         bitField0_ = (bitField0_ & ~0x00000001);
-        backupStreamName_ = "";
-        bitField0_ = (bitField0_ & ~0x00000002);
         backupTimestampMillis_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         if (backupFileLabelIdsBuilder_ == null) {
           backupFileLabelIds_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000008);
+          bitField0_ = (bitField0_ & ~0x00000004);
         } else {
           backupFileLabelIdsBuilder_.clear();
         }
@@ -5633,15 +5774,11 @@ public final class Basic {
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
-        result.backupStreamName_ = backupStreamName_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
         result.backupTimestampMillis_ = backupTimestampMillis_;
         if (backupFileLabelIdsBuilder_ == null) {
-          if (((bitField0_ & 0x00000008) == 0x00000008)) {
+          if (((bitField0_ & 0x00000004) == 0x00000004)) {
             backupFileLabelIds_ = java.util.Collections.unmodifiableList(backupFileLabelIds_);
-            bitField0_ = (bitField0_ & ~0x00000008);
+            bitField0_ = (bitField0_ & ~0x00000004);
           }
           result.backupFileLabelIds_ = backupFileLabelIds_;
         } else {
@@ -5666,9 +5803,6 @@ public final class Basic {
         if (other.hasVersion()) {
           setVersion(other.getVersion());
         }
-        if (other.hasBackupStreamName()) {
-          setBackupStreamName(other.getBackupStreamName());
-        }
         if (other.hasBackupTimestampMillis()) {
           setBackupTimestampMillis(other.getBackupTimestampMillis());
         }
@@ -5676,7 +5810,7 @@ public final class Basic {
           if (!other.backupFileLabelIds_.isEmpty()) {
             if (backupFileLabelIds_.isEmpty()) {
               backupFileLabelIds_ = other.backupFileLabelIds_;
-              bitField0_ = (bitField0_ & ~0x00000008);
+              bitField0_ = (bitField0_ & ~0x00000004);
             } else {
               ensureBackupFileLabelIdsIsMutable();
               backupFileLabelIds_.addAll(other.backupFileLabelIds_);
@@ -5689,7 +5823,7 @@ public final class Basic {
               backupFileLabelIdsBuilder_.dispose();
               backupFileLabelIdsBuilder_ = null;
               backupFileLabelIds_ = other.backupFileLabelIds_;
-              bitField0_ = (bitField0_ & ~0x00000008);
+              bitField0_ = (bitField0_ & ~0x00000004);
               backupFileLabelIdsBuilder_ = 
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    getBackupFileLabelIdsFieldBuilder() : null;
@@ -5703,10 +5837,6 @@ public final class Basic {
       }
       
       public final boolean isInitialized() {
-        if (!hasBackupStreamName()) {
-          
-          return false;
-        }
         if (!hasBackupTimestampMillis()) {
           
           return false;
@@ -5748,17 +5878,12 @@ public final class Basic {
               version_ = input.readInt32();
               break;
             }
-            case 18: {
+            case 16: {
               bitField0_ |= 0x00000002;
-              backupStreamName_ = input.readBytes();
-              break;
-            }
-            case 24: {
-              bitField0_ |= 0x00000004;
               backupTimestampMillis_ = input.readInt64();
               break;
             }
-            case 34: {
+            case 26: {
               com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.Builder subBuilder = com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.newBuilder();
               input.readMessage(subBuilder, extensionRegistry);
               addBackupFileLabelIds(subBuilder.buildPartial());
@@ -5791,70 +5916,34 @@ public final class Basic {
         return this;
       }
       
-      // required string backupStreamName = 2;
-      private java.lang.Object backupStreamName_ = "";
-      public boolean hasBackupStreamName() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      public String getBackupStreamName() {
-        java.lang.Object ref = backupStreamName_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          backupStreamName_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
-      }
-      public Builder setBackupStreamName(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-        backupStreamName_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearBackupStreamName() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        backupStreamName_ = getDefaultInstance().getBackupStreamName();
-        onChanged();
-        return this;
-      }
-      void setBackupStreamName(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000002;
-        backupStreamName_ = value;
-        onChanged();
-      }
-      
-      // required int64 backupTimestampMillis = 3;
+      // required int64 backupTimestampMillis = 2;
       private long backupTimestampMillis_ ;
       public boolean hasBackupTimestampMillis() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       public long getBackupTimestampMillis() {
         return backupTimestampMillis_;
       }
       public Builder setBackupTimestampMillis(long value) {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         backupTimestampMillis_ = value;
         onChanged();
         return this;
       }
       public Builder clearBackupTimestampMillis() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         backupTimestampMillis_ = 0L;
         onChanged();
         return this;
       }
       
-      // repeated .geekcommune.friendlybackup.HashIdentifier backupFileLabelIds = 4;
+      // repeated .geekcommune.friendlybackup.HashIdentifier backupFileLabelIds = 3;
       private java.util.List<com.geekcommune.friendlybackup.proto.Basic.HashIdentifier> backupFileLabelIds_ =
         java.util.Collections.emptyList();
       private void ensureBackupFileLabelIdsIsMutable() {
-        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
           backupFileLabelIds_ = new java.util.ArrayList<com.geekcommune.friendlybackup.proto.Basic.HashIdentifier>(backupFileLabelIds_);
-          bitField0_ |= 0x00000008;
+          bitField0_ |= 0x00000004;
          }
       }
       
@@ -5970,7 +6059,7 @@ public final class Basic {
       public Builder clearBackupFileLabelIds() {
         if (backupFileLabelIdsBuilder_ == null) {
           backupFileLabelIds_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000008);
+          bitField0_ = (bitField0_ & ~0x00000004);
           onChanged();
         } else {
           backupFileLabelIdsBuilder_.clear();
@@ -6026,7 +6115,7 @@ public final class Basic {
           backupFileLabelIdsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
               com.geekcommune.friendlybackup.proto.Basic.HashIdentifier, com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.Builder, com.geekcommune.friendlybackup.proto.Basic.HashIdentifierOrBuilder>(
                   backupFileLabelIds_,
-                  ((bitField0_ & 0x00000008) == 0x00000008),
+                  ((bitField0_ & 0x00000004) == 0x00000004),
                   getParentForChildren(),
                   isClean());
           backupFileLabelIds_ = null;
@@ -6113,32 +6202,32 @@ public final class Basic {
       "\022\n\007version\030\001 \001(\005:\0011\022\014\n\004name\030\002 \002(\t\022\r\n\005ema" +
       "il\030\003 \002(\t\022\025\n\rconnectString\030\004 \002(\t\":\n\007Erasu" +
       "re\022\022\n\007version\030\001 \001(\005:\0011\022\r\n\005index\030\002 \002(\005\022\014\n" +
-      "\004data\030\003 \002(\014\"\303\002\n\017ErasureManifest\022\022\n\007versi",
+      "\004data\030\003 \002(\014\"\334\002\n\017ErasureManifest\022\022\n\007versi",
       "on\030\001 \001(\005:\0011\022\023\n\013contentSize\030\002 \002(\005\022\026\n\016eras" +
       "uresNeeded\030\003 \002(\005\022\025\n\rtotalErasures\030\004 \002(\005\022" +
-      "H\n\tfetchInfo\030\005 \003(\01325.geekcommune.friendl" +
-      "ybackup.ErasureManifest.FetchInfo\032\215\001\n\tFe" +
-      "tchInfo\022=\n\terasureId\030\001 \002(\0132*.geekcommune" +
-      ".friendlybackup.HashIdentifier\022A\n\013storin" +
-      "gNode\030\002 \002(\0132,.geekcommune.friendlybackup" +
-      ".RemoteNodeHandle\"?\n\024PublicIdentityHandl" +
-      "e\022\022\n\007version\030\001 \001(\005:\0011\022\023\n\013fingerprint\030\002 \002" +
-      "(\014\"2\n\tSignature\022\022\n\007version\030\001 \001(\005:\0011\022\021\n\ts",
-      "ignature\030\002 \002(\014\"\322\002\n\014LabelledData\022\022\n\007versi" +
-      "on\030\001 \001(\005:\0011\022M\n\rhashedPortion\030\002 \002(\01326.gee" +
-      "kcommune.friendlybackup.LabelledData.Has" +
-      "hedPortion\022>\n\npointingAt\030\003 \002(\0132*.geekcom" +
-      "mune.friendlybackup.HashIdentifier\0228\n\tsi" +
-      "gnature\030\004 \002(\0132%.geekcommune.friendlyback" +
-      "up.Signature\032e\n\rHashedPortion\022\r\n\005label\030\001" +
-      " \002(\t\022E\n\013ownerHandle\030\002 \002(\01320.geekcommune." +
-      "friendlybackup.PublicIdentityHandle\"\245\001\n\016" +
-      "BackupManifest\022\022\n\007version\030\001 \001(\005:\0011\022\030\n\020ba",
-      "ckupStreamName\030\002 \002(\t\022\035\n\025backupTimestampM" +
-      "illis\030\003 \002(\003\022F\n\022backupFileLabelIds\030\004 \003(\0132" +
-      "*.geekcommune.friendlybackup.HashIdentif" +
-      "ierB&\n$com.geekcommune.friendlybackup.pr" +
-      "oto"
+      "A\n\013storingNode\030\005 \003(\0132,.geekcommune.frien" +
+      "dlybackup.RemoteNodeHandle\022H\n\tfetchInfo\030" +
+      "\006 \003(\01325.geekcommune.friendlybackup.Erasu" +
+      "reManifest.FetchInfo\032d\n\tFetchInfo\022=\n\tera" +
+      "sureId\030\001 \002(\0132*.geekcommune.friendlybacku" +
+      "p.HashIdentifier\022\030\n\020storingNodeIndex\030\002 \002" +
+      "(\005\"?\n\024PublicIdentityHandle\022\022\n\007version\030\001 " +
+      "\001(\005:\0011\022\023\n\013fingerprint\030\002 \002(\014\"2\n\tSignature",
+      "\022\022\n\007version\030\001 \001(\005:\0011\022\021\n\tsignature\030\002 \002(\014\"" +
+      "\322\002\n\014LabelledData\022\022\n\007version\030\001 \001(\005:\0011\022M\n\r" +
+      "hashedPortion\030\002 \002(\01326.geekcommune.friend" +
+      "lybackup.LabelledData.HashedPortion\022>\n\np" +
+      "ointingAt\030\003 \002(\0132*.geekcommune.friendlyba" +
+      "ckup.HashIdentifier\0228\n\tsignature\030\004 \002(\0132%" +
+      ".geekcommune.friendlybackup.Signature\032e\n" +
+      "\rHashedPortion\022\r\n\005label\030\001 \002(\t\022E\n\013ownerHa" +
+      "ndle\030\002 \002(\01320.geekcommune.friendlybackup." +
+      "PublicIdentityHandle\"\213\001\n\016BackupManifest\022",
+      "\022\n\007version\030\001 \001(\005:\0011\022\035\n\025backupTimestampMi" +
+      "llis\030\002 \002(\003\022F\n\022backupFileLabelIds\030\003 \003(\0132*" +
+      ".geekcommune.friendlybackup.HashIdentifi" +
+      "erB&\n$com.geekcommune.friendlybackup.pro" +
+      "to"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -6174,7 +6263,7 @@ public final class Basic {
           internal_static_geekcommune_friendlybackup_ErasureManifest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_geekcommune_friendlybackup_ErasureManifest_descriptor,
-              new java.lang.String[] { "Version", "ContentSize", "ErasuresNeeded", "TotalErasures", "FetchInfo", },
+              new java.lang.String[] { "Version", "ContentSize", "ErasuresNeeded", "TotalErasures", "StoringNode", "FetchInfo", },
               com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.class,
               com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.Builder.class);
           internal_static_geekcommune_friendlybackup_ErasureManifest_FetchInfo_descriptor =
@@ -6182,7 +6271,7 @@ public final class Basic {
           internal_static_geekcommune_friendlybackup_ErasureManifest_FetchInfo_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_geekcommune_friendlybackup_ErasureManifest_FetchInfo_descriptor,
-              new java.lang.String[] { "ErasureId", "StoringNode", },
+              new java.lang.String[] { "ErasureId", "StoringNodeIndex", },
               com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo.class,
               com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo.Builder.class);
           internal_static_geekcommune_friendlybackup_PublicIdentityHandle_descriptor =
@@ -6222,7 +6311,7 @@ public final class Basic {
           internal_static_geekcommune_friendlybackup_BackupManifest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_geekcommune_friendlybackup_BackupManifest_descriptor,
-              new java.lang.String[] { "Version", "BackupStreamName", "BackupTimestampMillis", "BackupFileLabelIds", },
+              new java.lang.String[] { "Version", "BackupTimestampMillis", "BackupFileLabelIds", },
               com.geekcommune.friendlybackup.proto.Basic.BackupManifest.class,
               com.geekcommune.friendlybackup.proto.Basic.BackupManifest.Builder.class);
           return null;

@@ -2,6 +2,7 @@ package com.geekcommune.friendlybackup.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
@@ -66,7 +67,7 @@ public class Backup extends Action {
 	protected void doBackupInternal(BackupConfig bakcfg, PrivateIdentity authenticatedOwner, Date expiryDate) {
 		UserLog userlog = UserLog.instance();
 		
-		//first make sure there's no other messages still hanging around from previous backups
+		//first make sure there are no other messages still hanging around from previous backups
 		progressTracker.changeMessage("cleaning out any messages from last backup", 1);
 		BackupMessageUtil.instance().cleanOutBackupMessageQueue();
 		RemoteNodeHandle[] storingNodes = bakcfg.getStoringNodes();
@@ -89,7 +90,9 @@ public class Backup extends Action {
 						storingNodes,
 						f,
 						bakcfg.getErasuresNeeded(),
-						bakcfg.getTotalErasures());
+						bakcfg.getTotalErasures(),
+						expiryDate,
+						authenticatedOwner);
 
 				LabelledData labelledData = LabelledDataBuilder.buildLabelledData(
 						authenticatedOwner,
@@ -115,7 +118,9 @@ public class Backup extends Action {
 					storingNodes,
 					bakman.getData(),
 					bakcfg.getErasuresNeeded(),
-					bakcfg.getTotalErasures());
+					bakcfg.getTotalErasures(),
+                    expiryDate,
+                    authenticatedOwner);
 			
 			LabelledDataBuilder.buildLabelledData(
 					authenticatedOwner,
@@ -126,7 +131,13 @@ public class Backup extends Action {
 		}
 		
 		//now just process the message uploads
-		BackupMessageUtil.instance().processBackupMessages(progressTracker);
+		try {
+            BackupMessageUtil.instance().processBackupMessages(progressTracker);
+        } catch (ClassNotFoundException e) {
+            log.error(e.getMessage(), e);
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+        }
 	}
 	
 	private Date makeExpiryDate() {

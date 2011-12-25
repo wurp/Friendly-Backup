@@ -11,6 +11,7 @@ Backup:
     nice install script
     work through firewall
     auto update software
+    use a DB so we can finish backup/restore through a restart of the app
     java security policy to make what sw can do very explicit
     UI
     reconstitute files in other than their original location

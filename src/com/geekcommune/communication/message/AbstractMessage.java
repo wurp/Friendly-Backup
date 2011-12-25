@@ -1,12 +1,17 @@
 package com.geekcommune.communication.message;
 
-public class AbstractMessage implements Message {
+import com.geekcommune.communication.RemoteNodeHandle;
+
+public abstract class AbstractMessage implements Message {
     protected static int nextTransactionId = (int) (Math.random() * Integer.MAX_VALUE);
     
     private int transactionId;
+    private RemoteNodeHandle destination;
+    private int numTries = 0;
 
-    public AbstractMessage() {
+    public AbstractMessage(RemoteNodeHandle storingNode) {
         transactionId = nextTransactionID();
+        this.destination = storingNode;
     }
     
     protected static synchronized int nextTransactionID() {
@@ -15,5 +20,17 @@ public class AbstractMessage implements Message {
 
     public int getTransactionID() {
         return transactionId;
+    }
+
+    public RemoteNodeHandle getDestination() {
+        return destination;
+    }
+
+    public void setNumberOfTries(int i) {
+        this.numTries = i;
+    }
+
+    public int getNumberOfTries() {
+        return numTries;
     }
 }

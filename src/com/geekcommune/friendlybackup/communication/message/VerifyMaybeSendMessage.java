@@ -1,6 +1,6 @@
 package com.geekcommune.friendlybackup.communication.message;
 
-import com.geekcommune.communication.message.AbstractMessage;
+import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
 /**
@@ -11,10 +11,11 @@ import com.geekcommune.friendlybackup.format.low.HashIdentifier;
  * @author bobbym
  *
  */
-public abstract class VerifyMaybeSendMessage extends AbstractMessage {
+public abstract class VerifyMaybeSendMessage extends BackupMessage {
     private HashIdentifier dataHashID;
     
-    public VerifyMaybeSendMessage(HashIdentifier dataHashID) {
+    public VerifyMaybeSendMessage(RemoteNodeHandle storingNode, HashIdentifier dataHashID) {
+        super(storingNode);
         this.dataHashID = dataHashID;
     }
     

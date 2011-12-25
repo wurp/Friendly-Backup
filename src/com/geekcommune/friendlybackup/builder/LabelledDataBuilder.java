@@ -1,6 +1,9 @@
 package com.geekcommune.friendlybackup.builder;
 
+import java.sql.SQLException;
 import java.util.Date;
+
+import org.apache.log4j.Logger;
 
 import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
@@ -10,17 +13,23 @@ import com.geekcommune.friendlybackup.format.low.LabelledData;
 import com.geekcommune.identity.PrivateIdentity;
 
 public class LabelledDataBuilder {
+    private static final Logger log = Logger.getLogger(LabelledDataBuilder.class);
 
 	public static LabelledData buildLabelledData(PrivateIdentity owner, String label, HashIdentifier id, RemoteNodeHandle[] storingNodes, Date expiryDate) {
 		LabelledData labelledData = new LabelledData(owner, label, id);
 		
 		//for now, store the manifest on all storing nodes
 		for(RemoteNodeHandle node : storingNodes) {
-			MessageUtil.instance().queueMessage(
-			        node,
-			        new VerifyMaybeSendDataMessage(
-			                labelledData.getHashID(), 
-			                labelledData.toProto().toByteArray()));
+			try {
+                MessageUtil.instance().queueMessage(
+                        new VerifyMaybeSendDataMessage(
+                                node,
+                                labelledData.getHashID(), 
+                                labelledData.toProto().toByteArray(),
+                                owner.makeLease(labelledData.getHashID(), expiryDate)));
+            } catch (SQLException e) {
+                log.error(e.getMessage(), e);
+            }
 		}
 
 		return labelledData;

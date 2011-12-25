@@ -30,7 +30,7 @@ public class PublicIdentityHandle implements Data<Basic.PublicIdentityHandle>{
 
     public String fingerprintString() {
         // TODO Auto-generated method stub
-        return null;
+        return "DUMMY";
     }
 
 }

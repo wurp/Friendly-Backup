@@ -1,5 +1,7 @@
 package com.geekcommune.communication;
 
+import java.net.InetAddress;
+
 import com.geekcommune.friendlybackup.format.BaseData;
 import com.geekcommune.friendlybackup.proto.Basic;
 
@@ -53,5 +55,19 @@ public class RemoteNodeHandle extends BaseData<Basic.RemoteNodeHandle> {
         String connectString = proto.getConnectString();
         
         return new RemoteNodeHandle(name, email, connectString);
+    }
+
+    public InetAddress getAddress() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public int getPort() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    public String getName() {
+        return name;
     }
 }

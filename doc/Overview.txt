@@ -20,7 +20,12 @@ How a file is backed up:
 
 
 How data is deleted:
-Lease blah blah
+Each chunk of data a node holds has a number of leases attached to it.  Each lease tells the leaseholder, the
+time the lease expires, whether the lease is hard or soft (i.e. if it is critical to keep the data or just
+nice-to-have), and a signature to verify the leaseholder really requested the lease.  You can add or remove
+leases to a chunk of data (typically you would do this for all the chunks in a file together).  If all the
+leases are removed, the chunk is deleted.  If all the non-soft leases are removed, then the chunk may
+or may not be deleted, depending on how much space the node has available.
 
 How data is encrypted:
 

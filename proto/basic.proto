@@ -33,23 +33,20 @@ message Erasure {
 
 message ErasureManifest {
   optional int32 version = 1 [default = 1];
-  required int32 contentSize = 2;
+  required int64 contentSize = 2;
   required int32 erasuresNeeded = 3;
   required int32 totalErasures = 4;
 
-//  enum PhoneType {
-//    MOBILE = 0;
-//    HOME = 1;
-//    WORK = 2;
-//  }
-
+  //storingNodeIndex in FetchInfo indexes into this list
+  repeated RemoteNodeHandle storingNode = 5;
+  
   message FetchInfo {
     required HashIdentifier erasureId = 1;
-    required RemoteNodeHandle storingNode = 2;
+    required int32          storingNodeIndex = 2;
     //optional RemoteNodeHandle storingNode = 2 [default = HOME];
   }
 
-  repeated FetchInfo fetchInfo = 5;
+  repeated FetchInfo fetchInfo = 6;
 }
 
 message PublicIdentityHandle {
