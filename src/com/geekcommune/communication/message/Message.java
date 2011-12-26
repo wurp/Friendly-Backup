@@ -19,4 +19,8 @@ public interface Message {
 
     public abstract void setNumberOfTries(int i);
 
+    /**
+     * Get the type of this message (so far backup or restore; in the future probably includes health, etc.).
+     */
+    public abstract String getType();
 }

@@ -15,11 +15,11 @@ import com.geekcommune.friendlybackup.erasure.BytesErasureFinder;
 import com.geekcommune.friendlybackup.erasure.ErasureFinder;
 import com.geekcommune.friendlybackup.erasure.ErasureUtil;
 import com.geekcommune.friendlybackup.erasure.FileErasureFinder;
-import com.geekcommune.friendlybackup.erasure.FileUtil;
 import com.geekcommune.friendlybackup.format.low.Erasure;
 import com.geekcommune.friendlybackup.format.low.ErasureManifest;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.identity.PrivateIdentity;
+import com.geekcommune.util.FileUtil;
 import com.onionnetworks.util.Buffer;
 
 /**

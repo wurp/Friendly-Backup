@@ -3,6 +3,7 @@ package com.geekcommune.friendlybackup.erasure;
 import java.io.File;
 import java.io.IOException;
 
+import com.geekcommune.util.FileUtil;
 import com.onionnetworks.util.Buffer;
 
 public class FileErasureFinder implements ErasureFinder {

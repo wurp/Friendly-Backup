@@ -15,6 +15,11 @@ public class VerifyMaybeSendDataMessage extends VerifyMaybeSendMessage {
     }
 
     @Override
+    public byte[] getData() {
+        return data;
+    }
+    
+    @Override
     public byte[] getDataToSend() {
         //TODO send lease
         return data;

@@ -1,6 +1,8 @@
 package com.geekcommune.friendlybackup.datastore;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,6 +15,7 @@ public class InMemoryDataStore extends DataStore {
     private static final Logger log = Logger.getLogger(InMemoryDataStore.class);
 
     private ConcurrentHashMap<HashIdentifier, byte[]> dataMap = new ConcurrentHashMap<HashIdentifier, byte[]>();
+    private ConcurrentHashMap<String, List<Message>> messagesByType = new ConcurrentHashMap<String, List<Message>>();
     
     @Override
     public byte[] getData(HashIdentifier id) throws SQLException {
@@ -28,8 +31,7 @@ public class InMemoryDataStore extends DataStore {
 
     @Override
     public List<Message> getMessagesByType(String type) throws SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        return messagesByType.get(type);
     }
 
     @Override
@@ -39,13 +41,12 @@ public class InMemoryDataStore extends DataStore {
 
     @Override
     public void deleteMessagesOfType(String type) throws SQLException {
-        // TODO Auto-generated method stub
-        
+        messagesByType.put(type, Collections.synchronizedList(new ArrayList<Message>()));
     }
 
     @Override
     public void addMessage(Message msg) throws SQLException {
-        // TODO Auto-generated method stub
-        
+        messagesByType.putIfAbsent(msg.getType(), Collections.synchronizedList(new ArrayList<Message>()));
+        messagesByType.get(msg.getType()).add(msg);
     }
 }

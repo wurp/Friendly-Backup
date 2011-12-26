@@ -1,5 +1,6 @@
 package com.geekcommune.friendlybackup.format.low;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -104,7 +105,7 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
         return proto.build();
     }
 
-    public static ErasureManifest fromProto(Basic.ErasureManifest proto) {
+    public static ErasureManifest fromProto(Basic.ErasureManifest proto) throws UnknownHostException {
         versionCheck(1, proto.getVersion(), proto);
         ErasureManifest retval = new ErasureManifest();
         retval.setContentSize(proto.getContentSize());

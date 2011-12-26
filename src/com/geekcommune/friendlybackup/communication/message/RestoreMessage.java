@@ -3,15 +3,21 @@ package com.geekcommune.friendlybackup.communication.message;
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.communication.message.AbstractMessage;
 
-public abstract class BackupMessage extends AbstractMessage {
+public abstract class RestoreMessage extends AbstractMessage {
 
-    public BackupMessage(RemoteNodeHandle storingNode) {
+    public final String TYPE = "restore";
+
+    public RestoreMessage(RemoteNodeHandle storingNode) {
         super(storingNode);
     }
-
-    public static final String TYPE = "backup";
     
+    public byte[] getDataToSend() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     public String getType() {
         return TYPE;
     }
+
 }

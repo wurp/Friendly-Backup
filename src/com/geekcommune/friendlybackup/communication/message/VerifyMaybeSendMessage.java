@@ -24,4 +24,6 @@ public abstract class VerifyMaybeSendMessage extends BackupMessage {
     }
 
     public abstract byte[] getDataToSend();
+
+    public abstract byte[] getData();
 }

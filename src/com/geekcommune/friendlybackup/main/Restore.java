@@ -1,16 +1,12 @@
 package com.geekcommune.friendlybackup.main;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.config.BackupConfig;
-import com.geekcommune.friendlybackup.datastore.DataStore;
 import com.geekcommune.friendlybackup.format.high.BackupManifest;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
@@ -18,6 +14,7 @@ import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.friendlybackup.proto.Basic;
 import com.geekcommune.identity.PrivateIdentity;
 import com.geekcommune.util.BinaryContinuation;
+import com.geekcommune.util.FileUtil;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
@@ -58,7 +55,15 @@ public class Restore extends Action {
         
         //retrieve my latest backup erasure manifest
         //TODO we only need one, but we'll just send out requests to everyone for now
-        BackupMessageUtil.instance().retrieveLabelledData(bakcfg.getStoringNodes(), backupLabelId, new BinaryContinuation<String,byte[]>() {
+        BackupMessageUtil.instance().retrieveLabelledData(
+                bakcfg.getStoringNodes(),
+                backupLabelId,
+                restoreBackupManifestResponseHandler(bakcfg, userlog));//end retrieveLabelledData(backupLabelId)
+	}//end start()
+
+    private BinaryContinuation<String, byte[]> restoreBackupManifestResponseHandler(
+            final BackupConfig bakcfg, final UserLog userlog) {
+        return new BinaryContinuation<String,byte[]>() {
             public void run(String label, byte[] backupManifestContents) {
                 try {
                     BackupManifest bakman = BackupManifest.fromProto(
@@ -69,59 +74,48 @@ public class Restore extends Action {
                     //loop over each label id in the backup manifest
                     for(HashIdentifier fileLabelId : bakman.getFileLabelIDs()) {
                         //  retrieve the label
-                        BackupMessageUtil.instance().retrieveLabelledData(bakcfg.getStoringNodes(), fileLabelId, new BinaryContinuation<String, byte[]>() {
-
-                            public void run(String label, byte[] t) {
-                                //Danger, Will Robinson!  Overwriting the file!  TODO
-                                File file = new File(bakcfg.parseFullFilePath(label)[1]);
-
-                                if( file.exists() ) {
-                                    userlog.logError(file + " already exists; not overwriting");
-                                    progressTracker.changeMessage("Not writing " + label, 2);
-                                } else {
-                                    log.info("Saving " + label);
-
-                                    progressTracker.changeMessage("Writing " + label, 1);
-
-                                    file.getParentFile().mkdirs();
-                                    BufferedOutputStream out = null;
-                                    try {
-                                        out = new BufferedOutputStream(new FileOutputStream(file));
-                                        out.write(t);
-                                    } catch (FileNotFoundException e) {
-                                        log.error(e.getMessage(), e);
-                                        userlog.logError("No directory in which to create file " + label, e);
-                                    } catch (IOException e) {
-                                        log.error(e.getMessage(), e);
-                                        userlog.logError("Failed to create file " + label + ", " + e.getMessage(), e);
-                                    } finally {
-                                        if( out != null ) {
-                                            try {
-                                                out.close();
-                                            } catch (IOException e) {
-                                                log.error("Failed while closing file " + label + ": " + e.getMessage(), e);
-                                                userlog.logError("Probably failed to create file " + label + ", " + e.getMessage(), e);
-                                            }
-                                        }
-                                    } //end try/finally
-                                    
-                                    progressTracker.changeMessage("Wrote " + label, 1);
-                                }//end if(file.exists())
-                                
-                                if( progressTracker.stepsRemaining() == 0 ) {
-                                    progressTracker.setFinished(true);
-                                }
-                            }//end run()
-                        });//end retrieveLabelledData(fileLabelId)
+                        BackupMessageUtil.instance().retrieveLabelledData(bakcfg.getStoringNodes(), fileLabelId, restoreFileContentsHandler(bakcfg, userlog));//end retrieveLabelledData(fileLabelId)
                     }//end for(fileLabelId)
                 } catch (InvalidProtocolBufferException e1) {
                     log.error(e1.getMessage(), e1);
                 } //end try/catch
             }//end run()
-        });//end retrieveLabelledData(backupLabelId)
-	}//end start()
-	
-	public ProgressTracker getProgressTracker() {
+        };
+    }
+
+    private BinaryContinuation<String, byte[]> restoreFileContentsHandler(
+            final BackupConfig bakcfg, final UserLog userlog) {
+        return new BinaryContinuation<String, byte[]>() {
+
+            public void run(String label, byte[] t) {
+                //Danger, Will Robinson!  Overwriting the file!  TODO
+                try {
+                    File file = new File(bakcfg.getRestorePath(label));
+
+                    if( file.exists() ) {
+                        userlog.logError(file + " already exists; not overwriting");
+                        progressTracker.changeMessage("Not writing " + label, 2);
+                    } else {
+                        log.info("Saving " + label);
+
+                        progressTracker.changeMessage("Writing " + label, 1);
+
+                        FileUtil.instance().createPathAndWriteFile(file, t);
+                        
+                        progressTracker.changeMessage("Wrote " + label, 1);
+                    }//end if(file.exists())
+                    
+                    if( progressTracker.stepsRemaining() == 0 ) {
+                        progressTracker.setFinished(true);
+                    }
+                } catch (IOException e1) {
+                    log.error(e1.getMessage(), e1);
+                }
+            }//end run()
+        };
+    }
+
+    public ProgressTracker getProgressTracker() {
 		return progressTracker;
 	}
 

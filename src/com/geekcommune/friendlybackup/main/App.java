@@ -15,13 +15,20 @@ public class App {
     public static final String BACKUP_CONFIG_PROP_KEY = "BackupConfigFile";
     private static boolean wired = false;
     private static BackupConfig bakcfg;
-    
 
     /**
      * Dependency Injection
      * @throws IOException 
      */
     public static synchronized void wire() throws IOException {
+        wire(System.getProperty(BACKUP_CONFIG_PROP_KEY));
+    }
+
+    /**
+     * Dependency Injection
+     * @throws IOException 
+     */
+    public static synchronized void wire(String configFilePath) throws IOException {
         if( !wired ) {
             wired = true;
 
@@ -29,7 +36,7 @@ public class App {
             UserLog.setInstance(new LoggingUserLog());
 
             //BackupConfig
-            File cfgFile = new File(System.getProperty(BACKUP_CONFIG_PROP_KEY));
+            File cfgFile = new File(configFilePath);
             bakcfg = BackupConfig.parseConfigFile(cfgFile);
 
             //DataStore

@@ -21,6 +21,11 @@ public class VerifyMaybeSendErasureMessage extends VerifyMaybeSendMessage {
     }
     
     public byte[] getDataToSend() {
+        return erasureFinder.getErasure(idx).getBytes();
+    }
+
+    @Override
+    public byte[] getData() {
         Buffer buffer = erasureFinder.getErasure(idx);
         Erasure erasure = new Erasure(buffer, idx);
         return erasure.toProto().toByteArray();

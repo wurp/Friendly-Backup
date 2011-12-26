@@ -55,13 +55,13 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
         if( msg instanceof VerifyMaybeSendMessage ) {
             VerifyMaybeSendMessage vmsm = (VerifyMaybeSendMessage) msg;
             Pair<RemoteNodeHandle,HashIdentifier> key = new Pair<RemoteNodeHandle,HashIdentifier>(msg.getDestination(), vmsm.getDataHashID());
-            log.info("Putting " + vmsm.getDataToSend().length + " bytes for key " + key);
-            dataSent.put(key, vmsm.getDataToSend());
+            log.info("Putting " + vmsm.getData().length + " bytes for key " + key);
+            dataSent.put(key, vmsm.getData());
             
             try {
                 DataStore.instance().storeData(
                         vmsm.getDataHashID(),
-                        vmsm.getDataToSend(),
+                        vmsm.getData(),
                         new Lease(
                                 DateUtil.oneHourHence(),
                                 getBackupConfig().getOwner().getHandle(),

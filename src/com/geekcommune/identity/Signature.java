@@ -10,6 +10,10 @@ import com.google.protobuf.ByteString;
 public class Signature implements Data<Basic.Signature>{
     public static final Signature Dummy = new Signature();
 
+    /**
+     * This is a special signature that should ONLY EVER be used for data completely generated
+     * within the app.  Never accept this signature from an incoming message, or send it to another node.
+     */
     public static final Signature INTERNAL_SELF_SIGNED = new Signature();
     
     private PGPSignature pgpSignature;

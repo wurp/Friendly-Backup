@@ -1,11 +1,10 @@
 package com.geekcommune.friendlybackup.communication.message;
 
 import com.geekcommune.communication.RemoteNodeHandle;
-import com.geekcommune.communication.message.AbstractMessage;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.util.UnaryContinuation;
 
-public class RetrieveDataMessage extends AbstractMessage {
+public class RetrieveDataMessage extends RestoreMessage {
 
     private HashIdentifier id;
     private UnaryContinuation<byte[]> responseHandler;

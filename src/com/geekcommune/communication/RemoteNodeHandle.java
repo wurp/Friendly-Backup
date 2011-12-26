@@ -1,6 +1,7 @@
 package com.geekcommune.communication;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import com.geekcommune.friendlybackup.format.BaseData;
 import com.geekcommune.friendlybackup.proto.Basic;
@@ -9,17 +10,20 @@ public class RemoteNodeHandle extends BaseData<Basic.RemoteNodeHandle> {
 
     private String name;
     private String email;
-    private String connectString;
+    private InetAddress address;
+    private int port;
 
-    public RemoteNodeHandle(String name, String email, String connectString) {
+    public RemoteNodeHandle(String name, String email, String connectString) throws UnknownHostException {
         this.name = name;
         this.email = email;
-        this.connectString = connectString;
+        String[] cstringPart = connectString.split(":");
+        this.address = InetAddress.getByName(cstringPart[0]);
+        this.port = Integer.parseInt(cstringPart[1]);
     }
 
     public Basic.RemoteNodeHandle toProto() {
         Basic.RemoteNodeHandle.Builder bldr = Basic.RemoteNodeHandle.newBuilder();
-        bldr.setConnectString(connectString);
+        bldr.setConnectString(getConnectString());
         bldr.setEmail(email);
         bldr.setName(name);
         bldr.setVersion(1);
@@ -27,11 +31,15 @@ public class RemoteNodeHandle extends BaseData<Basic.RemoteNodeHandle> {
         return bldr.build();
     }
 
+    private String getConnectString() {
+        return "" + address + port;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if( obj instanceof RemoteNodeHandle ) {
             RemoteNodeHandle rhs = (RemoteNodeHandle) obj;
-            return name.equals(rhs.name) && email.equals(rhs.email) && connectString.equals(rhs.connectString);
+            return name.equals(rhs.name) && email.equals(rhs.email) && getConnectString().equals(rhs.getConnectString());
         } else {
             return false;
         }
@@ -39,15 +47,15 @@ public class RemoteNodeHandle extends BaseData<Basic.RemoteNodeHandle> {
 
     @Override
     public int hashCode() {
-        return (name + "~" + email + "~" + connectString).hashCode();
+        return (name + "~" + email + "~" + getConnectString()).hashCode();
     }
     
     @Override
     public String toString() {
-        return "RemoteNodeHandle(" + name + ", " + email + ", " + connectString + ")"; 
+        return "RemoteNodeHandle(" + name + ", " + email + ", " + getConnectString() + ")"; 
     }
     
-    public static RemoteNodeHandle fromProto(Basic.RemoteNodeHandle proto) {
+    public static RemoteNodeHandle fromProto(Basic.RemoteNodeHandle proto) throws UnknownHostException {
         versionCheck(1, proto.getVersion(), proto);
         
         String name = proto.getName();
@@ -58,13 +66,11 @@ public class RemoteNodeHandle extends BaseData<Basic.RemoteNodeHandle> {
     }
 
     public InetAddress getAddress() {
-        // TODO Auto-generated method stub
-        return null;
+        return address;
     }
 
     public int getPort() {
-        // TODO Auto-generated method stub
-        return 0;
+        return port;
     }
 
     public String getName() {

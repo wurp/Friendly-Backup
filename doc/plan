@@ -6,9 +6,19 @@ Backup:
     May not back up files that changed during the backup process
       -- only way to avoid this is to copy each file before backing up, which could take lots of space and would make backup slower
 
-  Next features:
+  Todo now!:
+    integration test that backs up empty dir
+    integration test for multiple backups in one run
+    flesh out send/receive
+    job scheduling
+    encryption/signing
+
+  Near future features:
     good test suite
+    handle "bad actor" nodes (crackers, DOS, etc.  If unsolicited contact from node not in friends list, send nonce & require signed nonce in return before continuing.  Only accept signed nonce messages from IPs that have an outstanding request to them)
     nice install script
+    email friends who stay offline
+    allow "config update" files that get integrated into the config (so we can email attachments to fix configurations)
     work through firewall
     auto update software
     use a DB so we can finish backup/restore through a restart of the app

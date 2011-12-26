@@ -10,7 +10,11 @@ public abstract class AbstractMessage implements Message {
     private int numTries = 0;
 
     public AbstractMessage(RemoteNodeHandle storingNode) {
-        transactionId = nextTransactionID();
+        this(storingNode, nextTransactionID());
+    }
+
+    public AbstractMessage(RemoteNodeHandle storingNode, int transactionId) {
+        this.transactionId = transactionId;
         this.destination = storingNode;
     }
     

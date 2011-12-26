@@ -2,13 +2,20 @@ package com.geekcommune.friendlybackup.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.builder.ErasureManifestBuilder;
 import com.geekcommune.friendlybackup.builder.LabelledDataBuilder;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
@@ -31,14 +38,64 @@ import com.geekcommune.identity.PrivateIdentity;
 public class Backup extends Action {
 	
 	private static final Logger log = Logger.getLogger(Backup.class);
-	private Thread thread;
+
+	private static final int NUM_THREADS = 10;
+    
+	private Thread backupThread;
+    private Thread listenThread;
 	private ProgressTracker progressTracker;
+    private LinkedBlockingQueue<Runnable> listenWorkQueue;
+    private ThreadPoolExecutor listenExecutor;
 
 	public Backup() throws IOException {
+	    startListenThread();
 	}
 	
-	public void start(final PrivateIdentity authenticatedOwner) throws IOException {
-		if( thread != null ) {
+	private void startListenThread() {
+        if( listenThread != null ) {
+            throw new RuntimeException("Listen thread already started");
+        }
+
+        listenWorkQueue = new LinkedBlockingQueue<Runnable>();
+        listenExecutor = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS, 1000, TimeUnit.MILLISECONDS, listenWorkQueue);
+
+        final BackupConfig bakcfg = App.getBackupConfig();
+        
+        listenThread = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    ServerSocket serversocket = null;
+                    serversocket = new ServerSocket(bakcfg.getLocalPort());
+
+                    do {
+                        Socket socket = null;
+                        
+                        try {
+                            socket = serversocket.accept();
+                            Message msg = BackupMessageUtil.instance().parseMessage(socket.getInputStream());
+                        } catch (UnknownHostException e) {
+                            log.error("Error talking to " + socket + ", " + e.getMessage(), e);
+                        } catch (IOException e) {
+                            log.error("Error talking to " + socket + ", " + e.getMessage(), e);
+                        } finally {
+                            try {
+                                socket.close();
+                            } catch( Exception e ) {
+                                log.error("Error closing socket to " + socket + ", " + e.getMessage(), e);
+                            }
+                        }
+                    } while (true);
+                } catch (Exception e) {
+                    log.error("Couldn't start listening for unsolicited messages: " + e.getMessage(), e);
+                }
+            }
+        });
+        
+        listenThread.start();
+    }
+
+    public void start(final PrivateIdentity authenticatedOwner) throws IOException {
+		if( backupThread != null ) {
 			throw new RuntimeException("Already started");
 		}
 		
@@ -46,7 +103,7 @@ public class Backup extends Action {
 
 		final BackupConfig bakcfg = App.getBackupConfig();
 		
-		thread = new Thread(new Runnable() {
+		backupThread = new Thread(new Runnable() {
 			public void run() {
 			    try {
 	                doBackupInternal(bakcfg, authenticatedOwner, makeExpiryDate());
@@ -56,12 +113,12 @@ public class Backup extends Action {
 			}
 		});
 		
-		thread.start();
+		backupThread.start();
 	}
 	
 	public void doBackup(String password) throws IOException, InterruptedException {
 	    start(App.getBackupConfig().getAuthenticatedOwner(password));
-	    thread.join();
+	    backupThread.join();
 	}
 	
 	protected void doBackupInternal(BackupConfig bakcfg, PrivateIdentity authenticatedOwner, Date expiryDate) {
