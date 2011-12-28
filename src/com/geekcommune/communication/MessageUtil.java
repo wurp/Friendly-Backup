@@ -27,6 +27,7 @@ public class MessageUtil {
 
     public void queueMessage(
             Message msg) throws SQLException {
+        msg.setState(Message.State.NeedsProcessing);
         DataStore.instance().addMessage(msg);
     }
 

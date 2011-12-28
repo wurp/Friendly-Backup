@@ -5,29 +5,32 @@ import com.geekcommune.friendlybackup.datastore.Lease;
 import com.geekcommune.friendlybackup.erasure.ErasureFinder;
 import com.geekcommune.friendlybackup.format.low.Erasure;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
-import com.onionnetworks.util.Buffer;
 
 public class VerifyMaybeSendErasureMessage extends VerifyMaybeSendMessage {
+    public static final int INT_TYPE = 5;
+
     private ErasureFinder erasureFinder;
     private int idx;
-    private Lease lease;
 
-    public VerifyMaybeSendErasureMessage(RemoteNodeHandle storingNode, HashIdentifier erasureDataId,
-            ErasureFinder erasureFinder, int idx, Lease lease) {
-        super(storingNode, erasureDataId);
+    public VerifyMaybeSendErasureMessage(
+            RemoteNodeHandle storingNode,
+            int originNodePort,
+            HashIdentifier erasureDataId,
+            ErasureFinder erasureFinder,
+            int idx,
+            Lease lease) {
+        super(storingNode, originNodePort, erasureDataId, lease);
         this.erasureFinder = erasureFinder;
         this.idx = idx;
-        this.lease = lease;
-    }
-    
-    public byte[] getDataToSend() {
-        return erasureFinder.getErasure(idx).getBytes();
     }
 
     @Override
     public byte[] getData() {
-        Buffer buffer = erasureFinder.getErasure(idx);
-        Erasure erasure = new Erasure(buffer, idx);
-        return erasure.toProto().toByteArray();
+        return new Erasure(erasureFinder.getErasure(idx), idx).toProto().toByteArray();
+    }
+
+    @Override
+    protected int getIntType() {
+        return INT_TYPE;
     }
 }

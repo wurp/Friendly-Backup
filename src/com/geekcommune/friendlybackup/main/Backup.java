@@ -1,10 +1,11 @@
 package com.geekcommune.friendlybackup.main;
 
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.communication.message.AbstractMessage;
 import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.builder.ErasureManifestBuilder;
 import com.geekcommune.friendlybackup.builder.LabelledDataBuilder;
@@ -39,7 +41,7 @@ public class Backup extends Action {
 	
 	private static final Logger log = Logger.getLogger(Backup.class);
 
-	private static final int NUM_THREADS = 10;
+	private static final int NUM_THREADS = 50;
     
 	private Thread backupThread;
     private Thread listenThread;
@@ -50,7 +52,7 @@ public class Backup extends Action {
 	public Backup() throws IOException {
 	    startListenThread();
 	}
-	
+
 	private void startListenThread() {
         if( listenThread != null ) {
             throw new RuntimeException("Listen thread already started");
@@ -60,49 +62,89 @@ public class Backup extends Action {
         listenExecutor = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS, 1000, TimeUnit.MILLISECONDS, listenWorkQueue);
 
         final BackupConfig bakcfg = App.getBackupConfig();
-        
+
         listenThread = new Thread(new Runnable() {
             public void run() {
                 try {
                     ServerSocket serversocket = null;
                     serversocket = new ServerSocket(bakcfg.getLocalPort());
-
+System.out.println("server socket listening on " + bakcfg.getLocalPort());
                     do {
-                        Socket socket = null;
-                        
                         try {
-                            socket = serversocket.accept();
-                            Message msg = BackupMessageUtil.instance().parseMessage(socket.getInputStream());
-                        } catch (UnknownHostException e) {
-                            log.error("Error talking to " + socket + ", " + e.getMessage(), e);
-                        } catch (IOException e) {
-                            log.error("Error talking to " + socket + ", " + e.getMessage(), e);
-                        } finally {
-                            try {
-                                socket.close();
-                            } catch( Exception e ) {
-                                log.error("Error closing socket to " + socket + ", " + e.getMessage(), e);
-                            }
+                            Socket socket = serversocket.accept();
+                            System.out.println("Server socket open");
+                            listenExecutor.execute(makeAllMessageRunnable(socket));
+
+                            AbstractMessage.awaitStateChange();
+                        } catch(Exception e) {
+                            log.error(e.getMessage(), e);
                         }
                     } while (true);
                 } catch (Exception e) {
+                    e.printStackTrace();
                     log.error("Couldn't start listening for unsolicited messages: " + e.getMessage(), e);
                 }
             }
         });
-        
+
         listenThread.start();
     }
 
+    private Runnable makeAllMessageRunnable(final Socket socket) {
+        return new Runnable() {
+            public void run() {
+                try {
+                    while(socket.isConnected() && !socket.isInputShutdown()) {
+                        DataInputStream dis = new DataInputStream(socket.getInputStream());
+                        final Message msg = AbstractMessage.parseMessage(dis);
+                        final InetAddress address = socket.getInetAddress();
+                        msg.setState(Message.State.NeedsProcessing);
+                        makeProcessMessageRunnable(msg, address).run();
+                        socket.getOutputStream().write(1);
+                        socket.getOutputStream().flush();
+                    }
+                } catch (IOException e) {
+//                    e.printStackTrace();
+//                    log.error("Error talking to " + socket + ", " + e.getMessage(), e);
+                } finally {
+                    try {
+//System.out.println("Server socket finished");
+                        socket.close();
+                    } catch( Exception e ) {
+                        log.error("Error closing socket to " + socket + ", " + e.getMessage(), e);
+                    }
+                }
+            }
+        };
+    }
+
+    private Runnable makeProcessMessageRunnable(final Message msg,
+            final InetAddress address) {
+        return new Runnable() {
+            public void run() {
+                try {
+                    BackupMessageUtil.instance().processMessage(msg, address);
+                } catch (SQLException e) {
+                    log.error("Error talking processing " + msg + ": " + e.getMessage(), e);
+                }
+            }
+        };
+    }
+
+    /**
+     * Start a backup in the background.
+     * @param authenticatedOwner
+     * @throws IOException
+     */
     public void start(final PrivateIdentity authenticatedOwner) throws IOException {
 		if( backupThread != null ) {
 			throw new RuntimeException("Already started");
 		}
-		
+
 		progressTracker = new ProgressTracker(105);
 
 		final BackupConfig bakcfg = App.getBackupConfig();
-		
+
 		backupThread = new Thread(new Runnable() {
 			public void run() {
 			    try {
@@ -112,18 +154,35 @@ public class Backup extends Action {
 			    }
 			}
 		});
-		
+
 		backupThread.start();
 	}
-	
+
+    /**
+     * Completes the backup (or errors out) before returning.
+     * @param password
+     * @throws IOException
+     * @throws InterruptedException
+     */
 	public void doBackup(String password) throws IOException, InterruptedException {
 	    start(App.getBackupConfig().getAuthenticatedOwner(password));
 	    backupThread.join();
+
+        while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
+            System.out.println(progressTracker.getStatusMessage());
+            Thread.sleep(1000);
+        }
 	}
-	
+
+	/**
+	 * Queues up all the backup messages to be sent.
+	 * @param bakcfg
+	 * @param authenticatedOwner
+	 * @param expiryDate
+	 */
 	protected void doBackupInternal(BackupConfig bakcfg, PrivateIdentity authenticatedOwner, Date expiryDate) {
 		UserLog userlog = UserLog.instance();
-		
+
 		//first make sure there are no other messages still hanging around from previous backups
 		progressTracker.changeMessage("cleaning out any messages from last backup", 1);
 		BackupMessageUtil.instance().cleanOutBackupMessageQueue();
@@ -133,30 +192,32 @@ public class Backup extends Action {
 
 		progressTracker.changeMessage("Building list of files to back up", 1);
 		List<File> files = bakcfg.getFilesToBackup();
-		
+
 		progressTracker.progress(3);
-		
+
 		//Update progress meter to track based on # of files to be backed up
-		//assume upload will take 3x as long as building the messages, add 1 more for interacting with each storing node to figure out what to upload
-		progressTracker.rebase(files.size() * 4 + storingNodes.length);
-		
+		//assume upload will take 3x as long as building the messages, and allot 4 for sending the backup manifest
+		progressTracker.rebase(files.size() * 5 + 4);
+
 		for(File f : files) {
 			try {
 				progressTracker.changeMessage("Building messages for " + f.getCanonicalPath(), 1);
 				ErasureManifest erasureManifest = ErasureManifestBuilder.instance().buildFromFile(
 						storingNodes,
 						f,
-						bakcfg.getErasuresNeeded(),
-						bakcfg.getTotalErasures(),
+						bakcfg,
 						expiryDate,
-						authenticatedOwner);
+						authenticatedOwner,
+						progressTracker.createSubTracker(3));
 
 				LabelledData labelledData = LabelledDataBuilder.buildLabelledData(
 						authenticatedOwner,
 						bakcfg.getFullFilePath(f),
 						erasureManifest.getHashID(),
 						storingNodes,
-						expiryDate);
+						bakcfg.getLocalPort(),
+						expiryDate,
+                        progressTracker.createSubTracker(1));
 
 				bakman.add(labelledData.getHashID());
 			} catch(Exception e) {
@@ -169,32 +230,25 @@ public class Backup extends Action {
 				String msg = "Failed to back up " + filePath;
 				userlog.logError(msg, e);
 				log.error(msg + ": " + e.getMessage(), e);
-			}
+			} //end try/catch
+		} //end for
 
-			ErasureManifest erasureManifest = ErasureManifestBuilder.instance().buildFromBytes(
-					storingNodes,
-					bakman.getData(),
-					bakcfg.getErasuresNeeded(),
-					bakcfg.getTotalErasures(),
-                    expiryDate,
-                    authenticatedOwner);
-			
-			LabelledDataBuilder.buildLabelledData(
-					authenticatedOwner,
-					bakcfg.getBackupStreamName(),
-					erasureManifest.getHashID(),
-					storingNodes,
-					expiryDate);
-		}
-		
-		//now just process the message uploads
-		try {
-            BackupMessageUtil.instance().processBackupMessages(progressTracker);
-        } catch (ClassNotFoundException e) {
-            log.error(e.getMessage(), e);
-        } catch (SQLException e) {
-            log.error(e.getMessage(), e);
-        }
+        ErasureManifest erasureManifest = ErasureManifestBuilder.instance().buildFromBytes(
+                storingNodes,
+                bakman.getData(),
+                bakcfg,
+                expiryDate,
+                authenticatedOwner,
+                progressTracker.createSubTracker(3));
+
+        LabelledDataBuilder.buildLabelledData(
+                authenticatedOwner,
+                bakcfg.getBackupStreamName(),
+                erasureManifest.getHashID(),
+                storingNodes,
+                bakcfg.getLocalPort(),
+                expiryDate,
+                progressTracker.createSubTracker(1));
 	}
 	
 	private Date makeExpiryDate() {

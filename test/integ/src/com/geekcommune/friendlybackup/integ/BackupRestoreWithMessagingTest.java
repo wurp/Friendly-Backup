@@ -18,6 +18,9 @@ public class BackupRestoreWithMessagingTest extends IntegrationTestCase {
         
         cleanDirectory(testNodes[0].getRestoreDirectory());
         
+        //wait for everyone to get started listening
+        Thread.sleep(5000);
+
         testNodes[0].backup();
         
         testNodes[0].restore();

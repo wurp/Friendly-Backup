@@ -33,12 +33,6 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
     }
     
     @Override
-    public void processBackupMessages(ProgressTracker progressTracker) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
     public void cleanOutBackupMessageQueue() {
         // TODO Auto-generated method stub
         
@@ -52,47 +46,56 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
     @Override
     public void queueMessage(
             Message msg) {
-        if( msg instanceof VerifyMaybeSendMessage ) {
-            VerifyMaybeSendMessage vmsm = (VerifyMaybeSendMessage) msg;
-            Pair<RemoteNodeHandle,HashIdentifier> key = new Pair<RemoteNodeHandle,HashIdentifier>(msg.getDestination(), vmsm.getDataHashID());
-            log.info("Putting " + vmsm.getData().length + " bytes for key " + key);
-            dataSent.put(key, vmsm.getData());
-            
-            try {
-                DataStore.instance().storeData(
-                        vmsm.getDataHashID(),
-                        vmsm.getData(),
-                        new Lease(
-                                DateUtil.oneHourHence(),
-                                getBackupConfig().getOwner().getHandle(),
-                                Signature.INTERNAL_SELF_SIGNED));
-            } catch (SQLException e) {
-                log.error(e.getMessage(), e);
-            }
-        } else if( msg instanceof RetrieveDataMessage ){
-            RetrieveDataMessage rdm = (RetrieveDataMessage) msg;
-            
-            if( dontListenList.contains(rdm.getHashIDOfDataToRetrieve()) ) {
-                log.info("not listening to " + rdm.getHashIDOfDataToRetrieve());
-            } else {
-                Pair<RemoteNodeHandle,HashIdentifier> key = new Pair<RemoteNodeHandle,HashIdentifier>(msg.getDestination(), rdm.getHashIDOfDataToRetrieve());
-                byte[] data = dataSent.get(key);
-                log.info("Retrieved " + (data == null ? null : data.length) + " bytes for key " + key);
+        Message.State endState = Message.State.Error;
+        try {
+            if( msg instanceof VerifyMaybeSendMessage ) {
+                VerifyMaybeSendMessage vmsm = (VerifyMaybeSendMessage) msg;
+                Pair<RemoteNodeHandle,HashIdentifier> key = new Pair<RemoteNodeHandle,HashIdentifier>(msg.getDestination(), vmsm.getDataHashID());
+                log.info("Putting " + vmsm.getData().length + " bytes for key " + key);
+                dataSent.put(key, vmsm.getData());
                 
-                if( data == null ) {
-                    try {
-                        byte[] dsdata = DataStore.instance().getData(rdm.getHashIDOfDataToRetrieve());
-                        log.info("Retrieved " + (dsdata == null ? null : dsdata.length) + " bytes for key " + rdm.getHashIDOfDataToRetrieve());
-                        rdm.handleResponse(dsdata);
-                    } catch (SQLException e) {
-                        log.error(e.getMessage(), e);
-                    }
-                } else {
-                    rdm.handleResponse(data);
+                try {
+                    DataStore.instance().storeData(
+                            vmsm.getDataHashID(),
+                            vmsm.getData(),
+                            new Lease(
+                                    DateUtil.oneHourHence(),
+                                    getBackupConfig().getOwner().getHandle(),
+                                    Signature.INTERNAL_SELF_SIGNED));
+                    endState = Message.State.Finished;
+                } catch (SQLException e) {
+                    log.error(e.getMessage(), e);
                 }
+            } else if( msg instanceof RetrieveDataMessage ){
+                RetrieveDataMessage rdm = (RetrieveDataMessage) msg;
+                
+                if( dontListenList.contains(rdm.getHashIDOfDataToRetrieve()) ) {
+                    log.info("not listening to " + rdm.getHashIDOfDataToRetrieve());
+                    endState = Message.State.Finished;
+                } else {
+                    Pair<RemoteNodeHandle,HashIdentifier> key = new Pair<RemoteNodeHandle,HashIdentifier>(msg.getDestination(), rdm.getHashIDOfDataToRetrieve());
+                    byte[] data = dataSent.get(key);
+                    log.info("Retrieved " + (data == null ? null : data.length) + " bytes for key " + key);
+
+                    if( data == null ) {
+                        try {
+                            byte[] dsdata = DataStore.instance().getData(rdm.getHashIDOfDataToRetrieve());
+                            log.info("Retrieved " + (dsdata == null ? null : dsdata.length) + " bytes for key " + rdm.getHashIDOfDataToRetrieve());
+                            rdm.handleResponse(dsdata);
+                            endState = Message.State.Finished;
+                        } catch (SQLException e) {
+                            log.error(e.getMessage(), e);
+                        }
+                    } else {
+                        rdm.handleResponse(data);
+                        endState = Message.State.Finished;
+                    }
+                }
+            } else {
+                System.out.println("Unhandled message " + msg);
             }
-        } else {
-            System.out.println("Unhandled message " + msg);
+        } finally {
+            msg.setState(endState);
         }
     }
 }

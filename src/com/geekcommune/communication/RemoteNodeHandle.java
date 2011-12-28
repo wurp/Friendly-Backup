@@ -8,6 +8,8 @@ import com.geekcommune.friendlybackup.proto.Basic;
 
 public class RemoteNodeHandle extends BaseData<Basic.RemoteNodeHandle> {
 
+    private static final String CONNECT_STRING_SEP = ":";
+
     private String name;
     private String email;
     private InetAddress address;
@@ -16,7 +18,7 @@ public class RemoteNodeHandle extends BaseData<Basic.RemoteNodeHandle> {
     public RemoteNodeHandle(String name, String email, String connectString) throws UnknownHostException {
         this.name = name;
         this.email = email;
-        String[] cstringPart = connectString.split(":");
+        String[] cstringPart = connectString.split(CONNECT_STRING_SEP);
         this.address = InetAddress.getByName(cstringPart[0]);
         this.port = Integer.parseInt(cstringPart[1]);
     }
@@ -32,7 +34,7 @@ public class RemoteNodeHandle extends BaseData<Basic.RemoteNodeHandle> {
     }
 
     private String getConnectString() {
-        return "" + address + port;
+        return "" + address.getHostAddress() + CONNECT_STRING_SEP + port;
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.geekcommune.friendlybackup.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
 
@@ -126,7 +127,7 @@ public class Restore extends Action {
 		 }
 	}
 	
-	public void doRestore(String password) throws InterruptedException, IOException {
+	public void doRestore(String password) throws InterruptedException, IOException, ClassNotFoundException, SQLException {
         start(App.getBackupConfig().getAuthenticatedOwner(password));
         ProgressTracker progressTracker = getProgressTracker();
         while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {

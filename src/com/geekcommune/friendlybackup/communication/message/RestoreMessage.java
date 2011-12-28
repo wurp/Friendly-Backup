@@ -7,13 +7,16 @@ public abstract class RestoreMessage extends AbstractMessage {
 
     public final String TYPE = "restore";
 
-    public RestoreMessage(RemoteNodeHandle storingNode) {
-        super(storingNode);
+    public RestoreMessage(RemoteNodeHandle storingNode, int originNodePort) {
+        super(storingNode, originNodePort);
     }
     
-    public byte[] getDataToSend() {
-        // TODO Auto-generated method stub
-        return null;
+    /**
+     * Only used when streaming off the wire
+     * @param transactionId
+     */
+    protected RestoreMessage(int transactionId, int originNodePort) {
+        super(transactionId, originNodePort);
     }
 
     public String getType() {

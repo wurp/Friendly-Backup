@@ -1,8 +1,10 @@
 package com.geekcommune.friendlybackup.communication;
 
 
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
@@ -15,6 +17,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 
@@ -23,6 +27,7 @@ import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.communication.message.BackupMessage;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
+import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.config.BackupConfig;
 import com.geekcommune.friendlybackup.datastore.DataStore;
 import com.geekcommune.friendlybackup.datastore.Lease;
@@ -32,7 +37,6 @@ import com.geekcommune.friendlybackup.format.low.ErasureManifest;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
 import com.geekcommune.friendlybackup.logging.UserLog;
-import com.geekcommune.friendlybackup.main.ProgressTracker;
 import com.geekcommune.friendlybackup.proto.Basic;
 import com.geekcommune.identity.Signature;
 import com.geekcommune.util.BinaryContinuation;
@@ -65,6 +69,15 @@ public class BackupMessageUtil extends MessageUtil {
     private ConcurrentHashMap<RemoteNodeHandle, AtomicInteger> destinationFailures = new ConcurrentHashMap<RemoteNodeHandle, AtomicInteger>();
     private ConcurrentHashMap<RemoteNodeHandle, AtomicInteger> destinationSuccesses = new ConcurrentHashMap<RemoteNodeHandle, AtomicInteger>();
 
+    /**
+     * Map from transaction id to the continuation for handling the data requested in that xaction
+     */
+    private ConcurrentHashMap<Integer, UnaryContinuation<byte[]>> responseHandlers = new ConcurrentHashMap<Integer, UnaryContinuation<byte[]>>();
+
+    private ConcurrentHashMap<Pair<InetAddress, Integer>, Socket> socketMap = new ConcurrentHashMap<Pair<InetAddress,Integer>, Socket>();
+
+    private ConcurrentHashMap<Socket, Lock> socketLockMap = new ConcurrentHashMap<Socket, Lock>();
+
     public BackupMessageUtil() {
         workQueue = new LinkedBlockingQueue<Runnable>();
         executor = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS, 1000, TimeUnit.MILLISECONDS, workQueue);
@@ -74,59 +87,65 @@ public class BackupMessageUtil extends MessageUtil {
         return bakcfg;
     }
     
-    public void processBackupMessages(ProgressTracker progressTracker) throws ClassNotFoundException, SQLException {
-        List<Message> msgs = DataStore.instance().getMessagesByType(BackupMessage.TYPE);
-        //TODO create one message for each destination that batches all the ids of all objects
-        //to be stored on that destination, and checks which of them actually need to be sent
-        //then sends only those messages.
-        for(Message msg : msgs) {
-            final BackupMessage bakmsg = (BackupMessage) msg;
-            //TODO somehow prefer to send to different hosts at the same time.
-            //This sort of happens anyway since we pull messages back in the order
-            //they were created, and they are created more or less round-robin by destination.
-            reallyQueueMessage(bakmsg);
-        }
-        
-        //TODO BOBBY figure out good way to wait for all messages to be processed.
-    }
-
     private void reallyQueueMessage(final Message msg) {
-        executor.execute(new Runnable() {
-            public void run() {
-                send(msg);
-            }
-        });
+        if( msg.getState() == Message.State.NeedsProcessing ) {
+            msg.setState(Message.State.Queued);
+            executor.execute(
+                    new Runnable() {
+                        public void run() {
+                            msg.setState(Message.State.Processing);
+
+                            if( msg instanceof RetrieveDataMessage ) {
+                                RetrieveDataMessage rdm = (RetrieveDataMessage) msg;
+                                responseHandlers.put(
+                                        rdm.getTransactionID(),
+                                        rdm.getResponseHandler());
+                            }
+                            send(msg);
+                            msg.setState(Message.State.Finished);
+                        }
+                    });
+        }
     }
 
     protected void send(Message msg) {
         //TODO handle proxying somehow someday :-)
         Socket socket = null;
+System.out.println("sending "+ msg.getTransactionID());
         try {
-            socket = new Socket(msg.getDestination().getAddress(), msg.getDestination().getPort());
-            socket.getOutputStream().write(msg.getDataToSend());
-            socket.getOutputStream().flush();
-            destinationSuccesses.putIfAbsent(msg.getDestination(), new AtomicInteger(0)).incrementAndGet();
+System.out.println("Attempting to talk to " + msg.getDestination().getAddress() + ":" + msg.getDestination().getPort());
+            socket = acquireSocket(msg.getDestination().getAddress(), msg.getDestination().getPort());
+
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+            msg.write(dos);
+            dos.flush();
+
+            //block until message is processed & response sent
+            socket.getInputStream().read();
+            
+            destinationSuccesses.putIfAbsent(msg.getDestination(), new AtomicInteger(0));
+            destinationSuccesses.get(msg.getDestination()).incrementAndGet();
         } catch (IOException e) {
-            destinationFailures.putIfAbsent(msg.getDestination(), new AtomicInteger(0)).incrementAndGet();
+            e.printStackTrace();
+            destinationFailures.putIfAbsent(msg.getDestination(), new AtomicInteger(0));
+            destinationFailures.get(msg.getDestination()).incrementAndGet();
             
             msg.setNumberOfTries(msg.getNumberOfTries() + 1);
             if( msg.getNumberOfTries() > MAX_TRIES ) {
                 UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName());
                 log.error("Not retrying, exceeded max tries: " + e.getMessage(), e);
+                msg.setState(Message.State.Error);
             } else {
                 UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName() + ", will retry", e);
                 log.error("Failed to send message to " + msg.getDestination().getName() + ", will retry: " + e.getMessage(), e);
                 
+                msg.setState(Message.State.NeedsProcessing);
                 reallyQueueMessage(msg);
             }
         } finally {
             if( socket != null ) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    UserLog.instance().logError("Failed to close socket; this may not actually be a problem...", e);
-                    log.error(e.getMessage(), e);
-                }
+                releaseSocket(socket);
+System.out.println("Finished talking");
             }
             
             try {
@@ -136,6 +155,30 @@ public class BackupMessageUtil extends MessageUtil {
                 //TODO user log (this exception isn't thrown now)
             }
         }
+        System.out.println("sent "+ msg.getTransactionID());
+    }
+
+    private void releaseSocket(Socket socket) {
+        Lock lock = socketLockMap.putIfAbsent(socket, new ReentrantLock());
+        lock.unlock();
+    }
+
+    private Socket acquireSocket(InetAddress address, int port) throws IOException {
+        Pair<InetAddress, Integer> key = new Pair<InetAddress, Integer>(address, port);
+        Socket socket = socketMap.putIfAbsent(key, new Socket());
+        if( socket == null ) {
+            socket = socketMap.get(key);
+        }
+
+        socketLockMap.putIfAbsent(socket, new ReentrantLock());
+        Lock lock = socketLockMap.get(socket);
+        lock.lock();
+        
+        if( !socket.isConnected() ) {
+            socket.connect(new InetSocketAddress(address, port));
+        }
+
+        return socket;
     }
 
     public void cleanOutBackupMessageQueue() {
@@ -145,7 +188,6 @@ public class BackupMessageUtil extends MessageUtil {
             UserLog.instance().logError("Failed to clean out backup message queue", e);
             log.error(e.getMessage(), e);
         }
-        
     }
 
     /**
@@ -160,6 +202,7 @@ public class BackupMessageUtil extends MessageUtil {
                 MessageUtil.instance().queueMessage(
                         new RetrieveDataMessage(
                                 storingNode,
+                                bakcfg.getLocalPort(),
                                 id, 
                                 makeReceiveDataHandler(id, continuation)));
             } catch (SQLException e) {
@@ -247,7 +290,6 @@ public class BackupMessageUtil extends MessageUtil {
                     UserLog.instance().logError("Failed to retrieve " + labelledData.getLabel(), e);
                 }
             }
-            
         };
     }
 
@@ -313,6 +355,7 @@ public class BackupMessageUtil extends MessageUtil {
         MessageUtil.instance().queueMessage(
                 new RetrieveDataMessage(
                         node,
+                        bakcfg.getLocalPort(),
                         id,
                         new UnaryContinuation<byte[]>() {
                             public void run(byte[] data) {
@@ -331,8 +374,48 @@ public class BackupMessageUtil extends MessageUtil {
         this.bakcfg = bakcfg;
     }
 
-    public Message parseMessage(InputStream inputStream) {
-        // TODO Auto-generated method stub
-        return null;
+    public void processMessage(Message msg, InetAddress inetAddress) throws SQLException {
+        System.out.println("processing " + msg.getTransactionID());
+        
+        msg.setState(Message.State.Processing);
+
+        if( msg instanceof VerifyMaybeSendDataMessage ) {
+            VerifyMaybeSendDataMessage dataMessage = (VerifyMaybeSendDataMessage) msg;
+
+            UnaryContinuation<byte[]> responseHandler =
+                    responseHandlers.get(dataMessage.getTransactionID());
+
+            //unsolicited data is assumed to be data we should store
+            if( responseHandler == null ) {
+                //TODO check that sender is in the friend node list
+                DataStore.instance().storeData(dataMessage.getDataHashID(), dataMessage.getData(), dataMessage.getLease());
+            } else {
+                responseHandler.run(dataMessage.getData());
+            }
+            
+            msg.setState(Message.State.Finished);
+        } else if( msg instanceof RetrieveDataMessage) {
+            RetrieveDataMessage retrieveMessage = (RetrieveDataMessage) msg;
+            RemoteNodeHandle destination =
+                    bakcfg.getFriend(
+                            inetAddress,
+                            retrieveMessage.getOriginNodePort());
+            HashIdentifier hashIDOfDataToRetrieve = retrieveMessage.getHashIDOfDataToRetrieve();
+            queueMessage(
+                    new VerifyMaybeSendDataMessage(
+                            destination,
+                            retrieveMessage.getTransactionID(),
+                            bakcfg.getLocalPort(),
+                            hashIDOfDataToRetrieve,
+                            DataStore.instance().getData(hashIDOfDataToRetrieve),
+                            null));
+
+            msg.setState(Message.State.Finished);
+        } else {
+            msg.setState(Message.State.Error);
+            log.error("Unexpected message type; message: " + msg + " from inetAddress " + inetAddress);
+        }
+
+        System.out.println("processed " + msg.getTransactionID());
     }
 }

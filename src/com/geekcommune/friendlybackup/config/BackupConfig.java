@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -30,7 +31,6 @@ public class BackupConfig {
     private static final String FRIEND_PREFIX = "friend.";
     private static final String EMAIL_SUFFIX = ".email";
     private static final String CONNECT_INFO_SUFFIX = ".connectinfo";
-
 
     public BackupConfig() {
     }
@@ -199,5 +199,16 @@ public class BackupConfig {
 
     public int getLocalPort() {
         return localPort;
+    }
+
+    public RemoteNodeHandle getFriend(InetAddress inetAddress,
+            int originNodePort) {
+        for(RemoteNodeHandle storingNode : storingNodes) {
+            if( inetAddress.equals(storingNode.getAddress()) && originNodePort == storingNode.getPort() ) {
+                return storingNode;
+            }
+        }
+
+        return null;
     }
 }

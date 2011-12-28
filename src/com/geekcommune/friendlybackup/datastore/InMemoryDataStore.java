@@ -6,13 +6,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
-
 import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
 public class InMemoryDataStore extends DataStore {
-    private static final Logger log = Logger.getLogger(InMemoryDataStore.class);
+    //private static final Logger log = Logger.getLogger(InMemoryDataStore.class);
 
     private ConcurrentHashMap<HashIdentifier, byte[]> dataMap = new ConcurrentHashMap<HashIdentifier, byte[]>();
     private ConcurrentHashMap<String, List<Message>> messagesByType = new ConcurrentHashMap<String, List<Message>>();
@@ -48,5 +46,17 @@ public class InMemoryDataStore extends DataStore {
     public void addMessage(Message msg) throws SQLException {
         messagesByType.putIfAbsent(msg.getType(), Collections.synchronizedList(new ArrayList<Message>()));
         messagesByType.get(msg.getType()).add(msg);
+    }
+
+    @Override
+    public List<Message> getAllMessages() throws SQLException,
+            ClassNotFoundException {
+        List<Message> retval = new ArrayList<Message>();
+        
+        for(String type : messagesByType.keySet()) {
+            retval.addAll(getMessagesByType(type));
+        }
+        
+        return retval;
     }
 }

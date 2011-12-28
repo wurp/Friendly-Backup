@@ -2,3 +2,6 @@ bin/
 test/integ/happy1/config/db/
 tmp.pl
 classes
+*.class
+test/integ/happy1/config/restore-dir
+*.jad

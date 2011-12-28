@@ -9,8 +9,10 @@ import org.apache.log4j.Logger;
 
 import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.friendlybackup.communication.ProgressWhenCompleteListener;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasureMessage;
+import com.geekcommune.friendlybackup.config.BackupConfig;
 import com.geekcommune.friendlybackup.erasure.BytesErasureFinder;
 import com.geekcommune.friendlybackup.erasure.ErasureFinder;
 import com.geekcommune.friendlybackup.erasure.ErasureUtil;
@@ -18,6 +20,7 @@ import com.geekcommune.friendlybackup.erasure.FileErasureFinder;
 import com.geekcommune.friendlybackup.format.low.Erasure;
 import com.geekcommune.friendlybackup.format.low.ErasureManifest;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
+import com.geekcommune.friendlybackup.main.ProgressTracker;
 import com.geekcommune.identity.PrivateIdentity;
 import com.geekcommune.util.FileUtil;
 import com.onionnetworks.util.Buffer;
@@ -38,31 +41,40 @@ public class ErasureManifestBuilder {
     public ErasureManifest buildFromFile(
             RemoteNodeHandle[] storingNodes,
             File f,
-            final int erasuresNeeded,
-            final int totalErasures,
+            BackupConfig bakcfg,
             Date expiryDate,
-            PrivateIdentity owner) throws IOException {
-		byte[] data = FileUtil.instance().getFileContents(f);
-		ErasureFinder erasureFinder = new FileErasureFinder(f, erasuresNeeded, totalErasures);
+            PrivateIdentity owner,
+            ProgressTracker progressTracker) throws IOException {
+        int erasuresNeeded = bakcfg.getErasuresNeeded();
+        int totalErasures = bakcfg.getTotalErasures();
+
+        byte[] data = FileUtil.instance().getFileContents(f);
+        ErasureFinder erasureFinder = new FileErasureFinder(f, erasuresNeeded, totalErasures);
 		
 		return build(
 		        data,
 		        erasureFinder,
 		        storingNodes,
+		        bakcfg.getLocalPort(),
 		        erasuresNeeded,
 				totalErasures,
 				expiryDate,
-				owner);
+				owner,
+				progressTracker);
 	}
 
 	private ErasureManifest build(
 	        byte[] data,
 	        ErasureFinder erasureFinder,
 			RemoteNodeHandle[] storingNodes,
+			final int localPort,
 			final int erasuresNeeded,
 			final int totalErasures,
 			final Date expiryDate,
-			final PrivateIdentity owner) {
+			final PrivateIdentity owner,
+            ProgressTracker progressTracker) {
+	    progressTracker.rebase(totalErasures + storingNodes.length);
+	    
 		ErasureManifest manifest = new ErasureManifest();
 
 		//break the file down into totalErasures chunks, in such a way that we can reconstitute it from any erasuresNeeded chunks
@@ -76,13 +88,16 @@ public class ErasureManifestBuilder {
 			//store the erasure on its correct node
 			RemoteNodeHandle storingNode = calculateStoringNode(storingNodes, idx);
 			try {
+                VerifyMaybeSendErasureMessage msg = new VerifyMaybeSendErasureMessage(
+                        storingNode,
+                        localPort,
+                        erasureId,
+                        erasureFinder,
+                        idx,
+                        owner.makeLease(erasureId, expiryDate));
+                msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
                 MessageUtil.instance().queueMessage(
-                        new VerifyMaybeSendErasureMessage(
-                                storingNode,
-                                erasureId,
-                                erasureFinder,
-                                idx,
-                                owner.makeLease(erasureId, expiryDate)));
+                        msg);
             } catch (SQLException e) {
                 //TODO user message
                 log.error(e.getMessage(), e);
@@ -93,7 +108,7 @@ public class ErasureManifestBuilder {
 			
 			++idx;
 		}
-        
+
         manifest.setContentSize(data.length);
         manifest.setErasuresNeeded(erasuresNeeded);
         manifest.setTotalErasures(totalErasures);
@@ -101,16 +116,19 @@ public class ErasureManifestBuilder {
 		//for now, store the manifest on all storing nodes
 		for(RemoteNodeHandle node : storingNodes) {
 			try {
-                MessageUtil.instance().queueMessage(new VerifyMaybeSendDataMessage(
+                VerifyMaybeSendDataMessage msg = new VerifyMaybeSendDataMessage(
                         node,
+                        localPort,
                         manifest.getHashID(),
                         manifest.toProto().toByteArray(),
-                        owner.makeLease(manifest.getHashID(), expiryDate)));
+                        owner.makeLease(manifest.getHashID(), expiryDate));
+                msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
+                MessageUtil.instance().queueMessage(msg);
             } catch (SQLException e) {
                 log.error(e.getMessage(), e);
             }
 		}
-		
+
 		return manifest;
 	}
 
@@ -120,17 +138,27 @@ public class ErasureManifestBuilder {
 		return storingNodes[idx % storingNodes.length];
 	}
 
-	public ErasureManifest buildFromBytes(RemoteNodeHandle[] storingNodes, byte[] data, int erasuresNeeded, int totalErasures, Date expiryDate, PrivateIdentity owner) {
-		ErasureFinder erasureFinder = new BytesErasureFinder(data, erasuresNeeded, totalErasures);
-		
+	public ErasureManifest buildFromBytes(
+	        RemoteNodeHandle[] storingNodes,
+	        byte[] data,
+	        BackupConfig bakcfg,
+	        Date expiryDate,
+	        PrivateIdentity owner,
+            ProgressTracker progressTracker) {
+		int erasuresNeeded = bakcfg.getErasuresNeeded();
+        int totalErasures = bakcfg.getTotalErasures();
+        ErasureFinder erasureFinder = new BytesErasureFinder(data, erasuresNeeded, totalErasures);
+
 		return build(
 		        data,
 		        erasureFinder,
 		        storingNodes,
+		        bakcfg.getLocalPort(),
 		        erasuresNeeded,
 				totalErasures,
                 expiryDate,
-                owner);
+                owner,
+                progressTracker);
 	}
 
 	public static ErasureManifestBuilder instance() {
