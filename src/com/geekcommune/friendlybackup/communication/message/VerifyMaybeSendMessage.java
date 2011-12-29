@@ -1,7 +1,5 @@
 package com.geekcommune.friendlybackup.communication.message;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -9,7 +7,6 @@ import java.io.IOException;
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.communication.message.Message;
 import com.geekcommune.communication.message.MessageFactory;
-import com.geekcommune.friendlybackup.TestGrabBag;
 import com.geekcommune.friendlybackup.datastore.Lease;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.proto.Basic;

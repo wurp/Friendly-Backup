@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 
-import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.identity.PublicIdentityHandle;
 import com.geekcommune.identity.Signature;
@@ -197,11 +196,10 @@ public abstract class DBDataStore extends DataStore {
             String[] dbInitStrings = {
                     "create table chunk(key BINARY(20),       data BLOB, PRIMARY KEY (key));",
                     "create table lease(chunk_key BINARY(20), expiry TIMESTAMP, owner VARCHAR(50), soft BOOLEAN, PRIMARY KEY (chunk_key, expiry, owner, soft));",
-                    "create table message(transaction_id BINARY(20), type VARCHAR(50) PRIMARY KEY (transaction_id));" //TODO
                     };
             for(String dbInitString : dbInitStrings) {
                 PreparedStatement stmt = conn.prepareStatement(dbInitString);
-                System.out.println(stmt.execute());
+                log.debug(stmt.execute());
             }
         }
 
@@ -215,40 +213,6 @@ public abstract class DBDataStore extends DataStore {
 
     public static void setInstance(DBDataStore dataStore) {
         instance = dataStore;
-    }
-
-    public void deleteMessagesOfType(String type) throws SQLException {
-        String sql = "delete from message where type = ?";
-
-        PreparedStatement delete = getConnection().
-                prepareStatement(sql);
-
-        delete.setString(1, type);
-
-        delete.execute();
-    }
-
-    public List<Message> getMessagesByType(String type) throws ClassNotFoundException, SQLException {
-        //retrieve content from db
-        PreparedStatement select = getConnection().
-          prepareStatement("select transaction_id, clazz, num_tries, destination, ... from message where type = ?");
-        select.setString(1, type);
-        select.execute();
-
-        List<Message> retval = new ArrayList<Message>();
-        
-        ResultSet rs = select.getResultSet();
-        while( rs.next() ) {
-            Message msg = (Message)makeObject(Class.forName(rs.getString("clazz")), rs);
-            retval.add(msg);
-            log.info("Found " + msg + " of type " + type);
-        }
-
-        if( retval.size() == 0 ) {
-            log.info("Found no messages for " + type);
-        }
-
-        return retval;
     }
 
     protected Object makeObject(Class<?> clazz, ResultSet rs) throws SQLException {

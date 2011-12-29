@@ -1,6 +1,5 @@
 package com.geekcommune.friendlybackup.datastore;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 import com.geekcommune.identity.PublicIdentityHandle;
@@ -21,7 +20,7 @@ public class Lease {
     private Date expiration;
     private PublicIdentityHandle owner;
     private boolean soft;
-    private Signature signature;
+    //private Signature signature;
 
     /**
      * Embodies a lease for the data identified by key
@@ -39,7 +38,7 @@ public class Lease {
             Signature signature, boolean isSoft) {
         this.expiration = expiration;
         this.owner = owner;
-        this.signature = signature;
+        //this.signature = signature;
         this.soft = isSoft;
     }
 

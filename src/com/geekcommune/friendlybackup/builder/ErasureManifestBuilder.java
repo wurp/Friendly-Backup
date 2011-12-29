@@ -2,10 +2,7 @@ package com.geekcommune.friendlybackup.builder;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Date;
-
-import org.apache.log4j.Logger;
 
 import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
@@ -34,7 +31,7 @@ import com.onionnetworks.util.Buffer;
  *
  */
 public class ErasureManifestBuilder {
-    private static final Logger log = Logger.getLogger(ErasureManifestBuilder.class);
+    //private static final Logger log = Logger.getLogger(ErasureManifestBuilder.class);
 
     private static ErasureManifestBuilder instance = new ErasureManifestBuilder();
 
@@ -87,21 +84,16 @@ public class ErasureManifestBuilder {
 
 			//store the erasure on its correct node
 			RemoteNodeHandle storingNode = calculateStoringNode(storingNodes, idx);
-			try {
-                VerifyMaybeSendErasureMessage msg = new VerifyMaybeSendErasureMessage(
-                        storingNode,
-                        localPort,
-                        erasureId,
-                        erasureFinder,
-                        idx,
-                        owner.makeLease(erasureId, expiryDate));
-                msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
-                MessageUtil.instance().queueMessage(
-                        msg);
-            } catch (SQLException e) {
-                //TODO user message
-                log.error(e.getMessage(), e);
-            }
+            VerifyMaybeSendErasureMessage msg = new VerifyMaybeSendErasureMessage(
+                    storingNode,
+                    localPort,
+                    erasureId,
+                    erasureFinder,
+                    idx,
+                    owner.makeLease(erasureId, expiryDate));
+            msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
+            MessageUtil.instance().queueMessage(
+                    msg);
 
 			//put the erasure in the manifest
 			manifest.add(erasureId, storingNode);
@@ -115,18 +107,14 @@ public class ErasureManifestBuilder {
 
 		//for now, store the manifest on all storing nodes
 		for(RemoteNodeHandle node : storingNodes) {
-			try {
-                VerifyMaybeSendDataMessage msg = new VerifyMaybeSendDataMessage(
-                        node,
-                        localPort,
-                        manifest.getHashID(),
-                        manifest.toProto().toByteArray(),
-                        owner.makeLease(manifest.getHashID(), expiryDate));
-                msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
-                MessageUtil.instance().queueMessage(msg);
-            } catch (SQLException e) {
-                log.error(e.getMessage(), e);
-            }
+            VerifyMaybeSendDataMessage msg = new VerifyMaybeSendDataMessage(
+                    node,
+                    localPort,
+                    manifest.getHashID(),
+                    manifest.toProto().toByteArray(),
+                    owner.makeLease(manifest.getHashID(), expiryDate));
+            msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
+            MessageUtil.instance().queueMessage(msg);
 		}
 
 		return manifest;

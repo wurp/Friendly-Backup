@@ -27,7 +27,6 @@ import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.communication.message.AbstractMessage;
 import com.geekcommune.communication.message.Message;
-import com.geekcommune.friendlybackup.communication.message.BackupMessage;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.config.BackupConfig;
@@ -95,7 +94,9 @@ public class BackupMessageUtil extends MessageUtil {
         return bakcfg;
     }
     
-    public void reallyQueueMessage(final Message msg) {
+    @Override
+    public void queueMessage(final Message msg) {
+        super.queueMessage(msg);
         if( msg.getState() == Message.State.NeedsProcessing ) {
             msg.setState(Message.State.Queued);
             sendExecutor.execute(
@@ -120,9 +121,9 @@ public class BackupMessageUtil extends MessageUtil {
         Message.State state = Message.State.Error;
         
         Socket socket = null;
-System.out.println("sending "+ msg.getTransactionID());
+        log.debug("sending "+ msg.getTransactionID());
         try {
-System.out.println("Attempting to talk to " + msg.getDestination().getAddress() + ":" + msg.getDestination().getPort());
+            log.debug("Attempting to talk to " + msg.getDestination().getAddress() + ":" + msg.getDestination().getPort());
             socket = acquireSocket(msg.getDestination().getAddress(), msg.getDestination().getPort());
 
             justSend(msg, socket);
@@ -141,18 +142,18 @@ System.out.println("Attempting to talk to " + msg.getDestination().getAddress() 
                 UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName());
                 log.error("Not retrying, exceeded max tries: " + e.getMessage(), e);
             } else {
-//                UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName() + ", will retry", e);
-//                log.error("Failed to send message to " + msg.getDestination().getName() + ", will retry: " + e.getMessage(), e);
+                UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName() + ", will retry", e);
+                log.error("Failed to send message to " + msg.getDestination().getName() + ", will retry: " + e.getMessage(), e);
                 
                 state = Message.State.NeedsProcessing;
-                reallyQueueMessage(msg);
+                queueMessage(msg);
             }
         } finally {
             msg.setState(state);
             
             if( socket != null ) {
                 releaseSocket(socket);
-System.out.println("Finished talking");
+                log.debug("Finished talking");
             }
             
             try {
@@ -162,7 +163,7 @@ System.out.println("Finished talking");
                 //TODO user log (this exception isn't thrown now)
             }
         }
-        System.out.println("sent "+ msg.getTransactionID());
+        log.debug("sent "+ msg.getTransactionID());
     }
 
     private void justSend(Message msg, Socket socket) throws IOException {
@@ -213,15 +214,6 @@ System.out.println("Finished talking");
         return socket;
     }
 
-    public void cleanOutBackupMessageQueue() {
-        try {
-            DataStore.instance().deleteMessagesOfType(BackupMessage.TYPE);
-        } catch (SQLException e) {
-            UserLog.instance().logError("Failed to clean out backup message queue", e);
-            log.error(e.getMessage(), e);
-        }
-    }
-
     /**
      * Pull in a piece of data, retrieving from any/all of storingNodes if necessary.
      * @param storingNodes 
@@ -240,11 +232,7 @@ System.out.println("Finished talking");
                     id,
                     handler);
             
-            try {
-                queueMessage(msg);
-            } catch (SQLException e) {
-                log.error(e.getMessage(), e);
-            }
+            queueMessage(msg);
         }
     }
 
@@ -276,6 +264,7 @@ System.out.println("Finished talking");
                                 retrievalDatum.getFirst(),
                                 erasureHandler);
                     }
+                    //TODO delete erasureManifestId data from datastore
                 } catch (InvalidProtocolBufferException e) {
                     log.error(e.getMessage(), e);
                     UserLog.instance().logError("Failed to retrieve " + labelledData.getLabel(), e);
@@ -327,6 +316,9 @@ System.out.println("Finished talking");
                                 log.info("Rebuilt contents of " + labelledData.getLabel());
 
                                 continuation.run(labelledData.getLabel(), fullContents);
+                                
+                                //TODO clean dataList out of datastore
+                                //TODO somehow switch responseManager behavior to delete new ids that come in from the DataStore
                             } else {
                                 log.error("not enough blocks returned to rebuild erasure - how did we get here?");
                             }
@@ -388,11 +380,12 @@ System.out.println("Finished talking");
                 try {
                     final LabelledData labelledData = LabelledData.fromProto(Basic.LabelledData.parseFrom(DataStore.instance().getData(id)));
                     final HashIdentifier erasureManifestId = labelledData.getPointingAt();
-System.out.println("Retrieving " + labelledData.getLabel());
+                    log.debug("Retrieving " + labelledData.getLabel());
                     log.info("Retrieved " + labelledData.getLabel());
                     
                     retrieve(storingNodes, erasureManifestId, makeErasureManifestHandler(continuation, labelledData,
                             erasureManifestId));
+                    //TODO delete 'id' data from datastore
                 } catch (InvalidProtocolBufferException e) {
                     log.error(e.getMessage(), e);
                     UserLog.instance().logError("Failed to retrieve " + id, e);
@@ -434,11 +427,11 @@ System.out.println("Retrieving " + labelledData.getLabel());
                 try {
                     ServerSocket serversocket = null;
                     serversocket = new ServerSocket(bakcfg.getLocalPort());
-System.out.println("server socket listening on " + bakcfg.getLocalPort());
+                    log.debug("server socket listening on " + bakcfg.getLocalPort());
                     do {
                         try {
                             Socket socket = serversocket.accept();
-                            System.out.println("Server socket open");
+                            log.debug("Server socket open");
                             listenExecutor.execute(makeHandleAllMessagesOnSocketRunnable(socket));
                         } catch(Exception e) {
                             log.error(e.getMessage(), e);
@@ -472,7 +465,7 @@ System.out.println("server socket listening on " + bakcfg.getLocalPort());
                     log.error("Error talking to " + socket + ", " + e.getMessage(), e);
                 } finally {
                     try {
-//System.out.println("Server socket finished");
+                        log.debug("Server socket finished");
                         socket.close();
                     } catch( Exception e ) {
                         log.error("Error closing socket to " + socket + ", " + e.getMessage(), e);
@@ -496,7 +489,7 @@ System.out.println("server socket listening on " + bakcfg.getLocalPort());
     }
 
     public void processMessage(Message msg, InetAddress inetAddress) throws SQLException {
-        System.out.println("processing " + msg.getTransactionID());
+        log.debug("processing " + msg.getTransactionID());
         //TODO reject message if we've already processed its transaction id
         msg.setState(Message.State.Processing);
 
@@ -537,6 +530,6 @@ System.out.println("server socket listening on " + bakcfg.getLocalPort());
             log.error("Unexpected message type; message: " + msg + " from inetAddress " + inetAddress);
         }
 
-        System.out.println("processed " + msg.getTransactionID());
+        log.debug("processed " + msg.getTransactionID());
     }
 }

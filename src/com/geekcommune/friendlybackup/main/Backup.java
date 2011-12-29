@@ -4,15 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.log4j.Logger;
 
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.builder.ErasureManifestBuilder;
 import com.geekcommune.friendlybackup.builder.LabelledDataBuilder;
-import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.config.BackupConfig;
 import com.geekcommune.friendlybackup.format.high.BackupManifest;
 import com.geekcommune.friendlybackup.format.low.ErasureManifest;
@@ -77,7 +74,7 @@ public class Backup extends Action {
 	    backupThread.join();
 
         while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
-            System.out.println(progressTracker.getStatusMessage());
+            UserLog.instance().info(progressTracker.getStatusMessage());
             Thread.sleep(1000);
         }
 	}
@@ -93,7 +90,7 @@ public class Backup extends Action {
 
 		//first make sure there are no other messages still hanging around from previous backups
 		progressTracker.changeMessage("cleaning out any messages from last backup", 1);
-		BackupMessageUtil.instance().cleanOutBackupMessageQueue();
+//		BackupMessageUtil.instance().cleanOutBackupMessageQueue();
 		RemoteNodeHandle[] storingNodes = bakcfg.getStoringNodes();
 
 		BackupManifest bakman = new BackupManifest(new Date());

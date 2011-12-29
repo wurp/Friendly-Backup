@@ -1,9 +1,6 @@
 package com.geekcommune.friendlybackup.builder;
 
-import java.sql.SQLException;
 import java.util.Date;
-
-import org.apache.log4j.Logger;
 
 import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
@@ -15,7 +12,7 @@ import com.geekcommune.friendlybackup.main.ProgressTracker;
 import com.geekcommune.identity.PrivateIdentity;
 
 public class LabelledDataBuilder {
-    private static final Logger log = Logger.getLogger(LabelledDataBuilder.class);
+    //private static final Logger log = Logger.getLogger(LabelledDataBuilder.class);
 
 	public static LabelledData buildLabelledData(
 	        PrivateIdentity owner,
@@ -31,19 +28,15 @@ public class LabelledDataBuilder {
 
 		//for now, store the manifest on all storing nodes
 		for(RemoteNodeHandle node : storingNodes) {
-			try {
-                VerifyMaybeSendDataMessage msg = new VerifyMaybeSendDataMessage(
-                        node,
-                        localPort,
-                        labelledData.getHashID(), 
-                        labelledData.toProto().toByteArray(),
-                        owner.makeLease(labelledData.getHashID(), expiryDate));
-                msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
-                MessageUtil.instance().queueMessage(
-                        msg);
-            } catch (SQLException e) {
-                log.error(e.getMessage(), e);
-            }
+            VerifyMaybeSendDataMessage msg = new VerifyMaybeSendDataMessage(
+                    node,
+                    localPort,
+                    labelledData.getHashID(), 
+                    labelledData.toProto().toByteArray(),
+                    owner.makeLease(labelledData.getHashID(), expiryDate));
+            msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
+            MessageUtil.instance().queueMessage(
+                    msg);
 		}
 
 		return labelledData;

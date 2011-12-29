@@ -1,12 +1,10 @@
 package com.geekcommune.friendlybackup.datastore;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.geekcommune.communication.message.Message;
-import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
 public class InMemoryDataStore extends DataStore {
@@ -28,36 +26,7 @@ public class InMemoryDataStore extends DataStore {
     }
 
     @Override
-    public List<Message> getMessagesByType(String type) throws SQLException {
-        return null;//messagesByType.get(type);
-    }
-
-    @Override
     public void updateObject(Message msg) throws SQLException {
         //in-memory objects are already updated; do nothing.
-    }
-
-    @Override
-    public void deleteMessagesOfType(String type) throws SQLException {
-//        messagesByType.put(type, Collections.synchronizedList(new ArrayList<Message>()));
-    }
-
-    @Override
-    public void addMessage(Message msg) throws SQLException {
-        BackupMessageUtil.instance().reallyQueueMessage(msg);
-//        messagesByType.putIfAbsent(msg.getType(), Collections.synchronizedList(new ArrayList<Message>()));
-//        messagesByType.get(msg.getType()).add(msg);
-    }
-
-    @Override
-    public List<Message> getAllMessages() throws SQLException,
-            ClassNotFoundException {
-        List<Message> retval = new ArrayList<Message>();
-        
-//        for(String type : messagesByType.keySet()) {
-//            retval.addAll(getMessagesByType(type));
-//        }
-        
-        return retval;
     }
 }

@@ -16,4 +16,9 @@ public abstract class UserLog {
         instance = userLog;
     }
 
+    public void info(String statusMessage) {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

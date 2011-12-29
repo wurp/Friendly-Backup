@@ -1,9 +1,6 @@
 package com.geekcommune.communication;
 
-import java.sql.SQLException;
-
 import com.geekcommune.communication.message.Message;
-import com.geekcommune.friendlybackup.datastore.DataStore;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
 public class MessageUtil {
@@ -19,9 +16,8 @@ public class MessageUtil {
     }
 
     public void queueMessage(
-            Message msg) throws SQLException {
+            Message msg) {
         msg.setState(Message.State.NeedsProcessing);
-        DataStore.instance().addMessage(msg);
     }
 
     public void cancelListen(HashIdentifier id) {

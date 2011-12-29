@@ -133,7 +133,7 @@ public class Restore extends Action {
         start(App.getBackupConfig().getAuthenticatedOwner(password));
         ProgressTracker progressTracker = getProgressTracker();
         while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
-            System.out.println(progressTracker.getStatusMessage());
+            UserLog.instance().info(progressTracker.getStatusMessage());
             Thread.sleep(1000);
         }
 	}

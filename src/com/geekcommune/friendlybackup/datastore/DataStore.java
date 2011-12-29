@@ -46,13 +46,5 @@ public abstract class DataStore {
         instance = dataStore;
     }
 
-    public abstract List<Message> getAllMessages() throws SQLException, ClassNotFoundException;
-
-    public abstract List<Message> getMessagesByType(String type) throws SQLException, ClassNotFoundException;
-
     public abstract void updateObject(Message msg) throws SQLException;
-
-    public abstract void deleteMessagesOfType(String type) throws SQLException;
-
-    public abstract void addMessage(Message msg) throws SQLException;
 }

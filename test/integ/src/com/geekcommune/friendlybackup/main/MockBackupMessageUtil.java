@@ -31,12 +31,6 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
     public MockBackupMessageUtil(BackupConfig backupConfig) {
         this.bakcfg = backupConfig;
     }
-    
-    @Override
-    public void cleanOutBackupMessageQueue() {
-        // TODO Auto-generated method stub
-        
-    }
 
     @Override
     public void cancelListen(HashIdentifier id) {
