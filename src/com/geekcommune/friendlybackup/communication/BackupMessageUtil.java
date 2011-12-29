@@ -1,16 +1,17 @@
 package com.geekcommune.friendlybackup.communication;
 
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -24,6 +25,7 @@ import org.apache.log4j.Logger;
 
 import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.communication.message.AbstractMessage;
 import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.communication.message.BackupMessage;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
@@ -64,8 +66,7 @@ public class BackupMessageUtil extends MessageUtil {
     }
 
     protected BackupConfig bakcfg;
-    private BlockingQueue<Runnable> workQueue;
-    private Executor executor;
+    private Executor sendExecutor;
     private ConcurrentHashMap<RemoteNodeHandle, AtomicInteger> destinationFailures = new ConcurrentHashMap<RemoteNodeHandle, AtomicInteger>();
     private ConcurrentHashMap<RemoteNodeHandle, AtomicInteger> destinationSuccesses = new ConcurrentHashMap<RemoteNodeHandle, AtomicInteger>();
 
@@ -78,19 +79,26 @@ public class BackupMessageUtil extends MessageUtil {
 
     private ConcurrentHashMap<Socket, Lock> socketLockMap = new ConcurrentHashMap<Socket, Lock>();
 
+    private Thread listenThread;
+
+    private ThreadPoolExecutor listenExecutor;
+
+
     public BackupMessageUtil() {
-        workQueue = new LinkedBlockingQueue<Runnable>();
-        executor = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS, 1000, TimeUnit.MILLISECONDS, workQueue);
+        LinkedBlockingQueue<Runnable> sendWorkQueue = new LinkedBlockingQueue<Runnable>();
+        sendExecutor = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS, 1000, TimeUnit.MILLISECONDS, sendWorkQueue);
+        
+        startListenThread();
     }
     
     public BackupConfig getBackupConfig() {
         return bakcfg;
     }
     
-    private void reallyQueueMessage(final Message msg) {
+    public void reallyQueueMessage(final Message msg) {
         if( msg.getState() == Message.State.NeedsProcessing ) {
             msg.setState(Message.State.Queued);
-            executor.execute(
+            sendExecutor.execute(
                     new Runnable() {
                         public void run() {
                             msg.setState(Message.State.Processing);
@@ -102,7 +110,6 @@ public class BackupMessageUtil extends MessageUtil {
                                         rdm.getResponseHandler());
                             }
                             send(msg);
-                            msg.setState(Message.State.Finished);
                         }
                     });
         }
@@ -110,23 +117,22 @@ public class BackupMessageUtil extends MessageUtil {
 
     protected void send(Message msg) {
         //TODO handle proxying somehow someday :-)
+        Message.State state = Message.State.Error;
+        
         Socket socket = null;
 System.out.println("sending "+ msg.getTransactionID());
         try {
 System.out.println("Attempting to talk to " + msg.getDestination().getAddress() + ":" + msg.getDestination().getPort());
             socket = acquireSocket(msg.getDestination().getAddress(), msg.getDestination().getPort());
 
-            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-            msg.write(dos);
-            dos.flush();
-
-            //block until message is processed & response sent
-            socket.getInputStream().read();
+            justSend(msg, socket);
+            state = Message.State.Finished;
             
             destinationSuccesses.putIfAbsent(msg.getDestination(), new AtomicInteger(0));
             destinationSuccesses.get(msg.getDestination()).incrementAndGet();
         } catch (IOException e) {
-            e.printStackTrace();
+            removeSocket(socket);
+            
             destinationFailures.putIfAbsent(msg.getDestination(), new AtomicInteger(0));
             destinationFailures.get(msg.getDestination()).incrementAndGet();
             
@@ -134,15 +140,16 @@ System.out.println("Attempting to talk to " + msg.getDestination().getAddress() 
             if( msg.getNumberOfTries() > MAX_TRIES ) {
                 UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName());
                 log.error("Not retrying, exceeded max tries: " + e.getMessage(), e);
-                msg.setState(Message.State.Error);
             } else {
-                UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName() + ", will retry", e);
-                log.error("Failed to send message to " + msg.getDestination().getName() + ", will retry: " + e.getMessage(), e);
+//                UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName() + ", will retry", e);
+//                log.error("Failed to send message to " + msg.getDestination().getName() + ", will retry: " + e.getMessage(), e);
                 
-                msg.setState(Message.State.NeedsProcessing);
+                state = Message.State.NeedsProcessing;
                 reallyQueueMessage(msg);
             }
         } finally {
+            msg.setState(state);
+            
             if( socket != null ) {
                 releaseSocket(socket);
 System.out.println("Finished talking");
@@ -158,9 +165,33 @@ System.out.println("Finished talking");
         System.out.println("sent "+ msg.getTransactionID());
     }
 
+    private void justSend(Message msg, Socket socket) throws IOException {
+        DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+        msg.write(dos);
+        dos.flush();
+
+        //block until message is processed & response sent
+        socket.getInputStream().read();
+    }
+
     private void releaseSocket(Socket socket) {
-        Lock lock = socketLockMap.putIfAbsent(socket, new ReentrantLock());
-        lock.unlock();
+        Lock lock = socketLockMap.get(socket);
+        
+        if( lock != null ) {
+            lock.unlock();
+        }
+    }
+
+    private void removeSocket(Socket socket) {
+        Lock lock = socketLockMap.get(socket);
+        
+        if( lock != null ) {
+            lock.unlock();
+            socketLockMap.remove(socket);
+        }
+        
+        Pair<InetAddress, Integer> key = new Pair<InetAddress, Integer>(socket.getInetAddress(), socket.getPort());
+        socketMap.remove(key);
     }
 
     private Socket acquireSocket(InetAddress address, int port) throws IOException {
@@ -170,6 +201,7 @@ System.out.println("Finished talking");
             socket = socketMap.get(key);
         }
 
+        //TODO not entirely thread safe
         socketLockMap.putIfAbsent(socket, new ReentrantLock());
         Lock lock = socketLockMap.get(socket);
         lock.lock();
@@ -197,14 +229,19 @@ System.out.println("Finished talking");
      * @param continuation
      */
     public void retrieve(RemoteNodeHandle[] storingNodes, final HashIdentifier id, final Continuation continuation) {
+        ResponseManager requestManager = new ResponseManager();
+        
+        UnaryContinuation<byte[]> handler = makeReceiveDataHandler(id, continuation, requestManager);
+        
         for(RemoteNodeHandle storingNode : storingNodes) {
+            RetrieveDataMessage msg = new RetrieveDataMessage(
+                    storingNode,
+                    bakcfg.getLocalPort(),
+                    id,
+                    handler);
+            
             try {
-                MessageUtil.instance().queueMessage(
-                        new RetrieveDataMessage(
-                                storingNode,
-                                bakcfg.getLocalPort(),
-                                id, 
-                                makeReceiveDataHandler(id, continuation)));
+                queueMessage(msg);
             } catch (SQLException e) {
                 log.error(e.getMessage(), e);
             }
@@ -226,10 +263,18 @@ System.out.println("Finished talking");
                     final List<Pair<HashIdentifier,RemoteNodeHandle>> retrievalData = erasureManifest.getRetrievalData();
                     final List<HashIdentifier> erasureIds = Pair.firstList(retrievalData);
                     
+                    Continuation erasureHandler = makeErasureHandler(
+                            continuation,
+                            labelledData,
+                            erasureManifest,
+                            erasureIds,
+                            new ResponseManager(erasureManifest.getErasuresNeeded()));
+
                     for(Pair<HashIdentifier, RemoteNodeHandle> retrievalDatum : retrievalData) {
-                        retrieve(retrievalDatum.getSecond(), retrievalDatum.getFirst(), makeErasureHandler(continuation,
-                                labelledData, erasureManifest,
-                                erasureIds));
+                        retrieve(
+                                retrievalDatum.getSecond(),
+                                retrievalDatum.getFirst(),
+                                erasureHandler);
                     }
                 } catch (InvalidProtocolBufferException e) {
                     log.error(e.getMessage(), e);
@@ -249,65 +294,76 @@ System.out.println("Finished talking");
             final BinaryContinuation<String, byte[]> continuation,
             final LabelledData labelledData,
             final ErasureManifest erasureManifest,
-            final List<HashIdentifier> erasureIds) {
+            final List<HashIdentifier> erasureIds,
+            final ResponseManager responseManager) {
         return new Continuation() {
 
             public void run() {
-                try {
-                    //check if enough of the blocks have come in to reconstitute the data
-                    List<byte[]> dataList = DataStore.instance().getDataList(erasureIds);
+                responseManager.doOnce(new Continuation() {
+                    
+                    public void run() {
+                        try {
+                            //check if enough of the blocks have come in to reconstitute the data
+                            List<byte[]> dataList = DataStore.instance().getDataList(erasureIds);
 
-                    if( dataList.size() >= erasureManifest.getErasuresNeeded() ) {
-                        //stop listening for any other blocks to come in
-                        MessageUtil.instance().cancelListen(erasureIds);
+                            if( dataList.size() >= erasureManifest.getErasuresNeeded() ) {
+                                //reconstitute the erasure blocks into the original data
+                                List<com.geekcommune.friendlybackup.erasure.Erasure> erasures =
+                                        new ArrayList<com.geekcommune.friendlybackup.erasure.Erasure>(dataList.size());
+                                for(byte[] erasureObj : dataList) {
+                                    //TODO no need to bail on decoding altogether if parse throws exception; could
+                                    //wait for more erasures we get enough that work OR are sure we will never get enough
+                                    Erasure erasure = Erasure.fromProto(Basic.Erasure.parseFrom(erasureObj));
+                                    erasure.setIndex(erasureManifest.getIndex(erasure.getHashID()));
+                                    erasures.add(erasure.getPlainErasure());
+                                }
 
-                        //reconstitute the erasure blocks into the original data
-                        List<com.geekcommune.friendlybackup.erasure.Erasure> erasures =
-                                new ArrayList<com.geekcommune.friendlybackup.erasure.Erasure>(dataList.size());
-                        for(byte[] erasureObj : dataList) {
-                            //TODO no need to bail on decoding altogether if parse throws exception; could
-                            //wait for more erasures we get enough that work OR are sure we will never get enough
-                            Erasure erasure = Erasure.fromProto(Basic.Erasure.parseFrom(erasureObj));
-                            erasure.setIndex(erasureManifest.getIndex(erasure.getHashID()));
-                            erasures.add(erasure.getPlainErasure());
+                                byte[] fullContents = new byte[erasureManifest.getContentSize()];
+                                ErasureUtil.decode(
+                                        fullContents,
+                                        erasureManifest.getErasuresNeeded(),
+                                        erasureManifest.getTotalErasures(),
+                                        erasures);
+                                log.info("Rebuilt contents of " + labelledData.getLabel());
+
+                                continuation.run(labelledData.getLabel(), fullContents);
+                            } else {
+                                log.error("not enough blocks returned to rebuild erasure - how did we get here?");
+                            }
+                        } catch (InvalidProtocolBufferException e) {
+                            log.error(e.getMessage(), e);
+                            UserLog.instance().logError("Failed to retrieve " + labelledData.getLabel(), e);
+                        } catch (SQLException e) {
+                            log.error(e.getMessage(), e);
+                            UserLog.instance().logError("Failed to retrieve " + labelledData.getLabel(), e);
                         }
-
-                        byte[] fullContents = new byte[erasureManifest.getContentSize()];
-                        ErasureUtil.decode(
-                                fullContents,
-                                erasureManifest.getErasuresNeeded(),
-                                erasureManifest.getTotalErasures(),
-                                erasures);
-                        log.info("Rebuilt contents of " + labelledData.getLabel());
-
-                        continuation.run(labelledData.getLabel(), fullContents);
                     }
-                } catch (InvalidProtocolBufferException e) {
-                    log.error(e.getMessage(), e);
-                    UserLog.instance().logError("Failed to retrieve " + labelledData.getLabel(), e);
-                } catch (SQLException e) {
-                    log.error(e.getMessage(), e);
-                    UserLog.instance().logError("Failed to retrieve " + labelledData.getLabel(), e);
-                }
+                });
             }
         };
     }
 
     private UnaryContinuation<byte[]> makeReceiveDataHandler(
-            final HashIdentifier id, final Continuation continuation) {
+            final HashIdentifier id,
+            final Continuation continuation,
+            final ResponseManager requestManager) {
         return new UnaryContinuation<byte[]>() {
 
-        public void run(byte[] data) {
-            try {
-                DataStore.instance().storeData(id, data, new Lease(DateUtil.oneHourHence(), bakcfg.getOwner().getHandle(), Signature.INTERNAL_SELF_SIGNED));
-                MessageUtil.instance().cancelListen(id);
-                continuation.run();
-            } catch (SQLException e) {
-                log.error(e.getMessage(), e);
-                UserLog.instance().logError("Failed to retrieve " + id, e);
-            }
+        public void run(final byte[] data) {
+            requestManager.doOnce(new Continuation() {
+                
+                public void run() {
+                    try {
+                        DataStore.instance().storeData(id, data, new Lease(DateUtil.oneHourHence(), bakcfg.getOwner().getHandle(), Signature.INTERNAL_SELF_SIGNED));
+                        continuation.run();
+                    } catch (SQLException e) {
+                        log.error(e.getMessage(), e);
+                        UserLog.instance().logError("Failed to retrieve " + id, e);
+                    }
+                }
+            });
         }
-                     };
+        };
     }
 
     /**
@@ -332,7 +388,7 @@ System.out.println("Finished talking");
                 try {
                     final LabelledData labelledData = LabelledData.fromProto(Basic.LabelledData.parseFrom(DataStore.instance().getData(id)));
                     final HashIdentifier erasureManifestId = labelledData.getPointingAt();
-                    
+System.out.println("Retrieving " + labelledData.getLabel());
                     log.info("Retrieved " + labelledData.getLabel());
                     
                     retrieve(storingNodes, erasureManifestId, makeErasureManifestHandler(continuation, labelledData,
@@ -352,31 +408,96 @@ System.out.println("Finished talking");
             RemoteNodeHandle node,
             final HashIdentifier id,
             final Continuation continuation) throws SQLException {
-        MessageUtil.instance().queueMessage(
-                new RetrieveDataMessage(
+        RetrieveDataMessage msg = new RetrieveDataMessage(
                         node,
                         bakcfg.getLocalPort(),
                         id,
-                        new UnaryContinuation<byte[]>() {
-                            public void run(byte[] data) {
-                                try {
-                                    DataStore.instance().storeData(id, data, new Lease(DateUtil.oneHourHence(), bakcfg.getOwner().getHandle(), Signature.INTERNAL_SELF_SIGNED));
-                                    continuation.run();
-                                } catch (SQLException e) {
-                                    log.error(e.getMessage(), e);
-                                }
-                            }
-                        })
+                        makeReceiveDataHandler(id, continuation, new ResponseManager())
                 );
+        queueMessage(msg);
     }
 
     public void setBackupConfig(BackupConfig bakcfg) {
         this.bakcfg = bakcfg;
     }
 
+    private void startListenThread() {
+        if( listenThread != null ) {
+            throw new RuntimeException("Listen thread already started");
+        }
+
+        LinkedBlockingQueue<Runnable> listenWorkQueue = new LinkedBlockingQueue<Runnable>();
+        listenExecutor = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS, 1000, TimeUnit.MILLISECONDS, listenWorkQueue);
+
+        listenThread = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    ServerSocket serversocket = null;
+                    serversocket = new ServerSocket(bakcfg.getLocalPort());
+System.out.println("server socket listening on " + bakcfg.getLocalPort());
+                    do {
+                        try {
+                            Socket socket = serversocket.accept();
+                            System.out.println("Server socket open");
+                            listenExecutor.execute(makeHandleAllMessagesOnSocketRunnable(socket));
+                        } catch(Exception e) {
+                            log.error(e.getMessage(), e);
+                        }
+                    } while (true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    log.error("Couldn't start listening for unsolicited messages: " + e.getMessage(), e);
+                }
+            }
+        });
+
+        listenThread.start();
+    }
+
+    private Runnable makeHandleAllMessagesOnSocketRunnable(final Socket socket) {
+        return new Runnable() {
+            public void run() {
+                try {
+                    while(socket.isConnected() && !socket.isInputShutdown()) {
+                        DataInputStream dis = new DataInputStream(socket.getInputStream());
+                        final Message msg = AbstractMessage.parseMessage(dis);
+                        final InetAddress address = socket.getInetAddress();
+                        msg.setState(Message.State.NeedsProcessing);
+                        makeProcessMessageRunnable(msg, address).run();
+                        socket.getOutputStream().write(1);
+                        socket.getOutputStream().flush();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    log.error("Error talking to " + socket + ", " + e.getMessage(), e);
+                } finally {
+                    try {
+//System.out.println("Server socket finished");
+                        socket.close();
+                    } catch( Exception e ) {
+                        log.error("Error closing socket to " + socket + ", " + e.getMessage(), e);
+                    }
+                }
+            }
+        };
+    }
+
+    private Runnable makeProcessMessageRunnable(final Message msg,
+            final InetAddress address) {
+        return new Runnable() {
+            public void run() {
+                try {
+                    processMessage(msg, address);
+                } catch (SQLException e) {
+                    log.error("Error talking processing " + msg + ": " + e.getMessage(), e);
+                }
+            }
+        };
+    }
+
     public void processMessage(Message msg, InetAddress inetAddress) throws SQLException {
         System.out.println("processing " + msg.getTransactionID());
-        
+        //TODO reject message if we've already processed its transaction id
         msg.setState(Message.State.Processing);
 
         if( msg instanceof VerifyMaybeSendDataMessage ) {

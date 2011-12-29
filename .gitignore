@@ -4,4 +4,5 @@ tmp.pl
 classes
 *.class
 test/integ/happy1/config/restore-dir
+test/integ/happy2/config1/restore-dir
 *.jad

@@ -33,7 +33,10 @@ public abstract class DataStore {
         List<byte[]> retval = new ArrayList<byte[]>(ids.size());
         
         for(HashIdentifier id : ids) {
-            retval.add(getData(id));
+            byte[] data = getData(id);
+            if( data != null ) {
+                retval.add(data);
+            }
         }
         
         return retval;

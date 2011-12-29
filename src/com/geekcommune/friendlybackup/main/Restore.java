@@ -51,7 +51,6 @@ public class Restore extends Action {
         final HashIdentifier backupLabelId = LabelledData.getHashID(
                 authenticatedOwner.getPublicIdentity().getHandle(),
                 bakcfg.getBackupStreamName());
-
         progressTracker = new ProgressTracker(105);
         
         //retrieve my latest backup erasure manifest
@@ -59,8 +58,8 @@ public class Restore extends Action {
         BackupMessageUtil.instance().retrieveLabelledData(
                 bakcfg.getStoringNodes(),
                 backupLabelId,
-                restoreBackupManifestResponseHandler(bakcfg, userlog));//end retrieveLabelledData(backupLabelId)
-	}//end start()
+                restoreBackupManifestResponseHandler(bakcfg, userlog));
+	}
 
     private BinaryContinuation<String, byte[]> restoreBackupManifestResponseHandler(
             final BackupConfig bakcfg, final UserLog userlog) {
@@ -75,7 +74,10 @@ public class Restore extends Action {
                     //loop over each label id in the backup manifest
                     for(HashIdentifier fileLabelId : bakman.getFileLabelIDs()) {
                         //  retrieve the label
-                        BackupMessageUtil.instance().retrieveLabelledData(bakcfg.getStoringNodes(), fileLabelId, restoreFileContentsHandler(bakcfg, userlog));//end retrieveLabelledData(fileLabelId)
+                        BackupMessageUtil.instance().retrieveLabelledData(
+                                bakcfg.getStoringNodes(),
+                                fileLabelId,
+                                restoreFileContentsHandler(bakcfg, userlog));
                     }//end for(fileLabelId)
                 } catch (InvalidProtocolBufferException e1) {
                     log.error(e1.getMessage(), e1);

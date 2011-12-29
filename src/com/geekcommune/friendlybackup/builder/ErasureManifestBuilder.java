@@ -79,12 +79,12 @@ public class ErasureManifestBuilder {
 
 		//break the file down into totalErasures chunks, in such a way that we can reconstitute it from any erasuresNeeded chunks
 		Buffer[] erasures = ErasureUtil.encode(data, erasuresNeeded, totalErasures);
-		
+
 		int idx = 0;
 		for(Buffer erasureBuffer : erasures) {
 		    Erasure erasure = new Erasure(erasureBuffer, idx);
 			HashIdentifier erasureId = erasure.getHashID();
-			
+
 			//store the erasure on its correct node
 			RemoteNodeHandle storingNode = calculateStoringNode(storingNodes, idx);
 			try {
