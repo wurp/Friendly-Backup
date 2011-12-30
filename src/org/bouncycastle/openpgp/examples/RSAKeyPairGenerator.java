@@ -40,21 +40,31 @@ public class RSAKeyPairGenerator
         String          identity,
         char[]          passPhrase,
         boolean         armor)
-        throws IOException, InvalidKeyException, NoSuchProviderException, SignatureException, PGPException
-    {    
-        if (armor)
-        {
+        throws IOException, InvalidKeyException, NoSuchProviderException, SignatureException, PGPException {    
+        if (armor) {
             secretOut = new ArmoredOutputStream(secretOut);
         }
 
-        PGPSecretKey    secretKey = new PGPSecretKey(PGPSignature.DEFAULT_CERTIFICATION, PGPPublicKey.RSA_GENERAL, publicKey, privateKey, new Date(), identity, PGPEncryptedData.CAST5, passPhrase, null, null, new SecureRandom(), "BC");
+        PGPSecretKey    secretKey =
+                new PGPSecretKey(
+                        PGPSignature.DEFAULT_CERTIFICATION,
+                        PGPPublicKey.RSA_GENERAL,
+                        publicKey,
+                        privateKey,
+                        new Date(),
+                        identity,
+                        PGPEncryptedData.CAST5,
+                        passPhrase,
+                        null,
+                        null,
+                        new SecureRandom(),
+                        "BC");
         
         secretKey.encode(secretOut);
         
         secretOut.close();
         
-        if (armor)
-        {
+        if (armor) {
             publicOut = new ArmoredOutputStream(publicOut);
         }
 

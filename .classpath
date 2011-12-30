@@ -13,7 +13,7 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:/cygwin/home/bobbym/projects/friendly-backup/lib/fec-win32"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/bcpg-jdk15-146.jar"/>
+	<classpathentry kind="lib" path="lib/bcpg-jdk15-146.jar" sourcepath="C:/cygwin/home/bobbym/3rdparty/bouncycastle/crypto-146/src"/>
 	<classpathentry kind="lib" path="lib/junit-4.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/bcprov-jdk15-146.jar"/>
 	<classpathentry kind="lib" path="resource"/>

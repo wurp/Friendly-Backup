@@ -9,9 +9,8 @@ Backup:
   Todo now!:
     integration test that backs up empty dir
     integration test for multiple backups in one run
-    flesh out send/receive
     job scheduling
-    encryption/signing
+    encryption/signing: crypto-146/tools/src/org/bouncycastle/tools/openpgp/rampage/PGPRampageEngine.java
 
   Near future features:
     good test suite
@@ -30,6 +29,9 @@ Backup:
     work as a service
     run faster
     More distributed?  FreePastry?  Remove need to configure friends?
+
+  Installation
+    must install unlimited strength JCE files (http://www.oracle.com/technetwork/java/javase/downloads/index.html) 
     
   Technical notes
     use 60 erasures for each file (nice composite number)
