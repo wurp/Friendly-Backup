@@ -16,6 +16,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.security.SignatureException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -51,6 +54,8 @@ import org.bouncycastle.openpgp.PGPSignatureList;
 import org.bouncycastle.openpgp.PGPSignatureSubpacketGenerator;
 import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.PGPV3SignatureGenerator;
+
+import com.geekcommune.util.Pair;
 
 /**
  * Copyright (c) 2000-2011 The Legion Of The Bouncy Castle (http://www.bouncycastle.org)
@@ -89,7 +94,7 @@ public class EncryptionUtil {
         PGPUtil.setDefaultProvider("BC");
     }
 
-    public PGPPublicKeyRingCollection readKeyRing(String baseDir) throws FileNotFoundException, IOException,
+    public PGPPublicKeyRingCollection readPublicKeyRing(String baseDir) throws FileNotFoundException, IOException,
             PGPException {
         PGPPublicKeyRingCollection pubRings = null;
         PGPPublicKeyRing pgpPub = null;
@@ -107,7 +112,7 @@ public class EncryptionUtil {
                 String filename = children[i];
                 log.info("File Name (.asc) " + "(" + i + ")"
                         + " = " + filename);
-                PGPPublicKeyRingCollection tmpKeyRingCollection = readKeyRingCollection(new File(dir, filename));
+                PGPPublicKeyRingCollection tmpKeyRingCollection = readPublicKeyRingCollection(new File(dir, filename));
 
                 if (pubRings == null) {
                     // read the first .asc file and create the
@@ -140,21 +145,17 @@ public class EncryptionUtil {
         return pubRings;
     }
 
-    public PGPPublicKeyRingCollection readKeyRingCollection(
+    public PGPPublicKeyRingCollection readPublicKeyRingCollection(
             File keyRingCollectionFile) throws IOException,
             FileNotFoundException, PGPException {
         FileInputStream keyRingCollectionIn = new FileInputStream(keyRingCollectionFile);
-        InputStream in = PGPUtil.getDecoderStream(keyRingCollectionIn);
 
-        PGPPublicKeyRingCollection retval = new PGPPublicKeyRingCollection(in);
-        
-        in.close();
-        keyRingCollectionIn.close();
+        PGPPublicKeyRingCollection retval = readPublicKeyRingCollection(keyRingCollectionIn);
         
         return retval;
     }
 
-    public PGPPublicKeyRingCollection readKeyRingCollection(
+    public PGPPublicKeyRingCollection readPublicKeyRingCollection(
             InputStream keyRingCollectionIn) throws IOException,
             FileNotFoundException, PGPException {
         InputStream in = PGPUtil.getDecoderStream(keyRingCollectionIn);
@@ -376,6 +377,16 @@ public class EncryptionUtil {
     }
 
     public PGPSecretKeyRingCollection readSecretKeyRingCollection(
+            File secretRing) throws IOException, PGPException {
+        InputStream secretRingStream = new FileInputStream(secretRing);
+        PGPSecretKeyRingCollection secRing =
+                new PGPSecretKeyRingCollection(
+                        PGPUtil.getDecoderStream(secretRingStream));
+        secretRingStream.close();
+        return secRing;
+    }
+
+    public PGPSecretKeyRingCollection readSecretKeyRingCollection(
             InputStream secretRing) throws IOException, PGPException {
         PGPSecretKeyRingCollection secRing =
                 new PGPSecretKeyRingCollection(
@@ -571,6 +582,27 @@ public class EncryptionUtil {
     }
 
 
+    public PGPSignature makeSignature(byte[] input, PGPPublicKey publicKey, PGPPrivateKey privateKey) throws PGPException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException {
+        PGPSignatureGenerator sGen = 
+                new PGPSignatureGenerator(publicKey.getAlgorithm(), PGPUtil.SHA1, "BC");
+
+        sGen.initSign(PGPSignature.BINARY_DOCUMENT, privateKey);
+
+        @SuppressWarnings("unchecked")
+        Iterator<String> users = publicKey.getUserIDs();
+        if (users.hasNext()) {
+            PGPSignatureSubpacketGenerator spGen = new PGPSignatureSubpacketGenerator();
+            spGen.setSignerUserID(false, users.next());
+            sGen.setHashedSubpackets(spGen.generate());
+        }
+
+        for(byte b : input) {
+            sGen.update(b);
+        }
+        
+        return sGen.generate();
+    }
+    
     /**
      * Compress the data in the input stream
      * @throws FileNotFoundException 
@@ -1322,5 +1354,63 @@ public class EncryptionUtil {
         inputStream.close();
         encryptedOut.close();
         return encryptedOut.toByteArray();
+    }
+
+    /**
+     * Get the keyring pointed to by the public & secret files.  Creates the files
+     * with a single key if they don't already exist; interrogates keyDataSource for the
+     * info to create the key (typically it should pop up a gui).
+     * 
+     * TODO bobby: doesn't create usable keyrings yet, and doesn't save what it does create :-( 
+     * @param publicKeyRingFile
+     * @param secretKeyRingFile
+     * @param keyDataSource
+     * @return
+     * @throws PGPException
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidAlgorithmParameterException
+     */
+    public Pair<PGPPublicKeyRingCollection, PGPSecretKeyRingCollection>
+        getOrCreateKeyring(
+                File publicKeyRingFile,
+                File secretKeyRingFile,
+                KeyDataSource keyDataSource)
+                        throws PGPException, FileNotFoundException, IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+        boolean pubRingFound = publicKeyRingFile.isFile();
+        boolean secRingFound = secretKeyRingFile.isFile();
+        
+        if( pubRingFound != secRingFound ) {
+            throw new PGPException("Expect both public & secret keyring, or neither: " + publicKeyRingFile + ", " + secretKeyRingFile);
+        }
+        
+        Pair<PGPPublicKeyRingCollection, PGPSecretKeyRingCollection> retval =
+                new Pair<PGPPublicKeyRingCollection, PGPSecretKeyRingCollection>();
+        
+        if( pubRingFound ) {
+            retval.setFirst(EncryptionUtil.instance().readPublicKeyRingCollection(publicKeyRingFile));
+            retval.setSecond(EncryptionUtil.instance().readSecretKeyRingCollection(secretKeyRingFile));
+        } else {
+            if( publicKeyRingFile.exists() || secretKeyRingFile.exists() ) {
+                throw new PGPException("Either public or secret keyring not a normal file: " + publicKeyRingFile + ", " + secretKeyRingFile);
+            }
+            
+            PGPSecretKey key =
+                    generateKey(keyDataSource.getIdentity(), keyDataSource.getPassphrase());
+            
+            PGPPublicKeyRing publicKeyRing = new PGPPublicKeyRing(key.getPublicKey().getEncoded());
+            Collection<PGPPublicKeyRing> collection = Collections.singletonList(publicKeyRing);
+            retval.setFirst(new PGPPublicKeyRingCollection(collection));
+            
+            PGPSecretKeyRing secretKeyRing = new PGPSecretKeyRing(key.getEncoded());
+            Collection<PGPSecretKeyRing> secretKeyRings = Collections.singletonList(secretKeyRing);
+            retval.setSecond(new PGPSecretKeyRingCollection(secretKeyRings));
+            
+            //TODO bobby save keyrings to the files
+        }
+        
+        return retval;
     }
 }

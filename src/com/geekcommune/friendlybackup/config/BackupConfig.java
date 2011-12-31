@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.logging.UserLog;
-import com.geekcommune.identity.PrivateIdentity;
+import com.geekcommune.identity.SecretIdentity;
 import com.geekcommune.identity.PublicIdentity;
 import com.geekcommune.util.FileUtil;
 
@@ -120,9 +120,9 @@ public class BackupConfig {
 		return storingNodes;
 	}
 
-	public PrivateIdentity getAuthenticatedOwner(String password) {
+	public SecretIdentity getAuthenticatedOwner(String password) {
 		// TODO Auto-generated method stub
-		return new PrivateIdentity();
+		return new SecretIdentity();
 	}
 
 	private File getRoot() {

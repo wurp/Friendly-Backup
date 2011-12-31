@@ -13,7 +13,7 @@ import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
 import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.friendlybackup.proto.Basic;
-import com.geekcommune.identity.PrivateIdentity;
+import com.geekcommune.identity.SecretIdentity;
 import com.geekcommune.util.BinaryContinuation;
 import com.geekcommune.util.FileUtil;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -42,7 +42,7 @@ public class Restore extends Action {
 	 * after the backup manifest is retrieved.
      * @throws IOException 
 	 */
-	public void start(final PrivateIdentity authenticatedOwner) throws IOException {
+	public void start(final SecretIdentity authenticatedOwner) throws IOException {
 	    final BackupConfig bakcfg = App.getBackupConfig();
 	    
         final UserLog userlog = UserLog.instance();

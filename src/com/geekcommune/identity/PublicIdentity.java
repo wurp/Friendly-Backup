@@ -5,11 +5,14 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 
 public class PublicIdentity {
 
+    private PGPPublicKey key;
+    
+    public PublicIdentity(PGPPublicKey publicKey) {
+        this.key = publicKey;
+    }
+
     public PublicIdentityHandle getHandle() {
-        PGPPublicKey pubkey = null;
-        pubkey.getFingerprint();
-        // TODO Auto-generated method stub
-        return new PublicIdentityHandle();
+        return new PublicIdentityHandle(key);
     }
 
 }

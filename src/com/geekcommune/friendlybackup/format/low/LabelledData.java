@@ -2,7 +2,7 @@ package com.geekcommune.friendlybackup.format.low;
 
 import com.geekcommune.friendlybackup.format.BaseData;
 import com.geekcommune.friendlybackup.proto.Basic;
-import com.geekcommune.identity.PrivateIdentity;
+import com.geekcommune.identity.SecretIdentity;
 import com.geekcommune.identity.PublicIdentityHandle;
 import com.geekcommune.identity.Signature;
 
@@ -13,7 +13,7 @@ public class LabelledData extends BaseData<Basic.LabelledData> {
     private Signature signature;
     private HashIdentifier pointingAt;
 
-    public LabelledData(PrivateIdentity owner, String label, HashIdentifier pointingAt) {
+    public LabelledData(SecretIdentity owner, String label, HashIdentifier pointingAt) {
         this.label = label;
         this.owner = owner.getPublicIdentity().getHandle();
         this.sign(owner);
@@ -40,7 +40,7 @@ public class LabelledData extends BaseData<Basic.LabelledData> {
         return pointingAt;
     }
 
-	private void sign(PrivateIdentity authenticatedUser) {
+	private void sign(SecretIdentity authenticatedUser) {
 	    this.signature = Signature.Dummy;
 	    this.pointingAt = HashIdentifier.Dummy;
 	    this.signature = authenticatedUser.sign(toProto().toByteArray());

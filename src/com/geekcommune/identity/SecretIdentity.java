@@ -2,23 +2,24 @@ package com.geekcommune.identity;
 
 import java.util.Date;
 
+import org.bouncycastle.openpgp.PGPSecretKey;
+
 import com.geekcommune.friendlybackup.datastore.Lease;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
 
-public class PrivateIdentity {
-    public PrivateIdentity() {
-        
+public class SecretIdentity {
+    PGPSecretKey key;
+    
+    protected SecretIdentity() {
     }
     
 	public PublicIdentity getPublicIdentity() {
-		// TODO Auto-generated method stub
-		return new PublicIdentity();
+		return new PublicIdentity(key.getPublicKey());
 	}
 
 	public Signature sign(byte[] data) {
-	    //TODO BOBBY
-		return Signature.Dummy;
+		return null; //new Signature(EncryptionUtil.instance().makeSignature(data, key.getPublicKey(), key.extractPrivateKey(passPhrase, "BC")));
 	}
 
 	/**

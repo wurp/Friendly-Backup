@@ -1,36 +1,46 @@
 package com.geekcommune.identity;
 
+import org.bouncycastle.openpgp.PGPPublicKey;
+
 import com.geekcommune.friendlybackup.format.Data;
 import com.geekcommune.friendlybackup.proto.Basic;
+import com.geekcommune.util.StringUtil;
 import com.google.protobuf.ByteString;
 
+/**
+ * A small unique identifier for a given public key (and implicitly the secret key as well).
+ * In either case, this identifier is only useful if you already have the public or secret
+ * key available.
+ * @author bobbym
+ *
+ */
 public class PublicIdentityHandle implements Data<Basic.PublicIdentityHandle>{
 
-    public PublicIdentityHandle() {
-        // TODO Auto-generated constructor stub
+    private byte[] fingerprint;
+
+    public PublicIdentityHandle(PGPPublicKey key) {
+        this.fingerprint = key.getFingerprint();
     }
 
-    public PublicIdentityHandle(String handle) {
-        // TODO Auto-generated constructor stub
+    protected PublicIdentityHandle() {
     }
 
     public Basic.PublicIdentityHandle toProto() {
         Basic.PublicIdentityHandle.Builder bldr = Basic.PublicIdentityHandle.newBuilder();
-        //TODO BOBBY
-        bldr.setVersion(0);
-        bldr.setFingerprint(ByteString.copyFrom(new byte[0]));
+        bldr.setVersion(1);
+        bldr.setFingerprint(ByteString.copyFrom(fingerprint));
         return bldr.build();
     }
 
     public static PublicIdentityHandle fromProto(
             com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle ownerHandle) {
-        //TODO BOBBY
-        return new PublicIdentityHandle();
+        PublicIdentityHandle retval = new PublicIdentityHandle();
+        retval.fingerprint = ownerHandle.getFingerprint().toByteArray();
+        return retval;
     }
 
     public String fingerprintString() {
-        // TODO Auto-generated method stub
-        return "DUMMY";
+        return StringUtil.hexdump(fingerprint);
     }
 
 }

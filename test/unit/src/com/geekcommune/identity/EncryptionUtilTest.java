@@ -11,10 +11,13 @@ import java.net.URL;
 import junit.framework.TestCase;
 
 import org.bouncycastle.openpgp.PGPException;
+import org.bouncycastle.openpgp.PGPPrivateKey;
+import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 import org.junit.Assert;
 
+import com.geekcommune.util.Pair;
 import com.geekcommune.util.StringUtil;
 
 public class EncryptionUtilTest extends TestCase {
@@ -25,7 +28,7 @@ public class EncryptionUtilTest extends TestCase {
 
     public void setUp() throws Exception {
         InputStream publicRing = getClass().getResourceAsStream("test-pubkeyring.asc");
-        pubRing = EncryptionUtil.instance().readKeyRingCollection(publicRing);
+        pubRing = EncryptionUtil.instance().readPublicKeyRingCollection(publicRing);
         publicRing.close();
 
         InputStream secretRing = getClass().getResourceAsStream("test-seckeyring.gpg");
@@ -129,5 +132,63 @@ public class EncryptionUtilTest extends TestCase {
 
     public void testCreateKeyringIfNone() throws Exception {
         fail("unimplemented");
+
+        File keyRingDir = new File("test/unit/encrypt-working");
+        keyRingDir.mkdirs();
+        
+        File secretKeyRingFile = new File(keyRingDir, "secring.gpg");
+        File publicKeyRingFile = new File(keyRingDir, "pubring.asc");
+        
+        secretKeyRingFile.delete();
+        publicKeyRingFile.delete();
+        
+        EncryptionUtil.instance().getOrCreateKeyring(publicKeyRingFile, secretKeyRingFile, new KeyDataSource() {
+
+            public char[] getPassphrase() {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            public String getIdentity() {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            
+        });
+    }
+
+    public void testLoadKeyring() throws Exception {
+        File keyRingDir = new File("test/unit/encrypt-working");
+        keyRingDir.mkdirs();
+        
+        File secretKeyRingFile = new File(keyRingDir, "secring.gpg");
+        File publicKeyRingFile = new File(keyRingDir, "pubring.asc");
+        
+        Pair<PGPPublicKeyRingCollection, PGPSecretKeyRingCollection> keys =
+                EncryptionUtil.instance().getOrCreateKeyring(
+                        publicKeyRingFile,
+                        secretKeyRingFile,
+                        new KeyDataSource() {
+
+                            public char[] getPassphrase() {
+                                return passwd;
+                            }
+
+                            public String getIdentity() {
+                                return recipient;
+                            }
+            
+                        });
+        
+        byte[] input = { 0, 0, 1, 2, 3, 4, 5, 6, 7, -7, -6, -5, -4, -3, -2, -1, 0, 0 };
+        validateDataEncryption(input, keys.getSecond(), keys.getFirst(), recipient, passwd);
+    }
+    
+    public void testSignaturePositive() throws Exception {
+        PGPPrivateKey privkey = null;
+        PGPPublicKey pubkey = null;
+        byte[] input = null;
+        EncryptionUtil.instance().
+            makeSignature(input, pubkey, privkey);
     }
 }

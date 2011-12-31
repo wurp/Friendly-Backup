@@ -9,13 +9,13 @@ import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataM
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
 import com.geekcommune.friendlybackup.main.ProgressTracker;
-import com.geekcommune.identity.PrivateIdentity;
+import com.geekcommune.identity.SecretIdentity;
 
 public class LabelledDataBuilder {
     //private static final Logger log = Logger.getLogger(LabelledDataBuilder.class);
 
 	public static LabelledData buildLabelledData(
-	        PrivateIdentity owner,
+	        SecretIdentity owner,
 	        String label,
 	        HashIdentifier id,
 	        RemoteNodeHandle[] storingNodes,

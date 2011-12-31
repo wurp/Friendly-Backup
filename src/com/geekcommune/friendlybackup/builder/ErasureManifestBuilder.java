@@ -18,7 +18,7 @@ import com.geekcommune.friendlybackup.format.low.Erasure;
 import com.geekcommune.friendlybackup.format.low.ErasureManifest;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.main.ProgressTracker;
-import com.geekcommune.identity.PrivateIdentity;
+import com.geekcommune.identity.SecretIdentity;
 import com.geekcommune.util.FileUtil;
 import com.onionnetworks.util.Buffer;
 
@@ -40,7 +40,7 @@ public class ErasureManifestBuilder {
             File f,
             BackupConfig bakcfg,
             Date expiryDate,
-            PrivateIdentity owner,
+            SecretIdentity owner,
             ProgressTracker progressTracker) throws IOException {
         int erasuresNeeded = bakcfg.getErasuresNeeded();
         int totalErasures = bakcfg.getTotalErasures();
@@ -68,7 +68,7 @@ public class ErasureManifestBuilder {
 			final int erasuresNeeded,
 			final int totalErasures,
 			final Date expiryDate,
-			final PrivateIdentity owner,
+			final SecretIdentity owner,
             ProgressTracker progressTracker) {
 	    progressTracker.rebase(totalErasures + storingNodes.length);
 	    
@@ -131,7 +131,7 @@ public class ErasureManifestBuilder {
 	        byte[] data,
 	        BackupConfig bakcfg,
 	        Date expiryDate,
-	        PrivateIdentity owner,
+	        SecretIdentity owner,
             ProgressTracker progressTracker) {
 		int erasuresNeeded = bakcfg.getErasuresNeeded();
         int totalErasures = bakcfg.getTotalErasures();

@@ -15,7 +15,7 @@ import com.geekcommune.friendlybackup.format.high.BackupManifest;
 import com.geekcommune.friendlybackup.format.low.ErasureManifest;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
 import com.geekcommune.friendlybackup.logging.UserLog;
-import com.geekcommune.identity.PrivateIdentity;
+import com.geekcommune.identity.SecretIdentity;
 
 /**
  * Initiate a backup according to the backup configuration specified by system property.
@@ -41,7 +41,7 @@ public class Backup extends Action {
      * @param authenticatedOwner
      * @throws IOException
      */
-    public void start(final PrivateIdentity authenticatedOwner) throws IOException {
+    public void start(final SecretIdentity authenticatedOwner) throws IOException {
 		if( backupThread != null ) {
 			throw new RuntimeException("Already started");
 		}
@@ -85,7 +85,7 @@ public class Backup extends Action {
 	 * @param authenticatedOwner
 	 * @param expiryDate
 	 */
-	protected void doBackupInternal(BackupConfig bakcfg, PrivateIdentity authenticatedOwner, Date expiryDate) {
+	protected void doBackupInternal(BackupConfig bakcfg, SecretIdentity authenticatedOwner, Date expiryDate) {
 		UserLog userlog = UserLog.instance();
 
 		//first make sure there are no other messages still hanging around from previous backups
