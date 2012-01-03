@@ -1,6 +1,7 @@
 package com.geekcommune.friendlybackup.communication.message;
 
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.datastore.Lease;
 import com.geekcommune.friendlybackup.erasure.ErasureFinder;
 import com.geekcommune.friendlybackup.format.low.Erasure;
@@ -25,8 +26,19 @@ public class VerifyMaybeSendErasureMessage extends VerifyMaybeSendMessage {
     }
 
     @Override
-    public byte[] getData() {
-        return new Erasure(erasureFinder.getErasure(idx), idx).toProto().toByteArray();
+    public byte[] getData() throws FriendlyBackupException {
+        Erasure erasure = new Erasure(erasureFinder.getErasure(idx), idx);
+        
+        //make sure the erasure we got has the id it's supposed to...
+        if( !erasure.getHashID().equals(getDataHashID()) ) {
+            throw new FriendlyBackupException(
+                    "Expected erasure to have id " +
+                    getDataHashID() +
+                    ", but it had id " +
+                    erasure.getHashID());
+        }
+        
+        return erasure.toProto().toByteArray();
     }
 
     @Override

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 
 public abstract class AbstractMessage implements Message {
     public static final Object STATE_CHANGE_NOTIFIER = new Object();
@@ -88,7 +89,7 @@ public abstract class AbstractMessage implements Message {
         originNodePort = is.readInt();
     }
 
-    public void write(DataOutputStream os) throws IOException {
+    public void write(DataOutputStream os) throws IOException, FriendlyBackupException {
         os.writeInt(transactionId);
         os.writeInt(originNodePort);
     }

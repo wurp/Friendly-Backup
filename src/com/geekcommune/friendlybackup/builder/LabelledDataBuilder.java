@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.ProgressWhenCompleteListener;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
@@ -21,10 +22,14 @@ public class LabelledDataBuilder {
 	        RemoteNodeHandle[] storingNodes,
 	        int localPort,
 	        Date expiryDate,
-	        ProgressTracker progressTracker) {
+	        ProgressTracker progressTracker) throws FriendlyBackupException {
 	    progressTracker.rebase(storingNodes.length);
 
-		LabelledData labelledData = new LabelledData(owner, label, id);
+		LabelledData labelledData =
+		        new LabelledData(
+		                owner,
+		                label,
+		                id);
 
 		//for now, store the manifest on all storing nodes
 		for(RemoteNodeHandle node : storingNodes) {

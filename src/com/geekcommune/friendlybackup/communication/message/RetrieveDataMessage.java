@@ -7,6 +7,7 @@ import java.io.IOException;
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.communication.message.Message;
 import com.geekcommune.communication.message.MessageFactory;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.proto.Basic;
 import com.geekcommune.util.UnaryContinuation;
@@ -58,7 +59,7 @@ public class RetrieveDataMessage extends RestoreMessage {
     }
 
     @Override
-    public void write(DataOutputStream os) throws IOException {
+    public void write(DataOutputStream os) throws IOException, FriendlyBackupException {
         os.writeInt(INT_TYPE);
         super.write(os);
         id.toProto().writeDelimitedTo(os);

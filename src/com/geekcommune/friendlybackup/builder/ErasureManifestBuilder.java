@@ -6,6 +6,7 @@ import java.util.Date;
 
 import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.ProgressWhenCompleteListener;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasureMessage;
@@ -41,15 +42,19 @@ public class ErasureManifestBuilder {
             BackupConfig bakcfg,
             Date expiryDate,
             SecretIdentity owner,
-            ProgressTracker progressTracker) throws IOException {
+            ProgressTracker progressTracker) throws IOException, FriendlyBackupException {
         int erasuresNeeded = bakcfg.getErasuresNeeded();
         int totalErasures = bakcfg.getTotalErasures();
-
-        byte[] data = FileUtil.instance().getFileContents(f);
-        ErasureFinder erasureFinder = new FileErasureFinder(f, erasuresNeeded, totalErasures);
+        
+        ErasureFinder erasureFinder =
+                new FileErasureFinder(
+                        f,
+                        owner,
+                        erasuresNeeded,
+                        totalErasures);
 		
 		return build(
-		        data,
+		        FileUtil.instance().getFileContents(f),
 		        erasureFinder,
 		        storingNodes,
 		        bakcfg.getLocalPort(),
@@ -60,7 +65,20 @@ public class ErasureManifestBuilder {
 				progressTracker);
 	}
 
-	private ErasureManifest build(
+    private ErasureManifest build(
+            byte[] data,
+            ErasureFinder erasureFinder,
+            RemoteNodeHandle[] storingNodes,
+            final int localPort,
+            final int erasuresNeeded,
+            final int totalErasures,
+            final Date expiryDate,
+            final SecretIdentity owner,
+            ProgressTracker progressTracker) throws FriendlyBackupException {
+        return buildFromEncrypted(owner.encryptConsistently(data), erasureFinder, storingNodes, localPort, erasuresNeeded, totalErasures, expiryDate, owner, progressTracker);
+    }
+
+	private ErasureManifest buildFromEncrypted(
 	        byte[] data,
 	        ErasureFinder erasureFinder,
 			RemoteNodeHandle[] storingNodes,
@@ -69,12 +87,13 @@ public class ErasureManifestBuilder {
 			final int totalErasures,
 			final Date expiryDate,
 			final SecretIdentity owner,
-            ProgressTracker progressTracker) {
+            ProgressTracker progressTracker) throws FriendlyBackupException {
 	    progressTracker.rebase(totalErasures + storingNodes.length);
-	    
+
 		ErasureManifest manifest = new ErasureManifest();
 
-		//break the file down into totalErasures chunks, in such a way that we can reconstitute it from any erasuresNeeded chunks
+		//break the file down into totalErasures chunks, in such a way that we
+		//can reconstitute it from any erasuresNeeded chunks
 		Buffer[] erasures = ErasureUtil.encode(data, erasuresNeeded, totalErasures);
 
 		int idx = 0;
@@ -132,12 +151,19 @@ public class ErasureManifestBuilder {
 	        BackupConfig bakcfg,
 	        Date expiryDate,
 	        SecretIdentity owner,
-            ProgressTracker progressTracker) {
+            ProgressTracker progressTracker) throws FriendlyBackupException {
 		int erasuresNeeded = bakcfg.getErasuresNeeded();
         int totalErasures = bakcfg.getTotalErasures();
-        ErasureFinder erasureFinder = new BytesErasureFinder(data, erasuresNeeded, totalErasures);
 
-		return build(
+        data = owner.encryptConsistently(data);
+        
+        ErasureFinder erasureFinder =
+                new BytesErasureFinder(
+                        data,
+                        erasuresNeeded,
+                        totalErasures);
+
+		return buildFromEncrypted(
 		        data,
 		        erasureFinder,
 		        storingNodes,

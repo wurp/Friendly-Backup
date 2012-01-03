@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.format.BaseData;
 import com.geekcommune.friendlybackup.proto.Basic;
 import com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo;
@@ -61,7 +62,7 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
         this.totalErasures = totalErasures;
     }
 
-    public int getIndex(HashIdentifier hashID) {
+    public int getIndex(HashIdentifier hashID) throws FriendlyBackupException {
         //walk the list of erasures & find the one with this hashID, then return its index
         int idx = -1;
         int i = 0;
@@ -73,6 +74,9 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
             ++i;
         }
         
+        if( idx == -1 ) {
+            throw new FriendlyBackupException("Did not find erasure with hash ID " + hashID + " in erasure manifest");
+        }
         return idx;
     }
 
@@ -108,7 +112,7 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
     public static ErasureManifest fromProto(Basic.ErasureManifest proto) throws UnknownHostException {
         versionCheck(1, proto.getVersion(), proto);
         ErasureManifest retval = new ErasureManifest();
-        retval.setContentSize(proto.getContentSize());
+        retval.setContentSize((int)proto.getContentSize());
         retval.setErasuresNeeded(proto.getErasuresNeeded());
         retval.setTotalErasures(proto.getTotalErasures());
         
@@ -127,5 +131,4 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
         
         return retval;
     }
-
 }

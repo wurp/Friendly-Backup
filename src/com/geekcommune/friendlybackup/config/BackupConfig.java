@@ -4,19 +4,34 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.bouncycastle.openpgp.PGPException;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPublicKeyRing;
+import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
+import org.bouncycastle.openpgp.PGPSecretKey;
+import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.logging.UserLog;
-import com.geekcommune.identity.SecretIdentity;
+import com.geekcommune.identity.EncryptionUtil;
+import com.geekcommune.identity.KeyDataSource;
 import com.geekcommune.identity.PublicIdentity;
+import com.geekcommune.identity.PublicIdentityHandle;
+import com.geekcommune.identity.SecretIdentity;
 import com.geekcommune.util.FileUtil;
+import com.geekcommune.util.Pair;
 
 public class BackupConfig {
     private static final Logger log = Logger.getLogger(BackupConfig.class);
@@ -28,9 +43,14 @@ public class BackupConfig {
     private static final String LOCAL_PORT_KEY = "port";
     private static final String BACKUP_STREAM_NAME_KEY = "backupName";
     private static final String COMPUTER_NAME_KEY = "computerName";
+    private static final String MY_NAME_KEY = "myName";
+    private static final String BACKUP_TIME_KEY = "dailyBackupTime";
+
     private static final String FRIEND_PREFIX = "friend.";
     private static final String EMAIL_SUFFIX = ".email";
     private static final String CONNECT_INFO_SUFFIX = ".connectinfo";
+
+    private String myName;
 
     public BackupConfig() {
     }
@@ -54,6 +74,14 @@ public class BackupConfig {
         retval.localPort = Integer.parseInt(myProps.getProperty(LOCAL_PORT_KEY));
 		retval.backupStreamName = myProps.getProperty(BACKUP_STREAM_NAME_KEY);
 		retval.computerName = myProps.getProperty(COMPUTER_NAME_KEY);
+		retval.myName = myProps.getProperty(MY_NAME_KEY);
+		
+		{
+	        String backupTime = myProps.getProperty(BACKUP_TIME_KEY);
+	        String[] timeBits = backupTime.split(":");
+            retval.backupHour = Integer.parseInt(timeBits[0]);
+            retval.backupMinute = Integer.parseInt(timeBits[1]);
+		}
 		
 		String[] friends = myProps.getProperty(FRIENDS_KEY).split(",");
 		retval.storingNodes = new RemoteNodeHandle[friends.length];
@@ -82,10 +110,28 @@ public class BackupConfig {
     private File root;
     private RemoteNodeHandle[] storingNodes;
     private File restoreRootDir;
-
     private int localPort;
+    private Pair<PGPPublicKeyRingCollection, PGPSecretKeyRingCollection> keyRings;
+    private SecretIdentity secretIdentity;
+    private PublicIdentity owner;
 
-	//a name for the series of backups this configuration configures
+    private PGPPublicKeyRing pubkeyring;
+
+    private KeyDataSource keyDataSource;
+
+    private int backupMinute;
+
+    private int backupHour;
+
+	public KeyDataSource getKeyDataSource() {
+        return keyDataSource;
+    }
+
+    public void setKeyDataSource(KeyDataSource keyDataSource) {
+        this.keyDataSource = keyDataSource;
+    }
+
+    //a name for the series of backups this configuration configures
 	public String getBackupStreamName() {
 		return backupStreamName;
 	}
@@ -120,12 +166,19 @@ public class BackupConfig {
 		return storingNodes;
 	}
 
-	public SecretIdentity getAuthenticatedOwner(String password) {
-		// TODO Auto-generated method stub
-		return new SecretIdentity();
+	public synchronized SecretIdentity getAuthenticatedOwner() throws FriendlyBackupException {
+	    if( secretIdentity == null ) {
+	        char[] passphrase = keyDataSource.getPassphrase();
+            secretIdentity = new SecretIdentity(
+                    getPublicKeyRing(),
+                    getSecretKeyRingCollection(),
+                    passphrase);
+	    }
+	    
+	    return secretIdentity;
 	}
 
-	private File getRoot() {
+	public File getRoot() {
 	    return root;
 	}
 	
@@ -170,9 +223,92 @@ public class BackupConfig {
         return new File(dbDir, "friendbackups");
     }
 
-    public PublicIdentity getOwner() {
-        //TODO
-        return new PublicIdentity();
+    public synchronized PublicIdentity getOwner() throws FriendlyBackupException {
+        if( this.owner == null ) {
+            try {
+                PGPPublicKeyRing pubKeyRing = getPublicKeyRing();
+                PGPSecretKeyRingCollection secKeyRings =
+                        getSecretKeyRingCollection();
+                
+                PGPSecretKey signingKey =
+                        EncryptionUtil.instance().findFirstSigningKey(
+                                pubKeyRing,
+                                secKeyRings);
+
+                PGPPublicKey pubEncryptingKey =
+                        EncryptionUtil.instance().findFirstEncryptingKey(
+                                pubKeyRing);
+
+                this.owner = new PublicIdentity(
+                        pubKeyRing,
+                        new PublicIdentityHandle(
+                                signingKey.getPublicKey(),
+                                pubEncryptingKey));
+            } catch (PGPException e) {
+                throw new FriendlyBackupException("Could not find encrypting and/or signing key for owner", e);
+            }
+        }
+        
+        return owner;
+    }
+
+    private synchronized PGPPublicKeyRing getPublicKeyRing() throws FriendlyBackupException {
+        if( this.pubkeyring == null ) {
+            final String EXCEPTION_MESSAGE = "Failed to retrieve public keyring";
+
+            PGPPublicKeyRingCollection pkrc;
+            try {
+                pkrc = getPublicKeyRingCollection();
+                this.pubkeyring = EncryptionUtil.instance().findPublicKeyRing(pkrc, getMyName());
+            } catch (IOException e) {
+                throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
+            } catch (PGPException e) {
+                throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
+            }
+        }
+        
+        return this.pubkeyring;
+    }
+
+    private String getMyName() {
+        return myName;
+    }
+
+    public PGPPublicKeyRingCollection getPublicKeyRingCollection()
+            throws FriendlyBackupException {
+        initKeyRings();
+        return keyRings.getFirst();
+    }
+
+    protected PGPSecretKeyRingCollection getSecretKeyRingCollection() throws FriendlyBackupException {
+        initKeyRings();
+        return keyRings.getSecond();
+    }
+
+    private synchronized void initKeyRings() throws FriendlyBackupException {
+        if( keyRings == null ) {
+            final String EXCEPTION_MESSAGE = "Failed to initialize keyrings";
+
+            KeyDataSource keyDataSource = new SwingUIKeyDataSource();
+            try {
+                keyRings = EncryptionUtil.instance().getOrCreateKeyring(
+                        new File(getRoot(), "gnupg/pubring.gpg"),
+                        new File(getRoot(), "gnupg/secring.gpg"),
+                        keyDataSource);
+            } catch (FileNotFoundException e) {
+                throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
+            } catch (NoSuchAlgorithmException e) {
+                throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
+            } catch (NoSuchProviderException e) {
+                throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
+            } catch (InvalidAlgorithmParameterException e) {
+                throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
+            } catch (PGPException e) {
+                throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
+            } catch (IOException e) {
+                throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
+            }
+        }
     }
 
     public File getRestoreRootDirectory() {
@@ -210,5 +346,13 @@ public class BackupConfig {
         }
 
         return null;
+    }
+
+    public int getBackupHour() {
+        return backupHour;
+    }
+
+    public int getBackupMinute() {
+        return backupMinute;
     }
 }

@@ -37,6 +37,8 @@ public class Erasure extends BaseData<Basic.Erasure> {
     public Basic.Erasure toProto() {
         Basic.Erasure.Builder proto = Basic.Erasure.newBuilder();
         proto.setVersion(1);
+        
+        //TODO get rid of this; index can be determined by order in the erasure manifest
         proto.setIndex(plainErasure.getIndex());
         proto.setData(ByteString.copyFrom(plainErasure.getErasureContents()));
         

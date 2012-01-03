@@ -51,7 +51,8 @@ message ErasureManifest {
 
 message PublicIdentityHandle {
   optional int32 version = 1 [default = 1];
-  required bytes fingerprint = 2;
+  required int64 signingKeyID = 2;
+  required int64 encryptingKeyID = 3;
 }
 
 message Signature {
@@ -63,7 +64,7 @@ message LabelledData {
   optional int32 version = 1 [default = 1];
 
   message HashedPortion {
-    required string label = 1;
+    required bytes encryptedLabel = 1;
     required PublicIdentityHandle ownerHandle = 2;
   }
   

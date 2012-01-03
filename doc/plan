@@ -7,10 +7,20 @@ Backup:
       -- only way to avoid this is to copy each file before backing up, which could take lots of space and would make backup slower
 
   Todo now!:
+    job scheduling; run as "service"
+    some way to initiate restore :-O
+    real-world testing
+    template properties file + instructions:
+      gen gpg key
+      add friends' public keys to keyring  
+    **distribute**
+    create keys if none exist
+    only upload blocks not already uploaded
+    remove all blocks not in the new backup
+    send lease over wire
+    validate lease signature
+    remove items that have no lease
     integration test that backs up empty dir
-    integration test for multiple backups in one run
-    job scheduling
-    encryption/signing: crypto-146/tools/src/org/bouncycastle/tools/openpgp/rampage/PGPRampageEngine.java
 
   Near future features:
     good test suite

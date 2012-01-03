@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 
 
 public interface Message {
@@ -13,8 +14,9 @@ public interface Message {
      * Write the message to the wire
      * @return
      * @throws IOException 
+     * @throws FriendlyBackupException 
      */
-    public abstract void write(DataOutputStream os) throws IOException;
+    public abstract void write(DataOutputStream os) throws IOException, FriendlyBackupException;
 
     /**
      * read the message from the wire

@@ -21,9 +21,15 @@ public class FileUtil {
 	    //TODO handle files > 2 gig
 		byte[] retval = new byte[(int)f.length()];
 		
-		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
+		FileInputStream fis = new FileInputStream(f);
+        BufferedInputStream bis = new BufferedInputStream(fis);
 		try {
-	        bis.read(retval);
+		    int bytesRead;
+		    int total = 0;
+
+		    while( (bytesRead = bis.read(retval, total, retval.length - total)) != -1 && total != retval.length ) {
+		        total += bytesRead;
+		    }
 		} finally {
 		    bis.close();
 		}

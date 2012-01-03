@@ -7,6 +7,7 @@ import java.io.IOException;
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.communication.message.Message;
 import com.geekcommune.communication.message.MessageFactory;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.datastore.Lease;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.proto.Basic;
@@ -57,8 +58,9 @@ public abstract class VerifyMaybeSendMessage extends BackupMessage {
     /**
      * Get the data to be stored
      * @return
+     * @throws FriendlyBackupException 
      */
-    public abstract byte[] getData();
+    public abstract byte[] getData() throws FriendlyBackupException;
 
     @Override
     public void read(DataInputStream is) throws IOException {
@@ -69,7 +71,7 @@ public abstract class VerifyMaybeSendMessage extends BackupMessage {
     }
 
     @Override
-    public void write(DataOutputStream os) throws IOException {
+    public void write(DataOutputStream os) throws IOException, FriendlyBackupException {
         os.writeInt(getIntType());
         super.write(os);
 

@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.communication.message.Message;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendMessage;
@@ -17,6 +18,7 @@ import com.geekcommune.friendlybackup.config.BackupConfig;
 import com.geekcommune.friendlybackup.datastore.DataStore;
 import com.geekcommune.friendlybackup.datastore.Lease;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
+import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.identity.Signature;
 import com.geekcommune.util.DateUtil;
 import com.geekcommune.util.Pair;
@@ -59,6 +61,8 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
                     endState = Message.State.Finished;
                 } catch (SQLException e) {
                     log.error(e.getMessage(), e);
+                } catch (FriendlyBackupException e) {
+                    log.error(e.getMessage(), e);
                 }
             } else if( msg instanceof RetrieveDataMessage ){
                 RetrieveDataMessage rdm = (RetrieveDataMessage) msg;
@@ -88,6 +92,8 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
             } else {
                 System.out.println("Unhandled message " + msg);
             }
+        } catch (FriendlyBackupException e) {
+            UserLog.instance().logError("failed to queue message", e);
         } finally {
             msg.setState(endState);
         }

@@ -6,3 +6,4 @@ classes
 test/integ/happy1/config/restore-dir
 test/integ/happy2/config1/restore-dir
 *.jad
+*~

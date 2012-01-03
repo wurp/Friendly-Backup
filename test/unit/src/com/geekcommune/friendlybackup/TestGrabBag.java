@@ -11,6 +11,7 @@ import junit.framework.TestCase;
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasureMessage;
+import com.geekcommune.friendlybackup.config.SwingPasswordDialog;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.proto.Basic;
 import com.geekcommune.util.StringUtil;
@@ -98,5 +99,11 @@ public class TestGrabBag extends TestCase {
         
         HashIdentifier expected = new HashIdentifier(digest);
         return expected;
+    }
+    
+    public void testPwdDialog() throws Exception {
+        SwingPasswordDialog dlg = new SwingPasswordDialog();
+        Assert.assertNotNull(dlg.getPassword());
+        System.out.println(dlg.getPassword());
     }
 }

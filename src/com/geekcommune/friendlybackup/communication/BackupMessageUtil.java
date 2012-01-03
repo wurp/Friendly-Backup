@@ -27,6 +27,7 @@ import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.communication.message.AbstractMessage;
 import com.geekcommune.communication.message.Message;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.config.BackupConfig;
@@ -86,8 +87,6 @@ public class BackupMessageUtil extends MessageUtil {
     public BackupMessageUtil() {
         LinkedBlockingQueue<Runnable> sendWorkQueue = new LinkedBlockingQueue<Runnable>();
         sendExecutor = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS, 1000, TimeUnit.MILLISECONDS, sendWorkQueue);
-        
-        startListenThread();
     }
     
     public BackupConfig getBackupConfig() {
@@ -139,7 +138,7 @@ public class BackupMessageUtil extends MessageUtil {
             
             msg.setNumberOfTries(msg.getNumberOfTries() + 1);
             if( msg.getNumberOfTries() > MAX_TRIES ) {
-                UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName());
+                UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName(), e);
                 log.error("Not retrying, exceeded max tries: " + e.getMessage(), e);
             } else {
                 UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName() + ", will retry", e);
@@ -148,6 +147,8 @@ public class BackupMessageUtil extends MessageUtil {
                 state = Message.State.NeedsProcessing;
                 queueMessage(msg);
             }
+        } catch (FriendlyBackupException e) {
+            UserLog.instance().logError("Failed to send message to " + msg.getDestination().getName(), e);
         } finally {
             msg.setState(state);
             
@@ -166,7 +167,7 @@ public class BackupMessageUtil extends MessageUtil {
         log.debug("sent "+ msg.getTransactionID());
     }
 
-    private void justSend(Message msg, Socket socket) throws IOException {
+    private void justSend(Message msg, Socket socket) throws IOException, FriendlyBackupException {
         DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
         msg.write(dos);
         dos.flush();
@@ -243,19 +244,27 @@ public class BackupMessageUtil extends MessageUtil {
         return new Continuation() {
 
             public void run() {
+                String label = "<unable to retrieve label>";
+                
+                try {
+                    label = labelledData.getLabel(bakcfg.getAuthenticatedOwner());
+                } catch (FriendlyBackupException e) {
+                    UserLog.instance().logError(label, e);
+                }
+
+                final String exceptionMessage = "Failed to retrieve " + label;
+                
                 try {
                     final ErasureManifest erasureManifest =
                             ErasureManifest.fromProto(
                                     Basic.ErasureManifest.parseFrom(
                                             DataStore.instance().getData(erasureManifestId)));
                     final List<Pair<HashIdentifier,RemoteNodeHandle>> retrievalData = erasureManifest.getRetrievalData();
-                    final List<HashIdentifier> erasureIds = Pair.firstList(retrievalData);
                     
                     Continuation erasureHandler = makeErasureHandler(
                             continuation,
                             labelledData,
                             erasureManifest,
-                            erasureIds,
                             new ResponseManager(erasureManifest.getErasuresNeeded()));
 
                     for(Pair<HashIdentifier, RemoteNodeHandle> retrievalDatum : retrievalData) {
@@ -267,13 +276,13 @@ public class BackupMessageUtil extends MessageUtil {
                     //TODO delete erasureManifestId data from datastore
                 } catch (InvalidProtocolBufferException e) {
                     log.error(e.getMessage(), e);
-                    UserLog.instance().logError("Failed to retrieve " + labelledData.getLabel(), e);
+                    UserLog.instance().logError(exceptionMessage, e);
                 } catch (SQLException e) {
                     log.error(e.getMessage(), e);
-                    UserLog.instance().logError("Failed to retrieve " + labelledData.getLabel(), e);
+                    UserLog.instance().logError(exceptionMessage, e);
                 } catch (UnknownHostException e) {
                     log.error(e.getMessage(), e);
-                    UserLog.instance().logError("Failed to retrieve " + labelledData.getLabel(), e);
+                    UserLog.instance().logError(exceptionMessage, e);
                 }
             }
         };
@@ -283,7 +292,6 @@ public class BackupMessageUtil extends MessageUtil {
             final BinaryContinuation<String, byte[]> continuation,
             final LabelledData labelledData,
             final ErasureManifest erasureManifest,
-            final List<HashIdentifier> erasureIds,
             final ResponseManager responseManager) {
         return new Continuation() {
 
@@ -291,7 +299,20 @@ public class BackupMessageUtil extends MessageUtil {
                 responseManager.doOnce(new Continuation() {
                     
                     public void run() {
+                        String label = "<unable to retrieve label>";
+                        
                         try {
+                            label = labelledData.getLabel(bakcfg.getAuthenticatedOwner());
+                        } catch (FriendlyBackupException e) {
+                            UserLog.instance().logError(label, e);
+                        }
+
+                        final String exceptionMessage = "Failed to retrieve " + label;
+                        
+                        try {
+                            
+                            List<HashIdentifier> erasureIds = Pair.firstList(erasureManifest.getRetrievalData());
+                            
                             //check if enough of the blocks have come in to reconstitute the data
                             List<byte[]> dataList = DataStore.instance().getDataList(erasureIds);
 
@@ -313,21 +334,21 @@ public class BackupMessageUtil extends MessageUtil {
                                         erasureManifest.getErasuresNeeded(),
                                         erasureManifest.getTotalErasures(),
                                         erasures);
-                                log.info("Rebuilt contents of " + labelledData.getLabel());
+                                
+                                fullContents = bakcfg.getAuthenticatedOwner().decrypt(fullContents);
+                                
+                                log.info("Rebuilt contents of " + label);
 
-                                continuation.run(labelledData.getLabel(), fullContents);
+                                continuation.run(label, fullContents);
                                 
                                 //TODO clean dataList out of datastore
                                 //TODO somehow switch responseManager behavior to delete new ids that come in from the DataStore
                             } else {
                                 log.error("not enough blocks returned to rebuild erasure - how did we get here?");
                             }
-                        } catch (InvalidProtocolBufferException e) {
+                        } catch (Exception e) {
                             log.error(e.getMessage(), e);
-                            UserLog.instance().logError("Failed to retrieve " + labelledData.getLabel(), e);
-                        } catch (SQLException e) {
-                            log.error(e.getMessage(), e);
-                            UserLog.instance().logError("Failed to retrieve " + labelledData.getLabel(), e);
+                            UserLog.instance().logError(exceptionMessage, e);
                         }
                     }
                 });
@@ -349,6 +370,9 @@ public class BackupMessageUtil extends MessageUtil {
                         DataStore.instance().storeData(id, data, new Lease(DateUtil.oneHourHence(), bakcfg.getOwner().getHandle(), Signature.INTERNAL_SELF_SIGNED));
                         continuation.run();
                     } catch (SQLException e) {
+                        log.error(e.getMessage(), e);
+                        UserLog.instance().logError("Failed to retrieve " + id, e);
+                    } catch (FriendlyBackupException e) {
                         log.error(e.getMessage(), e);
                         UserLog.instance().logError("Failed to retrieve " + id, e);
                     }
@@ -377,21 +401,33 @@ public class BackupMessageUtil extends MessageUtil {
         return new Continuation() {
 
             public void run() {
+                String exceptionMessage = "Failed to retrieve ";
                 try {
-                    final LabelledData labelledData = LabelledData.fromProto(Basic.LabelledData.parseFrom(DataStore.instance().getData(id)));
+                    Basic.LabelledData proto =
+                            Basic.LabelledData.parseFrom(DataStore.instance().getData(id));
+                    final LabelledData labelledData =
+                            LabelledData.fromProto(proto);
+
+                    String label = labelledData.getLabel(bakcfg.getAuthenticatedOwner());
+                    if( !labelledData.verifySignature(bakcfg.getPublicKeyRingCollection()) ) {
+                        throw new FriendlyBackupException("Could not validate signature on " +
+                                label);
+                    }
+                    
                     final HashIdentifier erasureManifestId = labelledData.getPointingAt();
-                    log.debug("Retrieving " + labelledData.getLabel());
-                    log.info("Retrieved " + labelledData.getLabel());
+                    log.debug("Retrieving " + label);
                     
                     retrieve(storingNodes, erasureManifestId, makeErasureManifestHandler(continuation, labelledData,
                             erasureManifestId));
                     //TODO delete 'id' data from datastore
                 } catch (InvalidProtocolBufferException e) {
                     log.error(e.getMessage(), e);
-                    UserLog.instance().logError("Failed to retrieve " + id, e);
+                    UserLog.instance().logError(exceptionMessage + id, e);
                 } catch (SQLException e) {
                     log.error(e.getMessage(), e);
-                    UserLog.instance().logError("Failed to retrieve " + id, e);
+                    UserLog.instance().logError(exceptionMessage + id, e);
+                } catch (FriendlyBackupException e) {
+                    UserLog.instance().logError(exceptionMessage + id, e);
                 }
             }
         };
@@ -414,7 +450,7 @@ public class BackupMessageUtil extends MessageUtil {
         this.bakcfg = bakcfg;
     }
 
-    private void startListenThread() {
+    public void startListenThread() {
         if( listenThread != null ) {
             throw new RuntimeException("Listen thread already started");
         }
@@ -501,7 +537,7 @@ public class BackupMessageUtil extends MessageUtil {
 
             //unsolicited data is assumed to be data we should store
             if( responseHandler == null ) {
-                //TODO check that sender is in the friend node list
+                //TODO check that sender (and lease owner) is in the friend node list
                 DataStore.instance().storeData(dataMessage.getDataHashID(), dataMessage.getData(), dataMessage.getLease());
             } else {
                 responseHandler.run(dataMessage.getData());

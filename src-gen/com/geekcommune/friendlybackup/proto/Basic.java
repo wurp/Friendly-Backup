@@ -1676,9 +1676,9 @@ public final class Basic {
     boolean hasVersion();
     int getVersion();
     
-    // required int32 contentSize = 2;
+    // required int64 contentSize = 2;
     boolean hasContentSize();
-    int getContentSize();
+    long getContentSize();
     
     // required int32 erasuresNeeded = 3;
     boolean hasErasuresNeeded();
@@ -2252,13 +2252,13 @@ public final class Basic {
       return version_;
     }
     
-    // required int32 contentSize = 2;
+    // required int64 contentSize = 2;
     public static final int CONTENTSIZE_FIELD_NUMBER = 2;
-    private int contentSize_;
+    private long contentSize_;
     public boolean hasContentSize() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    public int getContentSize() {
+    public long getContentSize() {
       return contentSize_;
     }
     
@@ -2326,7 +2326,7 @@ public final class Basic {
     
     private void initFields() {
       version_ = 1;
-      contentSize_ = 0;
+      contentSize_ = 0L;
       erasuresNeeded_ = 0;
       totalErasures_ = 0;
       storingNode_ = java.util.Collections.emptyList();
@@ -2372,7 +2372,7 @@ public final class Basic {
         output.writeInt32(1, version_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeInt32(2, contentSize_);
+        output.writeInt64(2, contentSize_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt32(3, erasuresNeeded_);
@@ -2401,7 +2401,7 @@ public final class Basic {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, contentSize_);
+          .computeInt64Size(2, contentSize_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
@@ -2547,7 +2547,7 @@ public final class Basic {
         super.clear();
         version_ = 1;
         bitField0_ = (bitField0_ & ~0x00000001);
-        contentSize_ = 0;
+        contentSize_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000002);
         erasuresNeeded_ = 0;
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -2779,7 +2779,7 @@ public final class Basic {
             }
             case 16: {
               bitField0_ |= 0x00000002;
-              contentSize_ = input.readInt32();
+              contentSize_ = input.readInt64();
               break;
             }
             case 24: {
@@ -2831,15 +2831,15 @@ public final class Basic {
         return this;
       }
       
-      // required int32 contentSize = 2;
-      private int contentSize_ ;
+      // required int64 contentSize = 2;
+      private long contentSize_ ;
       public boolean hasContentSize() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      public int getContentSize() {
+      public long getContentSize() {
         return contentSize_;
       }
-      public Builder setContentSize(int value) {
+      public Builder setContentSize(long value) {
         bitField0_ |= 0x00000002;
         contentSize_ = value;
         onChanged();
@@ -2847,7 +2847,7 @@ public final class Basic {
       }
       public Builder clearContentSize() {
         bitField0_ = (bitField0_ & ~0x00000002);
-        contentSize_ = 0;
+        contentSize_ = 0L;
         onChanged();
         return this;
       }
@@ -3284,9 +3284,13 @@ public final class Basic {
     boolean hasVersion();
     int getVersion();
     
-    // required bytes fingerprint = 2;
-    boolean hasFingerprint();
-    com.google.protobuf.ByteString getFingerprint();
+    // required int64 signingKeyID = 2;
+    boolean hasSigningKeyID();
+    long getSigningKeyID();
+    
+    // required int64 encryptingKeyID = 3;
+    boolean hasEncryptingKeyID();
+    long getEncryptingKeyID();
   }
   public static final class PublicIdentityHandle extends
       com.google.protobuf.GeneratedMessage
@@ -3327,26 +3331,41 @@ public final class Basic {
       return version_;
     }
     
-    // required bytes fingerprint = 2;
-    public static final int FINGERPRINT_FIELD_NUMBER = 2;
-    private com.google.protobuf.ByteString fingerprint_;
-    public boolean hasFingerprint() {
+    // required int64 signingKeyID = 2;
+    public static final int SIGNINGKEYID_FIELD_NUMBER = 2;
+    private long signingKeyID_;
+    public boolean hasSigningKeyID() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    public com.google.protobuf.ByteString getFingerprint() {
-      return fingerprint_;
+    public long getSigningKeyID() {
+      return signingKeyID_;
+    }
+    
+    // required int64 encryptingKeyID = 3;
+    public static final int ENCRYPTINGKEYID_FIELD_NUMBER = 3;
+    private long encryptingKeyID_;
+    public boolean hasEncryptingKeyID() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    public long getEncryptingKeyID() {
+      return encryptingKeyID_;
     }
     
     private void initFields() {
       version_ = 1;
-      fingerprint_ = com.google.protobuf.ByteString.EMPTY;
+      signingKeyID_ = 0L;
+      encryptingKeyID_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized != -1) return isInitialized == 1;
       
-      if (!hasFingerprint()) {
+      if (!hasSigningKeyID()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasEncryptingKeyID()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -3361,7 +3380,10 @@ public final class Basic {
         output.writeInt32(1, version_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, fingerprint_);
+        output.writeInt64(2, signingKeyID_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt64(3, encryptingKeyID_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3378,7 +3400,11 @@ public final class Basic {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, fingerprint_);
+          .computeInt64Size(2, signingKeyID_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, encryptingKeyID_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3506,8 +3532,10 @@ public final class Basic {
         super.clear();
         version_ = 1;
         bitField0_ = (bitField0_ & ~0x00000001);
-        fingerprint_ = com.google.protobuf.ByteString.EMPTY;
+        signingKeyID_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000002);
+        encryptingKeyID_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
       
@@ -3553,7 +3581,11 @@ public final class Basic {
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
-        result.fingerprint_ = fingerprint_;
+        result.signingKeyID_ = signingKeyID_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.encryptingKeyID_ = encryptingKeyID_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3573,15 +3605,22 @@ public final class Basic {
         if (other.hasVersion()) {
           setVersion(other.getVersion());
         }
-        if (other.hasFingerprint()) {
-          setFingerprint(other.getFingerprint());
+        if (other.hasSigningKeyID()) {
+          setSigningKeyID(other.getSigningKeyID());
+        }
+        if (other.hasEncryptingKeyID()) {
+          setEncryptingKeyID(other.getEncryptingKeyID());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
       
       public final boolean isInitialized() {
-        if (!hasFingerprint()) {
+        if (!hasSigningKeyID()) {
+          
+          return false;
+        }
+        if (!hasEncryptingKeyID()) {
           
           return false;
         }
@@ -3616,9 +3655,14 @@ public final class Basic {
               version_ = input.readInt32();
               break;
             }
-            case 18: {
+            case 16: {
               bitField0_ |= 0x00000002;
-              fingerprint_ = input.readBytes();
+              signingKeyID_ = input.readInt64();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              encryptingKeyID_ = input.readInt64();
               break;
             }
           }
@@ -3648,26 +3692,44 @@ public final class Basic {
         return this;
       }
       
-      // required bytes fingerprint = 2;
-      private com.google.protobuf.ByteString fingerprint_ = com.google.protobuf.ByteString.EMPTY;
-      public boolean hasFingerprint() {
+      // required int64 signingKeyID = 2;
+      private long signingKeyID_ ;
+      public boolean hasSigningKeyID() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      public com.google.protobuf.ByteString getFingerprint() {
-        return fingerprint_;
+      public long getSigningKeyID() {
+        return signingKeyID_;
       }
-      public Builder setFingerprint(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-        fingerprint_ = value;
+      public Builder setSigningKeyID(long value) {
+        bitField0_ |= 0x00000002;
+        signingKeyID_ = value;
         onChanged();
         return this;
       }
-      public Builder clearFingerprint() {
+      public Builder clearSigningKeyID() {
         bitField0_ = (bitField0_ & ~0x00000002);
-        fingerprint_ = getDefaultInstance().getFingerprint();
+        signingKeyID_ = 0L;
+        onChanged();
+        return this;
+      }
+      
+      // required int64 encryptingKeyID = 3;
+      private long encryptingKeyID_ ;
+      public boolean hasEncryptingKeyID() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public long getEncryptingKeyID() {
+        return encryptingKeyID_;
+      }
+      public Builder setEncryptingKeyID(long value) {
+        bitField0_ |= 0x00000004;
+        encryptingKeyID_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearEncryptingKeyID() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        encryptingKeyID_ = 0L;
         onChanged();
         return this;
       }
@@ -4142,9 +4204,9 @@ public final class Basic {
     public interface HashedPortionOrBuilder
         extends com.google.protobuf.MessageOrBuilder {
       
-      // required string label = 1;
-      boolean hasLabel();
-      String getLabel();
+      // required bytes encryptedLabel = 1;
+      boolean hasEncryptedLabel();
+      com.google.protobuf.ByteString getEncryptedLabel();
       
       // required .geekcommune.friendlybackup.PublicIdentityHandle ownerHandle = 2;
       boolean hasOwnerHandle();
@@ -4180,36 +4242,14 @@ public final class Basic {
       }
       
       private int bitField0_;
-      // required string label = 1;
-      public static final int LABEL_FIELD_NUMBER = 1;
-      private java.lang.Object label_;
-      public boolean hasLabel() {
+      // required bytes encryptedLabel = 1;
+      public static final int ENCRYPTEDLABEL_FIELD_NUMBER = 1;
+      private com.google.protobuf.ByteString encryptedLabel_;
+      public boolean hasEncryptedLabel() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      public String getLabel() {
-        java.lang.Object ref = label_;
-        if (ref instanceof String) {
-          return (String) ref;
-        } else {
-          com.google.protobuf.ByteString bs = 
-              (com.google.protobuf.ByteString) ref;
-          String s = bs.toStringUtf8();
-          if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-            label_ = s;
-          }
-          return s;
-        }
-      }
-      private com.google.protobuf.ByteString getLabelBytes() {
-        java.lang.Object ref = label_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-          label_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
+      public com.google.protobuf.ByteString getEncryptedLabel() {
+        return encryptedLabel_;
       }
       
       // required .geekcommune.friendlybackup.PublicIdentityHandle ownerHandle = 2;
@@ -4226,7 +4266,7 @@ public final class Basic {
       }
       
       private void initFields() {
-        label_ = "";
+        encryptedLabel_ = com.google.protobuf.ByteString.EMPTY;
         ownerHandle_ = com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.getDefaultInstance();
       }
       private byte memoizedIsInitialized = -1;
@@ -4234,7 +4274,7 @@ public final class Basic {
         byte isInitialized = memoizedIsInitialized;
         if (isInitialized != -1) return isInitialized == 1;
         
-        if (!hasLabel()) {
+        if (!hasEncryptedLabel()) {
           memoizedIsInitialized = 0;
           return false;
         }
@@ -4254,7 +4294,7 @@ public final class Basic {
                           throws java.io.IOException {
         getSerializedSize();
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          output.writeBytes(1, getLabelBytes());
+          output.writeBytes(1, encryptedLabel_);
         }
         if (((bitField0_ & 0x00000002) == 0x00000002)) {
           output.writeMessage(2, ownerHandle_);
@@ -4270,7 +4310,7 @@ public final class Basic {
         size = 0;
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
           size += com.google.protobuf.CodedOutputStream
-            .computeBytesSize(1, getLabelBytes());
+            .computeBytesSize(1, encryptedLabel_);
         }
         if (((bitField0_ & 0x00000002) == 0x00000002)) {
           size += com.google.protobuf.CodedOutputStream
@@ -4401,7 +4441,7 @@ public final class Basic {
         
         public Builder clear() {
           super.clear();
-          label_ = "";
+          encryptedLabel_ = com.google.protobuf.ByteString.EMPTY;
           bitField0_ = (bitField0_ & ~0x00000001);
           if (ownerHandleBuilder_ == null) {
             ownerHandle_ = com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.getDefaultInstance();
@@ -4450,7 +4490,7 @@ public final class Basic {
           if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
             to_bitField0_ |= 0x00000001;
           }
-          result.label_ = label_;
+          result.encryptedLabel_ = encryptedLabel_;
           if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
             to_bitField0_ |= 0x00000002;
           }
@@ -4475,8 +4515,8 @@ public final class Basic {
         
         public Builder mergeFrom(com.geekcommune.friendlybackup.proto.Basic.LabelledData.HashedPortion other) {
           if (other == com.geekcommune.friendlybackup.proto.Basic.LabelledData.HashedPortion.getDefaultInstance()) return this;
-          if (other.hasLabel()) {
-            setLabel(other.getLabel());
+          if (other.hasEncryptedLabel()) {
+            setEncryptedLabel(other.getEncryptedLabel());
           }
           if (other.hasOwnerHandle()) {
             mergeOwnerHandle(other.getOwnerHandle());
@@ -4486,7 +4526,7 @@ public final class Basic {
         }
         
         public final boolean isInitialized() {
-          if (!hasLabel()) {
+          if (!hasEncryptedLabel()) {
             
             return false;
           }
@@ -4526,7 +4566,7 @@ public final class Basic {
               }
               case 10: {
                 bitField0_ |= 0x00000001;
-                label_ = input.readBytes();
+                encryptedLabel_ = input.readBytes();
                 break;
               }
               case 18: {
@@ -4544,40 +4584,28 @@ public final class Basic {
         
         private int bitField0_;
         
-        // required string label = 1;
-        private java.lang.Object label_ = "";
-        public boolean hasLabel() {
+        // required bytes encryptedLabel = 1;
+        private com.google.protobuf.ByteString encryptedLabel_ = com.google.protobuf.ByteString.EMPTY;
+        public boolean hasEncryptedLabel() {
           return ((bitField0_ & 0x00000001) == 0x00000001);
         }
-        public String getLabel() {
-          java.lang.Object ref = label_;
-          if (!(ref instanceof String)) {
-            String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-            label_ = s;
-            return s;
-          } else {
-            return (String) ref;
-          }
+        public com.google.protobuf.ByteString getEncryptedLabel() {
+          return encryptedLabel_;
         }
-        public Builder setLabel(String value) {
+        public Builder setEncryptedLabel(com.google.protobuf.ByteString value) {
           if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-          label_ = value;
+          encryptedLabel_ = value;
           onChanged();
           return this;
         }
-        public Builder clearLabel() {
+        public Builder clearEncryptedLabel() {
           bitField0_ = (bitField0_ & ~0x00000001);
-          label_ = getDefaultInstance().getLabel();
+          encryptedLabel_ = getDefaultInstance().getEncryptedLabel();
           onChanged();
           return this;
-        }
-        void setLabel(com.google.protobuf.ByteString value) {
-          bitField0_ |= 0x00000001;
-          label_ = value;
-          onChanged();
         }
         
         // required .geekcommune.friendlybackup.PublicIdentityHandle ownerHandle = 2;
@@ -6203,7 +6231,7 @@ public final class Basic {
       "il\030\003 \002(\t\022\025\n\rconnectString\030\004 \002(\t\":\n\007Erasu" +
       "re\022\022\n\007version\030\001 \001(\005:\0011\022\r\n\005index\030\002 \002(\005\022\014\n" +
       "\004data\030\003 \002(\014\"\334\002\n\017ErasureManifest\022\022\n\007versi",
-      "on\030\001 \001(\005:\0011\022\023\n\013contentSize\030\002 \002(\005\022\026\n\016eras" +
+      "on\030\001 \001(\005:\0011\022\023\n\013contentSize\030\002 \002(\003\022\026\n\016eras" +
       "uresNeeded\030\003 \002(\005\022\025\n\rtotalErasures\030\004 \002(\005\022" +
       "A\n\013storingNode\030\005 \003(\0132,.geekcommune.frien" +
       "dlybackup.RemoteNodeHandle\022H\n\tfetchInfo\030" +
@@ -6211,23 +6239,23 @@ public final class Basic {
       "reManifest.FetchInfo\032d\n\tFetchInfo\022=\n\tera" +
       "sureId\030\001 \002(\0132*.geekcommune.friendlybacku" +
       "p.HashIdentifier\022\030\n\020storingNodeIndex\030\002 \002" +
-      "(\005\"?\n\024PublicIdentityHandle\022\022\n\007version\030\001 " +
-      "\001(\005:\0011\022\023\n\013fingerprint\030\002 \002(\014\"2\n\tSignature",
-      "\022\022\n\007version\030\001 \001(\005:\0011\022\021\n\tsignature\030\002 \002(\014\"" +
-      "\322\002\n\014LabelledData\022\022\n\007version\030\001 \001(\005:\0011\022M\n\r" +
-      "hashedPortion\030\002 \002(\01326.geekcommune.friend" +
-      "lybackup.LabelledData.HashedPortion\022>\n\np" +
-      "ointingAt\030\003 \002(\0132*.geekcommune.friendlyba" +
-      "ckup.HashIdentifier\0228\n\tsignature\030\004 \002(\0132%" +
-      ".geekcommune.friendlybackup.Signature\032e\n" +
-      "\rHashedPortion\022\r\n\005label\030\001 \002(\t\022E\n\013ownerHa" +
-      "ndle\030\002 \002(\01320.geekcommune.friendlybackup." +
-      "PublicIdentityHandle\"\213\001\n\016BackupManifest\022",
-      "\022\n\007version\030\001 \001(\005:\0011\022\035\n\025backupTimestampMi" +
-      "llis\030\002 \002(\003\022F\n\022backupFileLabelIds\030\003 \003(\0132*" +
-      ".geekcommune.friendlybackup.HashIdentifi" +
-      "erB&\n$com.geekcommune.friendlybackup.pro" +
-      "to"
+      "(\005\"Y\n\024PublicIdentityHandle\022\022\n\007version\030\001 " +
+      "\001(\005:\0011\022\024\n\014signingKeyID\030\002 \002(\003\022\027\n\017encrypti",
+      "ngKeyID\030\003 \002(\003\"2\n\tSignature\022\022\n\007version\030\001 " +
+      "\001(\005:\0011\022\021\n\tsignature\030\002 \002(\014\"\333\002\n\014LabelledDa" +
+      "ta\022\022\n\007version\030\001 \001(\005:\0011\022M\n\rhashedPortion\030" +
+      "\002 \002(\01326.geekcommune.friendlybackup.Label" +
+      "ledData.HashedPortion\022>\n\npointingAt\030\003 \002(" +
+      "\0132*.geekcommune.friendlybackup.HashIdent" +
+      "ifier\0228\n\tsignature\030\004 \002(\0132%.geekcommune.f" +
+      "riendlybackup.Signature\032n\n\rHashedPortion" +
+      "\022\026\n\016encryptedLabel\030\001 \002(\014\022E\n\013ownerHandle\030" +
+      "\002 \002(\01320.geekcommune.friendlybackup.Publi",
+      "cIdentityHandle\"\213\001\n\016BackupManifest\022\022\n\007ve" +
+      "rsion\030\001 \001(\005:\0011\022\035\n\025backupTimestampMillis\030" +
+      "\002 \002(\003\022F\n\022backupFileLabelIds\030\003 \003(\0132*.geek" +
+      "commune.friendlybackup.HashIdentifierB&\n" +
+      "$com.geekcommune.friendlybackup.proto"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -6279,7 +6307,7 @@ public final class Basic {
           internal_static_geekcommune_friendlybackup_PublicIdentityHandle_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_geekcommune_friendlybackup_PublicIdentityHandle_descriptor,
-              new java.lang.String[] { "Version", "Fingerprint", },
+              new java.lang.String[] { "Version", "SigningKeyID", "EncryptingKeyID", },
               com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.class,
               com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.Builder.class);
           internal_static_geekcommune_friendlybackup_Signature_descriptor =
@@ -6303,7 +6331,7 @@ public final class Basic {
           internal_static_geekcommune_friendlybackup_LabelledData_HashedPortion_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_geekcommune_friendlybackup_LabelledData_HashedPortion_descriptor,
-              new java.lang.String[] { "Label", "OwnerHandle", },
+              new java.lang.String[] { "EncryptedLabel", "OwnerHandle", },
               com.geekcommune.friendlybackup.proto.Basic.LabelledData.HashedPortion.class,
               com.geekcommune.friendlybackup.proto.Basic.LabelledData.HashedPortion.Builder.class);
           internal_static_geekcommune_friendlybackup_BackupManifest_descriptor =

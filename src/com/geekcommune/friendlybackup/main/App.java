@@ -10,6 +10,7 @@ import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasureMessage;
 import com.geekcommune.friendlybackup.config.BackupConfig;
+import com.geekcommune.friendlybackup.config.SwingUIKeyDataSource;
 import com.geekcommune.friendlybackup.datastore.DataStore;
 import com.geekcommune.friendlybackup.datastore.InMemoryDataStore;
 import com.geekcommune.friendlybackup.logging.LoggingUserLog;
@@ -43,6 +44,7 @@ public class App {
             //BackupConfig
             File cfgFile = new File(configFilePath);
             bakcfg = BackupConfig.parseConfigFile(cfgFile);
+            bakcfg.setKeyDataSource(new SwingUIKeyDataSource());
 
             //DataStore
             DataStore.setInstance(new InMemoryDataStore());
@@ -51,6 +53,7 @@ public class App {
             BackupMessageUtil.setInstance(new BackupMessageUtil());
             BackupMessageUtil.instance().setBackupConfig(bakcfg);
             MessageUtil.setInstance(BackupMessageUtil.instance());
+            BackupMessageUtil.instance().startListenThread();
             
             //set up messages to be read from the input data
             AbstractMessage.registerMessageFactory(VerifyMaybeSendDataMessage.INT_TYPE, VerifyMaybeSendDataMessage.FACTORY);

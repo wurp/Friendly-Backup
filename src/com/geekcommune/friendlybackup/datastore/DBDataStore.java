@@ -13,9 +13,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
+import com.geekcommune.friendlybackup.logging.UserLog;
+import com.geekcommune.friendlybackup.proto.Basic;
 import com.geekcommune.identity.PublicIdentityHandle;
 import com.geekcommune.identity.Signature;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 public abstract class DBDataStore extends DataStore {
     private static final Logger log = Logger.getLogger(DBDataStore.class);
@@ -98,7 +102,7 @@ public abstract class DBDataStore extends DataStore {
         for(Lease lease : leases) {
             insert.setBytes(    1, id.getData());
             insert.setTimestamp(2, new Timestamp(lease.getExpiry().getTime()));
-            insert.setString(   3, lease.getOwner().fingerprintString());
+            insert.setLong(   3, lease.getOwner().getSigningKeyID());
             insert.setBoolean(  4, lease.isSoft());
             insert.execute();
             log.info("Writing lease " + lease + " for " + id);
@@ -117,30 +121,38 @@ public abstract class DBDataStore extends DataStore {
         PreparedStatement delete = getConnection().
                 prepareStatement(sql + sqlSuffix);
 
-        delete.setString(1, owner.fingerprintString());
+        delete.setLong(1, owner.getSigningKeyID());
 
         delete.execute();
     }
 
     //TODO needs tests
-    public List<Lease> getLeases(HashIdentifier id) throws SQLException {
-        //retrieve content from db
-        PreparedStatement select = getConnection().
-          prepareStatement("select chunk_key, owner, expiry, soft from lease where chunk_key = ?");
-        select.setBytes(1, id.getData());
-        select.execute();
-
+    public List<Lease> getLeases(HashIdentifier id) throws FriendlyBackupException {
         List<Lease> retval = new ArrayList<Lease>();
         
-        ResultSet rs = select.getResultSet();
-        while( rs.next() ) {
-            Lease lease = new Lease(
-                    rs.getDate("expiry"),
-                    new PublicIdentityHandle(rs.getString("owner")),
-                    new Signature(rs.getString("signature")),
-                    rs.getBoolean("soft"));
-            retval.add(lease);
-            log.info("Found " + lease + " for " + id);
+        try {
+            //retrieve content from db
+            PreparedStatement select = getConnection().
+              prepareStatement("select chunk_key, owner, expiry, soft from lease where chunk_key = ?");
+            select.setBytes(1, id.getData());
+            select.execute();
+
+            ResultSet rs = select.getResultSet();
+            while( rs.next() ) {
+                try {
+                    Lease lease = new Lease(
+                            rs.getDate("expiry"),
+                            new PublicIdentityHandle(0, rs.getLong("owner")),
+                            Signature.fromProto(Basic.Signature.parseFrom(rs.getBytes("signature"))),
+                            rs.getBoolean("soft"));
+                    retval.add(lease);
+                    log.info("Found " + lease + " for " + id);
+                } catch (InvalidProtocolBufferException e) {
+                    UserLog.instance().logError("Failed to reconstitute a lease on " + id, e);
+                }
+            }
+        } catch (SQLException e) {
+            throw new FriendlyBackupException("Failed to retrieve leases for " + id, e);
         }
 
         if( retval.size() == 0 ) {
@@ -195,7 +207,8 @@ public abstract class DBDataStore extends DataStore {
             // TODO should use artificial, generated, primary key?
             String[] dbInitStrings = {
                     "create table chunk(key BINARY(20),       data BLOB, PRIMARY KEY (key));",
-                    "create table lease(chunk_key BINARY(20), expiry TIMESTAMP, owner VARCHAR(50), soft BOOLEAN, PRIMARY KEY (chunk_key, expiry, owner, soft));",
+                    //TODO NUM(21) -> long
+                    "create table lease(chunk_key BINARY(20), expiry TIMESTAMP, owner NUM(20), soft BOOLEAN, PRIMARY KEY (chunk_key, expiry, owner, soft));",
                     };
             for(String dbInitString : dbInitStrings) {
                 PreparedStatement stmt = conn.prepareStatement(dbInitString);

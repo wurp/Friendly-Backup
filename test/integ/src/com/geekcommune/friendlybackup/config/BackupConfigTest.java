@@ -18,4 +18,9 @@ public class BackupConfigTest extends TestCase {
                 App.getBackupConfig().getAuthenticatedOwner();
         Assert.assertNotNull(authOwner);
     }
+    
+    public void testBackupTime() throws Exception {
+        Assert.assertEquals(9, App.getBackupConfig().getBackupHour());
+        Assert.assertEquals(8, App.getBackupConfig().getBackupMinute());
+    }
 }

@@ -2,10 +2,10 @@ package com.geekcommune.friendlybackup.main;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
 
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.config.BackupConfig;
 import com.geekcommune.friendlybackup.format.high.BackupManifest;
@@ -30,26 +30,27 @@ import com.google.protobuf.InvalidProtocolBufferException;
  */
 public class Restore extends Action {
     private static final Logger log = Logger.getLogger(Restore.class);
-	
-	private ProgressTracker progressTracker;
+    
+    private ProgressTracker progressTracker;
 
     public Restore() throws IOException {
         super();
     }
 
     /**
-	 * Initiates a restore.  The restore will automatically continue in another thread - start returns immediately
-	 * after the backup manifest is retrieved.
+     * Initiates a restore.  The restore will automatically continue in another thread - start returns immediately
+     * after the backup manifest is retrieved.
      * @throws IOException 
-	 */
-	public void start(final SecretIdentity authenticatedOwner) throws IOException {
-	    final BackupConfig bakcfg = App.getBackupConfig();
-	    
+     * @throws FriendlyBackupException 
+     */
+    public void start(final SecretIdentity authenticatedOwner) throws FriendlyBackupException {
+        final BackupConfig bakcfg = App.getBackupConfig();
+        
         final UserLog userlog = UserLog.instance();
 
         //retrieve my latest backup manifest label
         final HashIdentifier backupLabelId = LabelledData.getHashID(
-                authenticatedOwner.getPublicIdentity().getHandle(),
+                authenticatedOwner,
                 bakcfg.getBackupStreamName());
         progressTracker = new ProgressTracker(105);
         
@@ -59,7 +60,7 @@ public class Restore extends Action {
                 bakcfg.getStoringNodes(),
                 backupLabelId,
                 restoreBackupManifestResponseHandler(bakcfg, userlog));
-	}
+    }
 
     private BinaryContinuation<String, byte[]> restoreBackupManifestResponseHandler(
             final BackupConfig bakcfg, final UserLog userlog) {
@@ -119,28 +120,22 @@ public class Restore extends Action {
     }
 
     public ProgressTracker getProgressTracker() {
-		return progressTracker;
-	}
+        return progressTracker;
+    }
 
-	public void blockUntilDone() throws InterruptedException {
-		 ProgressTracker progressTracker = getProgressTracker();
-		 while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
-		     Thread.sleep(1000);
-		 }
-	}
-	
-	public void doRestore(String password) throws InterruptedException, IOException, ClassNotFoundException, SQLException {
-        start(App.getBackupConfig().getAuthenticatedOwner(password));
+    public void blockUntilDone() throws InterruptedException {
+         ProgressTracker progressTracker = getProgressTracker();
+         while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
+             Thread.sleep(1000);
+         }
+    }
+
+    public void doRestore() throws FriendlyBackupException, InterruptedException {
+        start(App.getBackupConfig().getAuthenticatedOwner());
         ProgressTracker progressTracker = getProgressTracker();
         while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
             UserLog.instance().info(progressTracker.getStatusMessage());
             Thread.sleep(1000);
         }
-	}
-
-	public static void main(String[] args) throws Exception {
-		Restore restore = new Restore();
-		String password = args[0];
-		restore.doRestore(password);
-	}
+    }
 }

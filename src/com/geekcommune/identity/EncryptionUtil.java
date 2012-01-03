@@ -194,11 +194,12 @@ public class EncryptionUtil {
     
     /**
      * Encrypt and sign the specified input file
+     * @param seed 
      * @throws PGPException 
      */
     public void encryptAndSignFile(String outputFilename, File inFile,
                                    InputStream publicRing, InputStream secretRing,
-                                   String recipient, String signor, char[] passwd) throws PGPException {
+                                   String recipient, String signor, char[] passwd, byte[] seed) throws PGPException {
         encryptAndSignFile(
                 outputFilename,
                 inFile,
@@ -209,17 +210,25 @@ public class EncryptionUtil {
                 passwd,
                 false,
                 false,
-                false);
+                false,
+                seed);
     }
     
     /**
-     * Encrypt and sign the specified input file
+     * Encrypt and sign the specified input file.  If you pass in a seed, you
+     * will get the same encrypted output for the same file + same seed + same signor.
+     * 
+     * DANGER!  If you use the same seed for multiple different messages, you are
+     * making your key stream vulnerable to hacking, and your encryption is near
+     * meaningless!  Make sure to use different seeds for different contents!
+     *  
+     * @param seed 
      */
     public void encryptAndSignFile(String outputFilename, File inFile,
                                    InputStream publicRing, InputStream secretRing,
                                    String recipient, String signor, char[] passwd,
                                    boolean armor, boolean withIntegrityCheck,
-                                   boolean oldFormat)
+                                   boolean oldFormat, byte[] seed)
         throws PGPException
     {
         try
@@ -265,9 +274,16 @@ public class EncryptionUtil {
             }
 
             // Now encrypt the result
+            SecureRandom secRand;
+            if( seed != null ) {
+                secRand = new SecureRandom(seed);
+            } else {
+                secRand = new SecureRandom();
+            }
+
             PGPEncryptedDataGenerator cPk = oldFormat?
-               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, new SecureRandom(secretKey.getEncoded()), oldFormat, "BC"):
-               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, withIntegrityCheck, new SecureRandom(secretKey.getEncoded()), "BC");
+               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, secRand, oldFormat, "BC"):
+               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, withIntegrityCheck, secRand, "BC");
 
             cPk.addMethod(encKey);
 
@@ -292,19 +308,22 @@ public class EncryptionUtil {
         }
     }
 
-
-
     /**
      * Encrypt the specified input file
      * @param password 
+     * @param seed 
      * @throws FileNotFoundException 
      */
     public void encryptFile(OutputStream out, File inFile, PGPPublicKeyRingCollection pubRing, PGPSecretKeyRingCollection secRing,
-                            String recipient, char[] password)
+                            String recipient, char[] password, byte[] seed)
         throws PGPException, FileNotFoundException {
         long time = inFile.lastModified();
-        encryptFile(out, new FileInputStream(inFile), inFile.getName(), inFile.length(), new Date(time), pubRing, secRing, recipient,
-                false, false, false, password);
+        try {
+            encryptFile(out, new FileInputStream(inFile), inFile.getName(), inFile.length(), new Date(time), readPublicKey(pubRing, recipient, true),
+                    false, false, false, password, seed);
+        } catch (IOException e) {
+            throw new PGPException("Failed to read public key from keyring", e);
+        }
     }
 
 
@@ -314,24 +333,30 @@ public class EncryptionUtil {
      * @param password 
      */
     public void encryptFile(OutputStream out, InputStream in, String inName, long inLength, Date inDate, PGPPublicKeyRingCollection pubRing, PGPSecretKeyRingCollection secRing,
-                            String recipient, char[] password)
+                            String recipient, char[] password, byte[] seed)
         throws PGPException {
-        encryptFile(out, in, inName, inLength, inDate, pubRing, secRing, recipient,
-                false, false, false, password);
+        try {
+            encryptFile(out, in, inName, inLength, inDate, readPublicKey(pubRing, recipient, true),
+                    false, false, false, password, seed);
+        } catch (IOException e) {
+            throw new PGPException("Failed to read public key from keyring", e);
+        }
+    }
+    
+    enum Format {
+        COMPRESSED, UNCOMPRESSED;
     }
     
     /**
      * Encrypt the specified input file
      * @param password 
+     * @param seed 
      */
-    public void encryptFile(OutputStream out, InputStream in, String inName, long inLength, Date inDate, PGPPublicKeyRingCollection pubRing, PGPSecretKeyRingCollection secRing,
-                            String recipient, boolean armor, boolean withIntegrityCheck,
-                            boolean oldFormat, char[] password)
+    public void encryptFile(OutputStream out, InputStream in, String inName, long inLength, Date inDate, PGPPublicKey encKey,
+                            boolean armor, boolean withIntegrityCheck,
+                            boolean oldFormat, char[] password, byte[] seed)
         throws PGPException {
         try {
-            // Get the public keyring
-            // Find the recipient's key
-            PGPPublicKey encKey = readPublicKey(pubRing, recipient, true);
             if (encKey.isRevoked()) {
                 String keyId = Long.toHexString(encKey.getKeyID()).substring(8);
                 throw new PGPException("Encryption key (0x"+keyId+") has been revoked");
@@ -340,17 +365,20 @@ public class EncryptionUtil {
             // Compress the data into an in-memory stream
             ByteArrayOutputStream bOut = new ByteArrayOutputStream();
 
-            compressData(in, bOut, inName, inLength, inDate, oldFormat);
-
-            PGPSecretKey secretKey = findSecretKey(secRing, encKey.getKeyID(), false);
-            PGPPrivateKey privKey = secretKey.extractPrivateKey(password, "BC");
+            compressData(in, bOut, inName, inLength, inDate, oldFormat, Format.UNCOMPRESSED);
 
             // Now encrypt the result
-            //TODO DANGER!  Is privKey.getKey().getEncoded() impossible to get without the password?
-            //Does "exposing" it as the seed to secure random put the private key at risk of discovery?
+            SecureRandom secRand;
+            if( seed != null ) {
+                secRand = new SecureRandom(seed);
+            } else {
+                secRand = new SecureRandom();
+            }
+
+            // Now encrypt the result
             PGPEncryptedDataGenerator cPk = oldFormat?
-               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, new SecureRandom(privKey.getKey().getEncoded()), oldFormat, "BC"):
-               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, withIntegrityCheck, new SecureRandom(privKey.getKey().getEncoded()), "BC");
+               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, secRand, oldFormat, "BC"):
+               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, withIntegrityCheck, secRand, "BC");
 
             cPk.addMethod(encKey);
 
@@ -607,23 +635,26 @@ public class EncryptionUtil {
      * Compress the data in the input stream
      * @throws FileNotFoundException 
      */
-    public void compressData(File inFile, OutputStream bOut, boolean oldFormat)
+    public void compressData(File inFile, OutputStream bOut, boolean oldFormat, Format compress)
         throws PGPException, FileNotFoundException {
         long time = inFile.lastModified();
-        compressData(new FileInputStream(inFile), bOut, inFile.getName(), inFile.length(), new Date(time), oldFormat);
+        compressData(new FileInputStream(inFile), bOut, inFile.getName(), inFile.length(), new Date(time), oldFormat, compress);
     }
     
 
     /**
      * Compress the data in the input stream
      */
-    public void compressData(InputStream fIn, OutputStream bOut, String fileName, long dataLength, Date date, boolean oldFormat)
+    public void compressData(InputStream fIn, OutputStream bOut, String fileName, long dataLength, Date date, boolean oldFormat, Format compress)
         throws PGPException {
         try {
-            PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(PGPCompressedData.ZIP);
+            if( compress == Format.COMPRESSED ) {
+                PGPCompressedDataGenerator comData = new PGPCompressedDataGenerator(PGPCompressedData.ZIP);
+                bOut = comData.open(bOut);
+            }
 
             PGPLiteralDataGenerator lData = new PGPLiteralDataGenerator(oldFormat);
-            OutputStream            pOut = lData.open(comData.open(bOut), PGPLiteralData.BINARY,
+            OutputStream            pOut = lData.open(bOut, PGPLiteralData.BINARY,
                                                       fileName, dataLength,
                                                       date);
             byte[]                  bytes = new byte[4096];
@@ -636,7 +667,10 @@ public class EncryptionUtil {
             fIn.close();
 
             lData.close();
-            comData.close();
+            
+            if( compress == Format.COMPRESSED ) {
+                bOut.close();
+            }
         }
         catch (Exception e) {
             throw new PGPException("Error in encryption", e);
@@ -650,13 +684,31 @@ public class EncryptionUtil {
      */
     public byte[] decryptKeyBasedData(
             byte[] input,
+            PGPSecretKey secKey,
+            char[] passwd)
+        throws PGPException, IOException {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(input);
+        ByteArrayOutputStream encryptedOut = new ByteArrayOutputStream();
+        decryptKeyBasedFile(encryptedOut, inputStream, secKey, passwd, false);
+        inputStream.close();
+        encryptedOut.close();
+        return encryptedOut.toByteArray();
+    }
+
+    
+    /**
+     * Decrypt the specified (PKE) input file
+     * @throws IOException 
+     */
+    public byte[] decryptKeyBasedData(
+            byte[] input,
             PGPPublicKeyRingCollection pubRing,
             PGPSecretKeyRingCollection secRing,
             char[] passwd)
         throws PGPException, IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(input);
         ByteArrayOutputStream encryptedOut = new ByteArrayOutputStream();
-        decryptKeyBasedFile(encryptedOut, inputStream, pubRing, secRing, passwd);
+        decryptKeyBasedFile(encryptedOut, inputStream, pubRing, secRing, passwd, false);
         inputStream.close();
         encryptedOut.close();
         return encryptedOut.toByteArray();
@@ -668,16 +720,96 @@ public class EncryptionUtil {
      */
     public void decryptKeyBasedFile(OutputStream out, InputStream inFile,
             PGPPublicKeyRingCollection pubRing, PGPSecretKeyRingCollection secRing,
+            PGPSecretKey pgpSecKey, PGPPublicKey encKey,
                                     char[] passwd)
         throws PGPException {
         decryptKeyBasedFile(out, inFile, pubRing, secRing, passwd, false);
     }
 
+
     /**
-     * Decrypt the specified (PKE) input file
+     * Decrypt the specified (PKE) input file.
+     * 
+     * @param out
+     * @param inFile
+     * @param pubRing
+     * @param secRing
+     * @param encKey
+     * @param passwd
+     * @param mdcRequired
+     * @throws PGPException
      */
     public void decryptKeyBasedFile(OutputStream out, InputStream inFile,
             PGPPublicKeyRingCollection pubRing, PGPSecretKeyRingCollection secRing,
+                                    char[] passwd)
+        throws PGPException
+    {
+        decryptKeyBasedFile(out, inFile, pubRing, secRing, null, passwd, false);
+    }
+
+
+    /**
+     * Decrypt the specified (PKE) input file.
+     * 
+     * @param out
+     * @param inFile
+     * @param pubRing
+     * @param secRing
+     * @param encKey
+     * @param passwd
+     * @param mdcRequired
+     * @throws PGPException
+     */
+    public void decryptKeyBasedFile(OutputStream out, InputStream inFile,
+            PGPPublicKeyRingCollection pubRing, PGPSecretKeyRingCollection secRing,
+                                    char[] passwd, boolean mdcRequired)
+        throws PGPException
+    {
+        decryptKeyBasedFile(out, inFile, pubRing, secRing, null, passwd, mdcRequired);
+    }
+
+
+    /**
+     * Decrypt the specified (PKE) input file.
+     * 
+     * @param out
+     * @param inFile
+     * @param pgpSecKey, 
+     * @param encKey
+     * @param passwd
+     * @param mdcRequired
+     * @throws PGPException
+     */
+    public void decryptKeyBasedFile(
+            OutputStream out,
+            InputStream inFile,
+            PGPSecretKey pgpSecKey,
+            char[] passwd,
+            boolean mdcRequired)
+        throws PGPException
+    {
+        decryptKeyBasedFile(out, inFile, null, null, pgpSecKey, passwd, mdcRequired);
+    }
+
+
+    /**
+     * Decrypt the specified (PKE) input file.
+     * 
+     * Either pubRing and secRing should be null, or pgpSecKey should be null, but not both.
+     * 
+     * @param out
+     * @param inFile
+     * @param pubRing
+     * @param secRing
+     * @param pgpSecKey
+     * @param encKey
+     * @param passwd
+     * @param mdcRequired
+     * @throws PGPException
+     */
+    private void decryptKeyBasedFile(OutputStream out, InputStream inFile,
+            PGPPublicKeyRingCollection pubRing, PGPSecretKeyRingCollection secRing,
+            PGPSecretKey pgpSecKey, 
                                     char[] passwd, boolean mdcRequired)
         throws PGPException
     {
@@ -689,7 +821,7 @@ public class EncryptionUtil {
             Object message = pgpFact.nextObject();
 
             PGPPublicKeyEncryptedData pked = null;
-            PGPCompressedData cData;
+//            PGPCompressedData cData;
 
             // Check for signed only
             if (!(message instanceof PGPCompressedData)) {
@@ -699,22 +831,27 @@ public class EncryptionUtil {
                 if (!(message instanceof PGPEncryptedDataList)) {
                     message = pgpFact.nextObject();
                     if (!(message instanceof PGPEncryptedDataList)) {
-                        throw new PGPException("Unrecognised PGP message type");
+                        throw new PGPException("Unrecognised PGP message type: " + message.getClass());
                     }
                 }
 
                 PGPEncryptedDataList enc = (PGPEncryptedDataList) message;
 
-                PGPSecretKey pgpSecKey = null;
                 int count = 0;
 
                 // find the secret key that is needed
                 while (count != enc.size()) {
                     if (enc.get(count) instanceof PGPPublicKeyEncryptedData) {
                         pked = (PGPPublicKeyEncryptedData) enc.get(count);
-                        pgpSecKey = secRing.getSecretKey(pked.getKeyID());
-                        if (pgpSecKey != null) {
-                            break;
+                        if( pgpSecKey == null ) {
+                            pgpSecKey = secRing.getSecretKey(pked.getKeyID());
+                            if (pgpSecKey != null) {
+                                break;
+                            }
+                        } else {
+                            if( pgpSecKey.getKeyID() == pked.getKeyID() ) {
+                                break;
+                            }
                         }
                     }
 
@@ -726,8 +863,12 @@ public class EncryptionUtil {
                 }
 
                 // Check for revoked key
-//                PGPPublicKey encKey = pgpSecKey.getPublicKey(); //bobby's code; also appears to work
-                PGPPublicKey encKey = findPublicKey(pubRing, pgpSecKey.getKeyID(), true);
+                PGPPublicKey encKey = pgpSecKey.getPublicKey();
+
+                if( encKey == null ) {
+                    encKey = findPublicKey(pubRing, pgpSecKey.getKeyID(), true);
+                }
+
                 if (encKey.isRevoked()) {
                     String keyId = Long.toHexString(encKey.getKeyID()).substring(8);
                     System.out.println("Warning: Encryption key (0x"+keyId+") has been revoked");
@@ -736,27 +877,30 @@ public class EncryptionUtil {
 
                 InputStream clear = pked.getDataStream(pgpSecKey.extractPrivateKey(passwd, "BC"), "BC");
    
-                pgpFact = new PGPObjectFactory(clear);
-
-                cData = (PGPCompressedData) pgpFact.nextObject();
+                PGPObjectFactory pgpClearFact = new PGPObjectFactory(clear);
+                
+                message = pgpClearFact.nextObject();
+                
+                if( message == null ) {
+                    message = pgpFact.nextObject();
+                }
+//
+//                cData = (PGPCompressedData) pgpFact.nextObject();
+//            }
+//            else {
+//                cData = (PGPCompressedData) message;
             }
-            else {
-                cData = (PGPCompressedData) message;
+
+            if( message instanceof PGPCompressedData ) {
+                PGPCompressedData compressedData = (PGPCompressedData)message;
+                pgpFact = new PGPObjectFactory(compressedData.getDataStream());
+
+                message = pgpFact.nextObject();
             }
-
-            pgpFact = new PGPObjectFactory(cData.getDataStream());
-
-            message = pgpFact.nextObject();
 
             // Plain file
             if (message instanceof PGPLiteralData) {
                 PGPLiteralData ld = (PGPLiteralData) message;
-
-//                if (outputFilename == null) {
-//                    outputFilename = ld.getFileName();
-//                }
-//
-//                FileOutputStream out = new FileOutputStream(outputFilename);
 
                 InputStream dataIn = ld.getInputStream();
 
@@ -788,7 +932,7 @@ public class EncryptionUtil {
             } else {
                 // what?
                 // System.out.println("Unrecognised message type");
-                throw new PGPException("Unrecognised PGP message type");
+                throw new PGPException("Unrecognised PGP message type: " + message.getClass());
             }
 
             if (pked != null) {
@@ -985,9 +1129,6 @@ public class EncryptionUtil {
             if (_verbose) {
                 System.out.println("Signature verified.");
             }
-        }
-        catch (PGPException e) {
-            throw e;
         }
         catch (Exception e) {
             throw new PGPException("Error in verification", e);
@@ -1191,7 +1332,7 @@ public class EncryptionUtil {
     /**
      * Find the public key for the recipient
      */
-    private PGPPublicKey readPublicKey(PGPPublicKeyRingCollection pubRing,
+    public PGPPublicKey readPublicKey(PGPPublicKeyRingCollection pubRing,
                                        String recipient, boolean encrypting)
         throws IOException, PGPException {
         //
@@ -1246,6 +1387,109 @@ public class EncryptionUtil {
     }
 
 
+    public PGPPublicKey findFirstEncryptingKey(PGPPublicKeyRing keyRing) throws PGPException {
+        @SuppressWarnings("unchecked")
+        Iterator<PGPPublicKey> kIt = keyRing.getPublicKeys();
+
+        PGPPublicKey retval = null;
+        while (retval == null && kIt.hasNext()) {
+            PGPPublicKey k = kIt.next();
+
+            if (k.isEncryptionKey()) {
+                //System.out.println("Found the key I'm looking for");
+                retval = k;
+            }
+        }
+        
+        if( retval == null ) {
+            throw new PGPException("No encrypting key found in keyring");
+        }
+        
+        return retval;
+    }
+
+    /**
+     * Finds the first public key in keyRing which has a corresponding private key in secretKeyRings capable of signing.
+     * @param keyRing
+     * @param secretKeyRings
+     * @return
+     * @throws PGPException 
+     */
+    public PGPSecretKey findFirstSigningKey(PGPPublicKeyRing keyRing, PGPSecretKeyRingCollection secretKeyRings) throws PGPException {
+        @SuppressWarnings("unchecked")
+        Iterator<PGPPublicKey> kIt = keyRing.getPublicKeys();
+
+        PGPSecretKey retval = null;
+        while (retval == null && kIt.hasNext()) {
+            PGPPublicKey k = kIt.next();
+
+            PGPSecretKey sk = secretKeyRings.getSecretKey(k.getKeyID());
+            if( sk.isSigningKey() ) {
+                retval = sk;
+            }
+        }
+        
+        if( retval == null ) {
+            throw new PGPException("No signing key found");
+        }
+        
+        return retval;
+    }
+    
+    
+    /**
+     * Find the public key for the recipient
+     */
+    public PGPPublicKeyRing findPublicKeyRing(PGPPublicKeyRingCollection pubRing,
+                                       String recipient)
+        throws IOException, PGPException {
+        PGPPublicKeyRing retval = null;
+        String retvalName = null;
+
+        //
+        // iterate through the key rings.
+        //
+        @SuppressWarnings("unchecked")
+        Iterator<PGPPublicKeyRing> rIt = pubRing.getKeyRings();
+
+        //System.out.println("processing public key ring, looking for : "+recipient);
+        while (rIt.hasNext()) {
+            PGPPublicKeyRing kRing = rIt.next();
+            //System.out.println("Found a ring with keys ");
+            @SuppressWarnings("unchecked")
+            Iterator<PGPPublicKey> kIt = kRing.getPublicKeys();
+
+            while (kIt.hasNext()) {
+                PGPPublicKey k = kIt.next();
+
+                String name = "<not specified>";
+                
+                @SuppressWarnings("unchecked")
+                Iterator<String> userIDs = k.getUserIDs();
+                if (userIDs.hasNext()) {
+                    name = userIDs.next();
+                }
+                //System.out.println("found a key with name "+name);
+
+                if (name.indexOf(recipient) >= 0) {
+                    if( retval == null || retval == kRing ) {
+                        retval = kRing;
+                        retvalName = name;
+                    } else {
+                        throw new PGPException("Ambiguous recipient name; matches both " + name + " and " + retvalName);
+                    }
+                }
+            }
+        }
+
+        if (retval == null) {
+            throw new PGPException("Can't find keyring matching " + recipient);
+        }
+
+        return retval;
+    }
+
+
 
     /**
      * Load a public key ring collection from keyIn and find the key corresponding to
@@ -1289,7 +1533,7 @@ public class EncryptionUtil {
      * @throws PGPException
      * @throws NoSuchProviderException
      */
-    private static PGPSecretKey findSecretKey(PGPSecretKeyRingCollection secRing, long keyID, boolean signing)
+    public PGPSecretKey findSecretKey(PGPSecretKeyRingCollection secRing, long keyID, boolean signing)
         throws IOException, PGPException, NoSuchProviderException {
         PGPSecretKey    pgpSecKey = secRing.getSecretKey(keyID);
 
@@ -1346,11 +1590,19 @@ public class EncryptionUtil {
         return key;
     }
 
-    public byte[] encryptData(byte[] input, PGPPublicKeyRingCollection pubRing,
-            PGPSecretKeyRingCollection secRing, String recipient, char[] passwd) throws PGPException, IOException {
+    public byte[] encryptData(byte[] input, PGPPublicKey pubKey, char[] passwd, byte[] seed) throws PGPException, IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(input);
         ByteArrayOutputStream encryptedOut = new ByteArrayOutputStream();
-        encryptFile(encryptedOut, inputStream, "data", input.length, new Date(), pubRing, secRing, recipient, passwd);
+        encryptFile(encryptedOut, inputStream, "data", input.length, new Date(0), pubKey, false, false, false, passwd, seed);
+        inputStream.close();
+        encryptedOut.close();
+        return encryptedOut.toByteArray();
+    }
+
+    public byte[] encryptData(byte[] input, PGPPublicKey pubKey, PGPPublicKeyRingCollection pubRing, PGPSecretKeyRingCollection secRing, String recip, char[] passwd, byte[] seed) throws PGPException, IOException {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(input);
+        ByteArrayOutputStream encryptedOut = new ByteArrayOutputStream();
+        encryptFile(encryptedOut, inputStream, "data", input.length, new Date(0), pubRing, secRing, recip, passwd, seed);
         inputStream.close();
         encryptedOut.close();
         return encryptedOut.toByteArray();

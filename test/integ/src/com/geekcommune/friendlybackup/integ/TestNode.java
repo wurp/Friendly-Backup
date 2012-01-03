@@ -30,6 +30,10 @@ public class TestNode {
                 new String[0],
                 new Object[0]);
 
+        //Set the password so the dialog doesn't pop up
+        Object swingUIKeyDataSource = invokeMethod(backupConfig, "getKeyDataSource", new Class<?>[0], new Object[0]);
+        invokeMethod(swingUIKeyDataSource, "setPassphrase", new Class<?>[] {char[].class}, new Object[] { "password".toCharArray() });
+        
         backup = invokeConstructor(
                 "com.geekcommune.friendlybackup.main.Backup",
                 new String[0],
@@ -45,14 +49,20 @@ public class TestNode {
         return invokeMethod(targetObject.getClass().getName(), targetObject, methodName, argumentClassNames, arguments);
     }
 
+    Object invokeMethod(Object targetObject, String methodName, Class<?>[] argumentClasses, Object[] arguments) throws Exception {
+        return invokeMethod(targetObject.getClass().getName(), targetObject, methodName, argumentClasses, arguments);
+    }
+
     Object invokeStaticMethod(String targetClassName, String methodName, String[] argumentClassNames, Object[] arguments) throws Exception {
         return invokeMethod(targetClassName, null, methodName, argumentClassNames, arguments);
     }
     
     Object invokeMethod(String targetClassName, Object targetObject, String methodName, String[] argumentClassNames, Object[] arguments) throws Exception {
+        return invokeMethod(targetClassName, targetObject, methodName, classesForClassnames(argumentClassNames), arguments);
+    }
+    
+    Object invokeMethod(String targetClassName, Object targetObject, String methodName, Class<?>[] argClasses, Object[] arguments) throws Exception {
         Class<?> targetClass = cl.loadClass(targetClassName);
-        
-        Class<?>[] argClasses = classesForClassnames(argumentClassNames);
         
         Method m = targetClass.getMethod(methodName, argClasses);
         return m.invoke(targetObject, arguments);
@@ -84,16 +94,16 @@ public class TestNode {
         invokeMethod(
                 backup,
                 "doBackup",
-                new String[] { "java.lang.String" },
-                new Object[] { "password" });
+                new Class[0],
+                new Object[0]);
     }
 
     public void restore() throws Exception {
         invokeMethod(
                 restore,
                 "doRestore",
-                new String[] { "java.lang.String" },
-                new Object[] { "password" });
+                new Class<?>[0],
+                new Object[0]);
     }
 
     public File[] getBackupRootDirectories() throws Exception {
