@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Created-By: 1.5.0_04-b05 (Sun Microsystems Inc.)
+Main-Class: com.geekcommune.friendlybackup.main.Service
+Class-Path: lib/bcpg-jdk15-146.jar lib/bcprov-jdk15-146.jar lib/concurrent-jaxed.jar lib/fec-linux-x86.jar lib/fec-win32.jar lib/hsqldb.jar lib/junit-4.3.1.jar lib/log4j-1.2.16.jar lib/onion-common.jar lib/onion-fec.jar lib/protobuf-2.4.1.jar

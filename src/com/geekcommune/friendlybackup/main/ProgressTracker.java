@@ -3,6 +3,7 @@ package com.geekcommune.friendlybackup.main;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.util.Pair;
 
 public class ProgressTracker {
@@ -36,6 +37,7 @@ public class ProgressTracker {
 
 	public synchronized void changeMessage(String message, int progressSinceLastMessage) {
 		this.message = message;
+		UserLog.instance().logInfo(message);
 		progress(progressSinceLastMessage);
 	}
 

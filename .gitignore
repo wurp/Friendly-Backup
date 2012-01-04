@@ -7,3 +7,12 @@ test/integ/happy1/config/restore-dir
 test/integ/happy2/config1/restore-dir
 *.jad
 *~
+friendly-backup.jar
+dist/friendly-backup.jar
+dist/lib/
+*.log
+test/integ/happy2/config*/db/
+out*
+*.out
+dist/run/db/*
+dist/gnupg/*

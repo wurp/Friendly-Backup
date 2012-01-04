@@ -7,12 +7,14 @@ Backup:
       -- only way to avoid this is to copy each file before backing up, which could take lots of space and would make backup slower
 
   Todo now!:
-    job scheduling; run as "service"
-    some way to initiate restore :-O
+    test: job scheduling; run as "service"
+    test: some way to initiate restore :-O
+    check for bad password; retry
     real-world testing
     template properties file + instructions:
       gen gpg key
-      add friends' public keys to keyring  
+      add friends' public keys to keyring
+      notes about max key size for default jvm; pointer to how to upgrade
     **distribute**
     create keys if none exist
     only upload blocks not already uploaded

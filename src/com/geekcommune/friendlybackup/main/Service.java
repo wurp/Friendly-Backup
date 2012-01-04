@@ -18,12 +18,29 @@ public class Service extends App {
         try {
             wire();
 
+            //Make sure system is ready to run
+            if( "MyNickName".equals(getBackupConfig().getMyName()) ) {
+                UserLog.instance().logError("Edit " + getBackupConfig().getRoot().getAbsolutePath() + "/BackupConfig.properties and set the values appropriately (myName cannot be MyNickName).\nSee http://bobbymartin.name/friendlybackup/properties.html");
+                System.exit(-1);
+            }
+            
+            File secringFile = new File(getBackupConfig().getRoot(), "gnupg/secring.gpg");
+            if( !secringFile.isFile() ) {
+                UserLog.instance().logError("Install gpg or GNU Privacy Assistant, create a key suitable for encryption & signing, and copy pubring.gpg and secring.gpg to " +
+                        secringFile.getParentFile().getAbsolutePath() + ".\nSee http://bobbymartin.name/friendlybackup/keygen.html");
+                System.exit(-1);
+            }
+            
+            //make sure we have the passphrase now, since the user is presumably at the computer
+            getBackupConfig().getKeyDataSource().getPassphrase();
+            
             restoreFile = new File(getBackupConfig().getRoot(), "restore.txt");
             
             backup = new Backup();
             restore = new Restore();
 
             nextBackupTime = findNextBackupTime();
+            UserLog.instance().logInfo("Next backup at " + nextBackupTime);
         } catch(IOException e) {
             
         }
@@ -66,6 +83,7 @@ public class Service extends App {
                     UserLog.instance().logError("Backup failed", e);
                 }
                 nextBackupTime = findNextBackupTime();
+                UserLog.instance().logInfo("Next backup at " + nextBackupTime);
             }
         }
     }
@@ -84,13 +102,14 @@ public class Service extends App {
         int currHour = retval.get(GregorianCalendar.HOUR_OF_DAY);
         int currMin = retval.get(GregorianCalendar.MINUTE);
         if( currHour > backupHour ||
-                (currHour == backupHour && currMin > backupMinute)  ) {
+                (currHour == backupHour && currMin >= backupMinute)  ) {
             retval.add(GregorianCalendar.DATE, 1);
         }
         
         //set the backup time
         retval.set(GregorianCalendar.HOUR_OF_DAY, backupHour);
         retval.set(GregorianCalendar.MINUTE, backupMinute);
+        retval.set(GregorianCalendar.SECOND, 0);
         
         return retval.getTime();
     }

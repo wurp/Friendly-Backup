@@ -33,6 +33,8 @@ public class BackupRestoreWithMessagingTest extends IntegrationTestCase {
         fos.write('A');
         fos.close();
         
+        Thread.sleep(500);
+        
         testNodes[0].backup();
         
         tryRestore();

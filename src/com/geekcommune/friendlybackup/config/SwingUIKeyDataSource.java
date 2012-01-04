@@ -15,7 +15,7 @@ public class SwingUIKeyDataSource implements KeyDataSource {
     public char[] getPassphrase() {
         if( passphrase == null ) {
             SwingPasswordDialog dlg = new SwingPasswordDialog();
-            passphrase = dlg.getPassword().toCharArray();
+            passphrase = dlg.getPassword();
         }
         return passphrase;
     }

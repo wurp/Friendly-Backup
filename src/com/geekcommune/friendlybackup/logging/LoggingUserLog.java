@@ -7,12 +7,17 @@ public class LoggingUserLog extends UserLog {
 
     @Override
     public void logError(String message, Exception e) {
-        log.error(message, e);
+        log.error(message);
     }
 
     @Override
     public void logError(String message) {
         log.error(message);
+    }
+
+    @Override
+    public void logInfo(String message) {
+        log.info(message);
     }
 
 }

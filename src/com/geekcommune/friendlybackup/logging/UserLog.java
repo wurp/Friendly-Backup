@@ -21,4 +21,9 @@ public abstract class UserLog {
         
     }
 
+    public void logInfo(String string) {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

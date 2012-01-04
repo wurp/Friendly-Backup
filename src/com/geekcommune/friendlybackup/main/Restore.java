@@ -131,11 +131,14 @@ public class Restore extends Action {
     }
 
     public void doRestore() throws FriendlyBackupException, InterruptedException {
+        UserLog.instance().logInfo("Starting restore");
         start(App.getBackupConfig().getAuthenticatedOwner());
         ProgressTracker progressTracker = getProgressTracker();
         while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
             UserLog.instance().info(progressTracker.getStatusMessage());
             Thread.sleep(1000);
         }
+        
+        UserLog.instance().logInfo("Restore complete");
     }
 }

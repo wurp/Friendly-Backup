@@ -4,7 +4,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
 public class InMemoryDataStore extends DataStore {
@@ -23,10 +22,5 @@ public class InMemoryDataStore extends DataStore {
             throws SQLException {
         dataMap.put(id, data);
         //TODO leases are ignored for now
-    }
-
-    @Override
-    public void updateObject(Message msg) throws SQLException {
-        //in-memory objects are already updated; do nothing.
     }
 }

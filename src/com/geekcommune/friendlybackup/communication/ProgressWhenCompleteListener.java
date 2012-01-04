@@ -16,8 +16,8 @@ public class ProgressWhenCompleteListener implements StateListener {
         this.done = false;
     }
 
-    public void stateChanged(Message msg) {
-        if( !done && msg.isComplete() ) {
+    public void stateChanged(Message message) {
+        if( !done && message.isComplete() ) {
             progressTracker.progress(numStepsWhenComplete);
         }
     }

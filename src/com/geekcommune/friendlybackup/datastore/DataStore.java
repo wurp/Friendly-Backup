@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
 public abstract class DataStore {
@@ -45,6 +44,4 @@ public abstract class DataStore {
     public static void setInstance(DataStore dataStore) {
         instance = dataStore;
     }
-
-    public abstract void updateObject(Message msg) throws SQLException;
 }

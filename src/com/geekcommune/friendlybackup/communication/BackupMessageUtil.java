@@ -156,13 +156,6 @@ public class BackupMessageUtil extends MessageUtil {
                 releaseSocket(socket);
                 log.debug("Finished talking");
             }
-            
-            try {
-                DataStore.instance().updateObject(msg);
-            } catch (SQLException e) {
-                log.error(e.getMessage(), e);
-                //TODO user log (this exception isn't thrown now)
-            }
         }
         log.debug("sent "+ msg.getTransactionID());
     }
@@ -185,15 +178,17 @@ public class BackupMessageUtil extends MessageUtil {
     }
 
     private void removeSocket(Socket socket) {
-        Lock lock = socketLockMap.get(socket);
-        
-        if( lock != null ) {
-            lock.unlock();
-            socketLockMap.remove(socket);
+        if( socket != null ) {
+            Lock lock = socketLockMap.get(socket);
+            
+            if( lock != null ) {
+                lock.unlock();
+                socketLockMap.remove(socket);
+            }
+            
+            Pair<InetAddress, Integer> key = new Pair<InetAddress, Integer>(socket.getInetAddress(), socket.getPort());
+            socketMap.remove(key);
         }
-        
-        Pair<InetAddress, Integer> key = new Pair<InetAddress, Integer>(socket.getInetAddress(), socket.getPort());
-        socketMap.remove(key);
     }
 
     private Socket acquireSocket(InetAddress address, int port) throws IOException {

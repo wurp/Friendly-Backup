@@ -11,8 +11,8 @@ import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataM
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasureMessage;
 import com.geekcommune.friendlybackup.config.BackupConfig;
 import com.geekcommune.friendlybackup.config.SwingUIKeyDataSource;
+import com.geekcommune.friendlybackup.datastore.DBDataStore;
 import com.geekcommune.friendlybackup.datastore.DataStore;
-import com.geekcommune.friendlybackup.datastore.InMemoryDataStore;
 import com.geekcommune.friendlybackup.logging.LoggingUserLog;
 import com.geekcommune.friendlybackup.logging.UserLog;
 
@@ -47,7 +47,7 @@ public class App {
             bakcfg.setKeyDataSource(new SwingUIKeyDataSource());
 
             //DataStore
-            DataStore.setInstance(new InMemoryDataStore());
+            DataStore.setInstance(new DBDataStore(bakcfg.getDbConnectString()));
             
             //BackupMessageUtil
             BackupMessageUtil.setInstance(new BackupMessageUtil());

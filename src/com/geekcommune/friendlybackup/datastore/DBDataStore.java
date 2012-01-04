@@ -21,7 +21,7 @@ import com.geekcommune.identity.PublicIdentityHandle;
 import com.geekcommune.identity.Signature;
 import com.google.protobuf.InvalidProtocolBufferException;
 
-public abstract class DBDataStore extends DataStore {
+public class DBDataStore extends DataStore {
     private static final Logger log = Logger.getLogger(DBDataStore.class);
 
     private static DBDataStore instance;
@@ -34,7 +34,7 @@ public abstract class DBDataStore extends DataStore {
 
     private ConcurrentHashMap<Class<?>, ResultSetFactory> resultSetFactories = new ConcurrentHashMap<Class<?>, ResultSetFactory>();
 
-    private ConcurrentHashMap<Class<?>, SQLUpdater> sqlUpdaters = new ConcurrentHashMap<Class<?>, SQLUpdater>();
+//    private ConcurrentHashMap<Class<?>, SQLUpdater> sqlUpdaters = new ConcurrentHashMap<Class<?>, SQLUpdater>();
 
     public DBDataStore(String connectString) {
         this.connectString = connectString;
@@ -77,21 +77,24 @@ public abstract class DBDataStore extends DataStore {
     }
 
     public synchronized void storeData(HashIdentifier id, byte[] data, List<Lease> leases) throws SQLException {
-        if( getData(id) == null ) {
-            //TODO make sure that bytes.equals(Id.build(bytes).toByteArray()) for our hash function
-
-            //insert self into db
+        if( getData(id) != null ) {
             PreparedStatement insert = getConnection().
-              prepareStatement("insert into chunk values (?, ?)");
-            insert.setBytes(1, id.getData());
-            insert.setBytes(2, data);
-            insert.execute();
-            log.info("Writing " + (data == null ? null : data.length) + " bytes for " + id);
-            
-            addLeases(id, leases);
-        } else {
-            log.info("Not writing " + (data == null ? null : data.length) + " bytes duplicate data for " + id);
+                    prepareStatement("delete from chunk where key = ?");
+                  insert.setBytes(1, id.getData());
+                  insert.execute();
         }
+        
+        //TODO make sure that bytes.equals(Id.build(bytes).toByteArray()) for our hash function
+
+        //insert self into db
+        PreparedStatement insert = getConnection().
+          prepareStatement("insert into chunk values (?, ?)");
+        insert.setBytes(1, id.getData());
+        insert.setBytes(2, data);
+        insert.execute();
+        log.info("Writing " + (data == null ? null : data.length) + " bytes for " + id);
+        
+        addLeases(id, leases);
      }
 
     //TODO needs tests
@@ -162,16 +165,6 @@ public abstract class DBDataStore extends DataStore {
         return retval;
     }
 
-    public List<byte[]> getDataList(List<HashIdentifier> ids) throws SQLException {
-        List<byte[]> retval = new ArrayList<byte[]>(ids.size());
-        
-        for(HashIdentifier id : ids) {
-            retval.add(getData(id));
-        }
-        
-        return retval;
-    }
-
 
     @Override
     public String toString() {
@@ -179,8 +172,15 @@ public abstract class DBDataStore extends DataStore {
     }
 
     public static Connection makeConnection(String connectString) throws SQLException {
-      return DriverManager.getConnection(connectString,
-        "SA", "");
+        try {
+            Class.forName("org.hsqldb.jdbcDriver");
+        } catch (ClassNotFoundException e) {
+            log.error(e.getMessage(), e);
+            UserLog.instance().logError(e.getMessage(), e);
+        }
+        
+        return DriverManager.getConnection(connectString,
+                "SA", "");
     }
 
     public synchronized Connection getConnection() throws SQLException {
@@ -207,8 +207,7 @@ public abstract class DBDataStore extends DataStore {
             // TODO should use artificial, generated, primary key?
             String[] dbInitStrings = {
                     "create table chunk(key BINARY(20),       data BLOB, PRIMARY KEY (key));",
-                    //TODO NUM(21) -> long
-                    "create table lease(chunk_key BINARY(20), expiry TIMESTAMP, owner NUM(20), soft BOOLEAN, PRIMARY KEY (chunk_key, expiry, owner, soft));",
+                    "create table lease(chunk_key BINARY(20), expiry TIMESTAMP, owner BIGINT, soft BOOLEAN, PRIMARY KEY (chunk_key, expiry, owner, soft));",
                     };
             for(String dbInitString : dbInitStrings) {
                 PreparedStatement stmt = conn.prepareStatement(dbInitString);
@@ -241,15 +240,15 @@ public abstract class DBDataStore extends DataStore {
         resultSetFactories.put(clazz, rsf);
     }
 
-    public void updateObject(Object obj) throws SQLException {
-        SQLUpdater updater = sqlUpdaters.get(obj.getClass());
-        
-        //update object in db
-        PreparedStatement updateStmt = getConnection().
-          prepareStatement(updater.getUpdateSQL());
-        updater.setData(updateStmt, obj);
-
-        updateStmt.execute();
-        log.info("Updated " + obj);
-    }
+//    public void updateObject(Message msg) throws SQLException {
+//        SQLUpdater updater = sqlUpdaters.get(obj.getClass());
+//        
+//        //update object in db
+//        PreparedStatement updateStmt = getConnection().
+//          prepareStatement(updater.getUpdateSQL());
+//        updater.setData(updateStmt, obj);
+//
+//        updateStmt.execute();
+//        log.info("Updated " + obj);
+//    }
 }

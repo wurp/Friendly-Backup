@@ -270,7 +270,7 @@ public class BackupConfig {
         return this.pubkeyring;
     }
 
-    private String getMyName() {
+    public String getMyName() {
         return myName;
     }
 

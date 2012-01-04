@@ -72,6 +72,7 @@ public class Backup extends Action {
      */
     public void doBackup() throws IOException, InterruptedException {
         try {
+            UserLog.instance().logInfo("Starting backup");
             start(App.getBackupConfig().getAuthenticatedOwner());
             backupThread.join();
             backupThread = null;
@@ -80,6 +81,8 @@ public class Backup extends Action {
                 UserLog.instance().info(progressTracker.getStatusMessage());
                 Thread.sleep(1000);
             }
+            
+            UserLog.instance().logInfo("Backup complete");
         } catch (FriendlyBackupException e) {
             log.error("Backup failed: " + e.getMessage(), e);
             UserLog.instance().logError("Backup failed", e);
