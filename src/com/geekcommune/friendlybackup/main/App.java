@@ -5,11 +5,13 @@ import java.io.IOException;
 
 import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.message.AbstractMessage;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasureMessage;
 import com.geekcommune.friendlybackup.config.BackupConfig;
+import com.geekcommune.friendlybackup.config.BackupConfigBuilder;
 import com.geekcommune.friendlybackup.config.SwingUIKeyDataSource;
 import com.geekcommune.friendlybackup.datastore.DBDataStore;
 import com.geekcommune.friendlybackup.datastore.DataStore;
@@ -25,16 +27,18 @@ public class App {
     /**
      * Dependency Injection
      * @throws IOException 
+     * @throws FriendlyBackupException 
      */
-    public static synchronized void wire() throws IOException {
+    public static synchronized void wire() throws IOException, FriendlyBackupException {
         wire(System.getProperty(BACKUP_CONFIG_PROP_KEY));
     }
 
     /**
      * Dependency Injection
      * @throws IOException 
+     * @throws FriendlyBackupException 
      */
-    public static synchronized void wire(String configFilePath) throws IOException {
+    public static synchronized void wire(String configFilePath) throws IOException, FriendlyBackupException {
         if( !wired ) {
             wired = true;
 
@@ -43,7 +47,9 @@ public class App {
 
             //BackupConfig
             File cfgFile = new File(configFilePath);
-            bakcfg = BackupConfig.parseConfigFile(cfgFile);
+            BackupConfigBuilder bldr = new BackupConfigBuilder();
+            bldr.parseConfigFile(cfgFile);
+            bakcfg = bldr.makeBackupConfig();
             bakcfg.setKeyDataSource(new SwingUIKeyDataSource());
 
             //DataStore

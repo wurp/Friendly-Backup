@@ -6,4 +6,6 @@ public interface KeyDataSource {
 
     String getIdentity();
 
+    void clearPassphrase();
+
 }

@@ -81,7 +81,7 @@ public class Restore extends Action {
                                 restoreFileContentsHandler(bakcfg, userlog));
                     }//end for(fileLabelId)
                 } catch (InvalidProtocolBufferException e1) {
-                    log.error(e1.getMessage(), e1);
+                    UserLog.instance().logError(e1.getMessage(), e1);
                 } //end try/catch
             }//end run()
         };

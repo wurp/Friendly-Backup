@@ -310,17 +310,15 @@ public class EncryptionUtil {
 
     /**
      * Encrypt the specified input file
-     * @param password 
-     * @param seed 
      * @throws FileNotFoundException 
      */
     public void encryptFile(OutputStream out, File inFile, PGPPublicKeyRingCollection pubRing, PGPSecretKeyRingCollection secRing,
-                            String recipient, char[] password, byte[] seed)
+                            String recipient, char[] passphrase, byte[] seed)
         throws PGPException, FileNotFoundException {
         long time = inFile.lastModified();
         try {
             encryptFile(out, new FileInputStream(inFile), inFile.getName(), inFile.length(), new Date(time), readPublicKey(pubRing, recipient, true),
-                    false, false, false, password, seed);
+                    false, false, false, passphrase, seed);
         } catch (IOException e) {
             throw new PGPException("Failed to read public key from keyring", e);
         }
@@ -330,14 +328,13 @@ public class EncryptionUtil {
 
     /**
      * Encrypt the specified input file
-     * @param password 
      */
     public void encryptFile(OutputStream out, InputStream in, String inName, long inLength, Date inDate, PGPPublicKeyRingCollection pubRing, PGPSecretKeyRingCollection secRing,
-                            String recipient, char[] password, byte[] seed)
+                            String recipient, char[] passphrase, byte[] seed)
         throws PGPException {
         try {
             encryptFile(out, in, inName, inLength, inDate, readPublicKey(pubRing, recipient, true),
-                    false, false, false, password, seed);
+                    false, false, false, passphrase, seed);
         } catch (IOException e) {
             throw new PGPException("Failed to read public key from keyring", e);
         }
@@ -349,12 +346,11 @@ public class EncryptionUtil {
     
     /**
      * Encrypt the specified input file
-     * @param password 
      * @param seed 
      */
     public void encryptFile(OutputStream out, InputStream in, String inName, long inLength, Date inDate, PGPPublicKey encKey,
                             boolean armor, boolean withIntegrityCheck,
-                            boolean oldFormat, char[] password, byte[] seed)
+                            boolean oldFormat, char[] passphrase, byte[] seed)
         throws PGPException {
         try {
             if (encKey.isRevoked()) {
@@ -976,7 +972,7 @@ public class EncryptionUtil {
         try {
             //
             // we need to be able to reset the stream if we try a
-            // wrong password, we'll assume that all the mechanisms
+            // wrong passphrase, we'll assume that all the mechanisms
             // appear in the first 10k for the moment...
             //
             int READ_LIMIT = 10 * 1024;
@@ -1012,7 +1008,7 @@ public class EncryptionUtil {
                 }
 
                 if (count >= enc.size()) {
-                    throw new PGPException("Password invalid");
+                    throw new PGPException("Passphrase invalid");
                 }
 
                 pbe = (PGPPBEEncryptedData) enc.get(count);

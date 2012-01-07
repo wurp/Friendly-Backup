@@ -14,8 +14,8 @@ public class SwingUIKeyDataSource implements KeyDataSource {
     
     public char[] getPassphrase() {
         if( passphrase == null ) {
-            SwingPasswordDialog dlg = new SwingPasswordDialog();
-            passphrase = dlg.getPassword();
+            SwingPassphraseDialog dlg = new SwingPassphraseDialog();
+            passphrase = dlg.getPassphrase();
         }
         return passphrase;
     }
@@ -23,6 +23,10 @@ public class SwingUIKeyDataSource implements KeyDataSource {
     public String getIdentity() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public void clearPassphrase() {
+        passphrase = null;
     }
 
 }

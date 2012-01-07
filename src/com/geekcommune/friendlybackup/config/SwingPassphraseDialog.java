@@ -15,16 +15,16 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 
-public class SwingPasswordDialog extends JDialog implements ActionListener {
+public class SwingPassphraseDialog extends JDialog implements ActionListener {
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
     
-    private JPasswordField passwordInput;
+    private JPasswordField passphraseInput;
 
-    public SwingPasswordDialog() {
-        super(new JFrame(), "FriendlyBackup password request", true);
+    public SwingPassphraseDialog() {
+        super(new JFrame(), "FriendlyBackup passphrase request", true);
         Container parent = getParent();
 
         if (parent != null) {
@@ -34,12 +34,12 @@ public class SwingPasswordDialog extends JDialog implements ActionListener {
         }
         
         JPanel messagePane = new JPanel();
-        messagePane.add(new JLabel("Please enter your password"));
+        messagePane.add(new JLabel("Please enter your passphrase"));
         getContentPane().add(messagePane);
         
-        passwordInput = new JPasswordField(30);
-        passwordInput.addActionListener(this);
-        messagePane.add(passwordInput);
+        passphraseInput = new JPasswordField(30);
+        passphraseInput.addActionListener(this);
+        messagePane.add(passphraseInput);
         messagePane.setLayout(new GridLayout(2, 1));
 
         JPanel buttonPane = new JPanel();
@@ -58,7 +58,12 @@ public class SwingPasswordDialog extends JDialog implements ActionListener {
         dispose(); 
     }
 
-    public char[] getPassword() {
-        return passwordInput.getPassword();
+    public char[] getPassphrase() {
+        char[] retval = passphraseInput.getPassword();
+        if( retval != null && retval.length == 0 ) {
+            retval = null;
+        }
+        
+        return retval;
     }
 }

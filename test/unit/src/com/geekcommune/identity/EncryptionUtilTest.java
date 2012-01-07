@@ -114,7 +114,7 @@ public class EncryptionUtilTest extends TestCase {
         PGPPublicKeyRing pubKeyRing = (PGPPublicKeyRing) pubRing.getKeyRings().next();
 
         //make the GeekCommune version of the signing/identity classes
-        SecretIdentity secretIdent = new SecretIdentity(pubKeyRing, secRing, passwd);
+        SecretIdentity secretIdent = new SecretIdentity(pubKeyRing, secRing, "blah".toCharArray());
         PublicIdentity pubIdent = secretIdent.getPublicIdentity();
 
         //sign some data
@@ -252,6 +252,11 @@ public class EncryptionUtilTest extends TestCase {
                 // TODO Auto-generated method stub
                 return null;
             }
+
+            public void clearPassphrase() {
+                // TODO Auto-generated method stub
+                
+            }
             
         });
     }
@@ -275,6 +280,11 @@ public class EncryptionUtilTest extends TestCase {
 
                             public String getIdentity() {
                                 return recipient;
+                            }
+
+                            public void clearPassphrase() {
+                                // TODO Auto-generated method stub
+                                
                             }
             
                         });

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import org.bouncycastle.openpgp.PGPException;
+
 import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.logging.UserLog;
 
@@ -18,21 +20,28 @@ public class Service extends App {
         try {
             wire();
 
-            //Make sure system is ready to run
-            if( "MyNickName".equals(getBackupConfig().getMyName()) ) {
-                UserLog.instance().logError("Edit " + getBackupConfig().getRoot().getAbsolutePath() + "/BackupConfig.properties and set the values appropriately (myName cannot be MyNickName).\nSee http://bobbymartin.name/friendlybackup/properties.html");
-                System.exit(-1);
+            boolean passphraseCorrect = false;
+            while(!passphraseCorrect) {
+                //make sure we have the passphrase now, since the user is presumably at the computer
+                //Empty passphrase is interpreted as meaning "quit"
+                if( getBackupConfig().getKeyDataSource().getPassphrase() == null ) {
+                    UserLog.instance().logInfo("Exiting at user's request");
+                    System.exit(-1);
+                }
+                
+                //verify that the passphrase is correct
+                try {
+                    getBackupConfig().getAuthenticatedOwner().sign(new byte[] { 1, 2, 3, 4, 5 });
+                    passphraseCorrect = true;
+                } catch (FriendlyBackupException e) {
+                    UserLog.instance().logError("pwd error", e);
+                    if( e.getCause() instanceof PGPException ) {
+                        getBackupConfig().getKeyDataSource().clearPassphrase();
+                    } else {
+                        throw e;
+                    }
+                }
             }
-            
-            File secringFile = new File(getBackupConfig().getRoot(), "gnupg/secring.gpg");
-            if( !secringFile.isFile() ) {
-                UserLog.instance().logError("Install gpg or GNU Privacy Assistant, create a key suitable for encryption & signing, and copy pubring.gpg and secring.gpg to " +
-                        secringFile.getParentFile().getAbsolutePath() + ".\nSee http://bobbymartin.name/friendlybackup/keygen.html");
-                System.exit(-1);
-            }
-            
-            //make sure we have the passphrase now, since the user is presumably at the computer
-            getBackupConfig().getKeyDataSource().getPassphrase();
             
             restoreFile = new File(getBackupConfig().getRoot(), "restore.txt");
             
@@ -42,7 +51,11 @@ public class Service extends App {
             nextBackupTime = findNextBackupTime();
             UserLog.instance().logInfo("Next backup at " + nextBackupTime);
         } catch(IOException e) {
-            
+            UserLog.instance().logError("Could not start service", e);
+            System.exit(-1);
+        } catch (FriendlyBackupException e) {
+            UserLog.instance().logError(e.getMessage(), e);
+            System.exit(-1);
         }
     }
     
