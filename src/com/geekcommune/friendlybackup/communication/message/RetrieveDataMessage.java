@@ -53,7 +53,7 @@ public class RetrieveDataMessage extends RestoreMessage {
     }
 
     @Override
-    public void read(DataInputStream is) throws IOException {
+    public void read(DataInputStream is) throws IOException, FriendlyBackupException {
         super.read(is);
         id = HashIdentifier.fromProto(Basic.HashIdentifier.parseDelimitedFrom(is));
     }

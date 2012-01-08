@@ -100,13 +100,13 @@ public class DBDataStore extends DataStore {
     //TODO needs tests
     public void addLeases(HashIdentifier id, List<Lease> leases) throws SQLException {
         PreparedStatement insert = getConnection().
-                prepareStatement("insert into lease values (?, ?, ?, ?)");
-
+                prepareStatement("insert into lease values (?, ?, ?, ?, ?)");
         for(Lease lease : leases) {
             insert.setBytes(    1, id.getData());
             insert.setTimestamp(2, new Timestamp(lease.getExpiry().getTime()));
             insert.setLong(   3, lease.getOwner().getSigningKeyID());
             insert.setBoolean(  4, lease.isSoft());
+            insert.setBytes(5, lease.getSignature().toProto().toByteArray());
             insert.execute();
             log.info("Writing lease " + lease + " for " + id);
         }
@@ -136,7 +136,7 @@ public class DBDataStore extends DataStore {
         try {
             //retrieve content from db
             PreparedStatement select = getConnection().
-              prepareStatement("select chunk_key, owner, expiry, soft from lease where chunk_key = ?");
+              prepareStatement("select chunk_key, owner, expiry, soft, signature from lease where chunk_key = ?");
             select.setBytes(1, id.getData());
             select.execute();
 
@@ -147,7 +147,7 @@ public class DBDataStore extends DataStore {
                             rs.getDate("expiry"),
                             new PublicIdentityHandle(0, rs.getLong("owner")),
                             Signature.fromProto(Basic.Signature.parseFrom(rs.getBytes("signature"))),
-                            rs.getBoolean("soft"));
+                            rs.getBoolean("soft"), id);
                     retval.add(lease);
                     log.info("Found " + lease + " for " + id);
                 } catch (InvalidProtocolBufferException e) {
@@ -207,7 +207,7 @@ public class DBDataStore extends DataStore {
             // TODO should use artificial, generated, primary key?
             String[] dbInitStrings = {
                     "create table chunk(key BINARY(20),       data BLOB, PRIMARY KEY (key));",
-                    "create table lease(chunk_key BINARY(20), expiry TIMESTAMP, owner BIGINT, soft BOOLEAN, PRIMARY KEY (chunk_key, expiry, owner, soft));",
+                    "create table lease(chunk_key BINARY(20), expiry TIMESTAMP, owner BIGINT, soft BOOLEAN, signature BLOB, PRIMARY KEY (chunk_key, expiry, owner, soft));",
                     };
             for(String dbInitString : dbInitStrings) {
                 PreparedStatement stmt = conn.prepareStatement(dbInitString);

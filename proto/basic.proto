@@ -79,3 +79,12 @@ message BackupManifest {
   
   repeated HashIdentifier backupFileLabelIds = 3;
 }
+
+message Lease {
+  optional int32 version = 1 [default = 1];
+  required int64 expiration = 2;
+  required PublicIdentityHandle ownerHandle = 3;
+  required bool soft = 4;
+  required HashIdentifier leasedData = 5;
+  required Signature signature = 6;
+}

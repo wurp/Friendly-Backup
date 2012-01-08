@@ -63,10 +63,13 @@ public abstract class VerifyMaybeSendMessage extends BackupMessage {
     public abstract byte[] getData() throws FriendlyBackupException;
 
     @Override
-    public void read(DataInputStream is) throws IOException {
+    public void read(DataInputStream is) throws IOException, FriendlyBackupException {
         super.read(is);
 
         this.dataHashID = HashIdentifier.fromProto(Basic.HashIdentifier.parseDelimitedFrom(is));
+        
+        this.lease = Lease.fromProto(Basic.Lease.parseDelimitedFrom(is));
+        
         //the corresponding code is in VerifyMaybeSendDataMessage.read
     }
 
@@ -76,6 +79,8 @@ public abstract class VerifyMaybeSendMessage extends BackupMessage {
         super.write(os);
 
         getDataHashID().toProto().writeDelimitedTo(os);
+        
+        getLease().toProto().writeDelimitedTo(os);
         
         //the corresponding code is in VerifyMaybeSendDataMessage.read
         byte[] data = getData();

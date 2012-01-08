@@ -6162,6 +6162,951 @@ public final class Basic {
     // @@protoc_insertion_point(class_scope:geekcommune.friendlybackup.BackupManifest)
   }
   
+  public interface LeaseOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+    
+    // optional int32 version = 1 [default = 1];
+    boolean hasVersion();
+    int getVersion();
+    
+    // required int64 expiration = 2;
+    boolean hasExpiration();
+    long getExpiration();
+    
+    // required .geekcommune.friendlybackup.PublicIdentityHandle ownerHandle = 3;
+    boolean hasOwnerHandle();
+    com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle getOwnerHandle();
+    com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandleOrBuilder getOwnerHandleOrBuilder();
+    
+    // required bool soft = 4;
+    boolean hasSoft();
+    boolean getSoft();
+    
+    // required .geekcommune.friendlybackup.HashIdentifier leasedData = 5;
+    boolean hasLeasedData();
+    com.geekcommune.friendlybackup.proto.Basic.HashIdentifier getLeasedData();
+    com.geekcommune.friendlybackup.proto.Basic.HashIdentifierOrBuilder getLeasedDataOrBuilder();
+    
+    // required .geekcommune.friendlybackup.Signature signature = 6;
+    boolean hasSignature();
+    com.geekcommune.friendlybackup.proto.Basic.Signature getSignature();
+    com.geekcommune.friendlybackup.proto.Basic.SignatureOrBuilder getSignatureOrBuilder();
+  }
+  public static final class Lease extends
+      com.google.protobuf.GeneratedMessage
+      implements LeaseOrBuilder {
+    // Use Lease.newBuilder() to construct.
+    private Lease(Builder builder) {
+      super(builder);
+    }
+    private Lease(boolean noInit) {}
+    
+    private static final Lease defaultInstance;
+    public static Lease getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public Lease getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.geekcommune.friendlybackup.proto.Basic.internal_static_geekcommune_friendlybackup_Lease_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.geekcommune.friendlybackup.proto.Basic.internal_static_geekcommune_friendlybackup_Lease_fieldAccessorTable;
+    }
+    
+    private int bitField0_;
+    // optional int32 version = 1 [default = 1];
+    public static final int VERSION_FIELD_NUMBER = 1;
+    private int version_;
+    public boolean hasVersion() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    public int getVersion() {
+      return version_;
+    }
+    
+    // required int64 expiration = 2;
+    public static final int EXPIRATION_FIELD_NUMBER = 2;
+    private long expiration_;
+    public boolean hasExpiration() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    public long getExpiration() {
+      return expiration_;
+    }
+    
+    // required .geekcommune.friendlybackup.PublicIdentityHandle ownerHandle = 3;
+    public static final int OWNERHANDLE_FIELD_NUMBER = 3;
+    private com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle ownerHandle_;
+    public boolean hasOwnerHandle() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    public com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle getOwnerHandle() {
+      return ownerHandle_;
+    }
+    public com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandleOrBuilder getOwnerHandleOrBuilder() {
+      return ownerHandle_;
+    }
+    
+    // required bool soft = 4;
+    public static final int SOFT_FIELD_NUMBER = 4;
+    private boolean soft_;
+    public boolean hasSoft() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    public boolean getSoft() {
+      return soft_;
+    }
+    
+    // required .geekcommune.friendlybackup.HashIdentifier leasedData = 5;
+    public static final int LEASEDDATA_FIELD_NUMBER = 5;
+    private com.geekcommune.friendlybackup.proto.Basic.HashIdentifier leasedData_;
+    public boolean hasLeasedData() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    public com.geekcommune.friendlybackup.proto.Basic.HashIdentifier getLeasedData() {
+      return leasedData_;
+    }
+    public com.geekcommune.friendlybackup.proto.Basic.HashIdentifierOrBuilder getLeasedDataOrBuilder() {
+      return leasedData_;
+    }
+    
+    // required .geekcommune.friendlybackup.Signature signature = 6;
+    public static final int SIGNATURE_FIELD_NUMBER = 6;
+    private com.geekcommune.friendlybackup.proto.Basic.Signature signature_;
+    public boolean hasSignature() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    public com.geekcommune.friendlybackup.proto.Basic.Signature getSignature() {
+      return signature_;
+    }
+    public com.geekcommune.friendlybackup.proto.Basic.SignatureOrBuilder getSignatureOrBuilder() {
+      return signature_;
+    }
+    
+    private void initFields() {
+      version_ = 1;
+      expiration_ = 0L;
+      ownerHandle_ = com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.getDefaultInstance();
+      soft_ = false;
+      leasedData_ = com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.getDefaultInstance();
+      signature_ = com.geekcommune.friendlybackup.proto.Basic.Signature.getDefaultInstance();
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+      
+      if (!hasExpiration()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasOwnerHandle()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasSoft()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasLeasedData()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasSignature()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!getOwnerHandle().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!getLeasedData().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!getSignature().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt32(1, version_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, expiration_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeMessage(3, ownerHandle_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeBool(4, soft_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeMessage(5, leasedData_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeMessage(6, signature_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(1, version_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, expiration_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, ownerHandle_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(4, soft_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, leasedData_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, signature_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+    
+    public static com.geekcommune.friendlybackup.proto.Basic.Lease parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.geekcommune.friendlybackup.proto.Basic.Lease parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.geekcommune.friendlybackup.proto.Basic.Lease parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.geekcommune.friendlybackup.proto.Basic.Lease parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.geekcommune.friendlybackup.proto.Basic.Lease parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.geekcommune.friendlybackup.proto.Basic.Lease parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.geekcommune.friendlybackup.proto.Basic.Lease parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.geekcommune.friendlybackup.proto.Basic.Lease parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.geekcommune.friendlybackup.proto.Basic.Lease parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.geekcommune.friendlybackup.proto.Basic.Lease parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.geekcommune.friendlybackup.proto.Basic.Lease prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements com.geekcommune.friendlybackup.proto.Basic.LeaseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return com.geekcommune.friendlybackup.proto.Basic.internal_static_geekcommune_friendlybackup_Lease_descriptor;
+      }
+      
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return com.geekcommune.friendlybackup.proto.Basic.internal_static_geekcommune_friendlybackup_Lease_fieldAccessorTable;
+      }
+      
+      // Construct using com.geekcommune.friendlybackup.proto.Basic.Lease.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+      
+      private Builder(BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getOwnerHandleFieldBuilder();
+          getLeasedDataFieldBuilder();
+          getSignatureFieldBuilder();
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+      
+      public Builder clear() {
+        super.clear();
+        version_ = 1;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        expiration_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        if (ownerHandleBuilder_ == null) {
+          ownerHandle_ = com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.getDefaultInstance();
+        } else {
+          ownerHandleBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
+        soft_ = false;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        if (leasedDataBuilder_ == null) {
+          leasedData_ = com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.getDefaultInstance();
+        } else {
+          leasedDataBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000010);
+        if (signatureBuilder_ == null) {
+          signature_ = com.geekcommune.friendlybackup.proto.Basic.Signature.getDefaultInstance();
+        } else {
+          signatureBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000020);
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.geekcommune.friendlybackup.proto.Basic.Lease.getDescriptor();
+      }
+      
+      public com.geekcommune.friendlybackup.proto.Basic.Lease getDefaultInstanceForType() {
+        return com.geekcommune.friendlybackup.proto.Basic.Lease.getDefaultInstance();
+      }
+      
+      public com.geekcommune.friendlybackup.proto.Basic.Lease build() {
+        com.geekcommune.friendlybackup.proto.Basic.Lease result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+      
+      private com.geekcommune.friendlybackup.proto.Basic.Lease buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        com.geekcommune.friendlybackup.proto.Basic.Lease result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return result;
+      }
+      
+      public com.geekcommune.friendlybackup.proto.Basic.Lease buildPartial() {
+        com.geekcommune.friendlybackup.proto.Basic.Lease result = new com.geekcommune.friendlybackup.proto.Basic.Lease(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.version_ = version_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.expiration_ = expiration_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        if (ownerHandleBuilder_ == null) {
+          result.ownerHandle_ = ownerHandle_;
+        } else {
+          result.ownerHandle_ = ownerHandleBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.soft_ = soft_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        if (leasedDataBuilder_ == null) {
+          result.leasedData_ = leasedData_;
+        } else {
+          result.leasedData_ = leasedDataBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        if (signatureBuilder_ == null) {
+          result.signature_ = signature_;
+        } else {
+          result.signature_ = signatureBuilder_.build();
+        }
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.geekcommune.friendlybackup.proto.Basic.Lease) {
+          return mergeFrom((com.geekcommune.friendlybackup.proto.Basic.Lease)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.geekcommune.friendlybackup.proto.Basic.Lease other) {
+        if (other == com.geekcommune.friendlybackup.proto.Basic.Lease.getDefaultInstance()) return this;
+        if (other.hasVersion()) {
+          setVersion(other.getVersion());
+        }
+        if (other.hasExpiration()) {
+          setExpiration(other.getExpiration());
+        }
+        if (other.hasOwnerHandle()) {
+          mergeOwnerHandle(other.getOwnerHandle());
+        }
+        if (other.hasSoft()) {
+          setSoft(other.getSoft());
+        }
+        if (other.hasLeasedData()) {
+          mergeLeasedData(other.getLeasedData());
+        }
+        if (other.hasSignature()) {
+          mergeSignature(other.getSignature());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public final boolean isInitialized() {
+        if (!hasExpiration()) {
+          
+          return false;
+        }
+        if (!hasOwnerHandle()) {
+          
+          return false;
+        }
+        if (!hasSoft()) {
+          
+          return false;
+        }
+        if (!hasLeasedData()) {
+          
+          return false;
+        }
+        if (!hasSignature()) {
+          
+          return false;
+        }
+        if (!getOwnerHandle().isInitialized()) {
+          
+          return false;
+        }
+        if (!getLeasedData().isInitialized()) {
+          
+          return false;
+        }
+        if (!getSignature().isInitialized()) {
+          
+          return false;
+        }
+        return true;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              onChanged();
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                onChanged();
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              version_ = input.readInt32();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              expiration_ = input.readInt64();
+              break;
+            }
+            case 26: {
+              com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.Builder subBuilder = com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.newBuilder();
+              if (hasOwnerHandle()) {
+                subBuilder.mergeFrom(getOwnerHandle());
+              }
+              input.readMessage(subBuilder, extensionRegistry);
+              setOwnerHandle(subBuilder.buildPartial());
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              soft_ = input.readBool();
+              break;
+            }
+            case 42: {
+              com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.Builder subBuilder = com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.newBuilder();
+              if (hasLeasedData()) {
+                subBuilder.mergeFrom(getLeasedData());
+              }
+              input.readMessage(subBuilder, extensionRegistry);
+              setLeasedData(subBuilder.buildPartial());
+              break;
+            }
+            case 50: {
+              com.geekcommune.friendlybackup.proto.Basic.Signature.Builder subBuilder = com.geekcommune.friendlybackup.proto.Basic.Signature.newBuilder();
+              if (hasSignature()) {
+                subBuilder.mergeFrom(getSignature());
+              }
+              input.readMessage(subBuilder, extensionRegistry);
+              setSignature(subBuilder.buildPartial());
+              break;
+            }
+          }
+        }
+      }
+      
+      private int bitField0_;
+      
+      // optional int32 version = 1 [default = 1];
+      private int version_ = 1;
+      public boolean hasVersion() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      public int getVersion() {
+        return version_;
+      }
+      public Builder setVersion(int value) {
+        bitField0_ |= 0x00000001;
+        version_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearVersion() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        version_ = 1;
+        onChanged();
+        return this;
+      }
+      
+      // required int64 expiration = 2;
+      private long expiration_ ;
+      public boolean hasExpiration() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      public long getExpiration() {
+        return expiration_;
+      }
+      public Builder setExpiration(long value) {
+        bitField0_ |= 0x00000002;
+        expiration_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearExpiration() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        expiration_ = 0L;
+        onChanged();
+        return this;
+      }
+      
+      // required .geekcommune.friendlybackup.PublicIdentityHandle ownerHandle = 3;
+      private com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle ownerHandle_ = com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle, com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.Builder, com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandleOrBuilder> ownerHandleBuilder_;
+      public boolean hasOwnerHandle() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle getOwnerHandle() {
+        if (ownerHandleBuilder_ == null) {
+          return ownerHandle_;
+        } else {
+          return ownerHandleBuilder_.getMessage();
+        }
+      }
+      public Builder setOwnerHandle(com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle value) {
+        if (ownerHandleBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ownerHandle_ = value;
+          onChanged();
+        } else {
+          ownerHandleBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      public Builder setOwnerHandle(
+          com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.Builder builderForValue) {
+        if (ownerHandleBuilder_ == null) {
+          ownerHandle_ = builderForValue.build();
+          onChanged();
+        } else {
+          ownerHandleBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      public Builder mergeOwnerHandle(com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle value) {
+        if (ownerHandleBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) == 0x00000004) &&
+              ownerHandle_ != com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.getDefaultInstance()) {
+            ownerHandle_ =
+              com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.newBuilder(ownerHandle_).mergeFrom(value).buildPartial();
+          } else {
+            ownerHandle_ = value;
+          }
+          onChanged();
+        } else {
+          ownerHandleBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      public Builder clearOwnerHandle() {
+        if (ownerHandleBuilder_ == null) {
+          ownerHandle_ = com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.getDefaultInstance();
+          onChanged();
+        } else {
+          ownerHandleBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.Builder getOwnerHandleBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return getOwnerHandleFieldBuilder().getBuilder();
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandleOrBuilder getOwnerHandleOrBuilder() {
+        if (ownerHandleBuilder_ != null) {
+          return ownerHandleBuilder_.getMessageOrBuilder();
+        } else {
+          return ownerHandle_;
+        }
+      }
+      private com.google.protobuf.SingleFieldBuilder<
+          com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle, com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.Builder, com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandleOrBuilder> 
+          getOwnerHandleFieldBuilder() {
+        if (ownerHandleBuilder_ == null) {
+          ownerHandleBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle, com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandle.Builder, com.geekcommune.friendlybackup.proto.Basic.PublicIdentityHandleOrBuilder>(
+                  ownerHandle_,
+                  getParentForChildren(),
+                  isClean());
+          ownerHandle_ = null;
+        }
+        return ownerHandleBuilder_;
+      }
+      
+      // required bool soft = 4;
+      private boolean soft_ ;
+      public boolean hasSoft() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      public boolean getSoft() {
+        return soft_;
+      }
+      public Builder setSoft(boolean value) {
+        bitField0_ |= 0x00000008;
+        soft_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearSoft() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        soft_ = false;
+        onChanged();
+        return this;
+      }
+      
+      // required .geekcommune.friendlybackup.HashIdentifier leasedData = 5;
+      private com.geekcommune.friendlybackup.proto.Basic.HashIdentifier leasedData_ = com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          com.geekcommune.friendlybackup.proto.Basic.HashIdentifier, com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.Builder, com.geekcommune.friendlybackup.proto.Basic.HashIdentifierOrBuilder> leasedDataBuilder_;
+      public boolean hasLeasedData() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.HashIdentifier getLeasedData() {
+        if (leasedDataBuilder_ == null) {
+          return leasedData_;
+        } else {
+          return leasedDataBuilder_.getMessage();
+        }
+      }
+      public Builder setLeasedData(com.geekcommune.friendlybackup.proto.Basic.HashIdentifier value) {
+        if (leasedDataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          leasedData_ = value;
+          onChanged();
+        } else {
+          leasedDataBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      public Builder setLeasedData(
+          com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.Builder builderForValue) {
+        if (leasedDataBuilder_ == null) {
+          leasedData_ = builderForValue.build();
+          onChanged();
+        } else {
+          leasedDataBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      public Builder mergeLeasedData(com.geekcommune.friendlybackup.proto.Basic.HashIdentifier value) {
+        if (leasedDataBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) == 0x00000010) &&
+              leasedData_ != com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.getDefaultInstance()) {
+            leasedData_ =
+              com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.newBuilder(leasedData_).mergeFrom(value).buildPartial();
+          } else {
+            leasedData_ = value;
+          }
+          onChanged();
+        } else {
+          leasedDataBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      public Builder clearLeasedData() {
+        if (leasedDataBuilder_ == null) {
+          leasedData_ = com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.getDefaultInstance();
+          onChanged();
+        } else {
+          leasedDataBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000010);
+        return this;
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.Builder getLeasedDataBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return getLeasedDataFieldBuilder().getBuilder();
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.HashIdentifierOrBuilder getLeasedDataOrBuilder() {
+        if (leasedDataBuilder_ != null) {
+          return leasedDataBuilder_.getMessageOrBuilder();
+        } else {
+          return leasedData_;
+        }
+      }
+      private com.google.protobuf.SingleFieldBuilder<
+          com.geekcommune.friendlybackup.proto.Basic.HashIdentifier, com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.Builder, com.geekcommune.friendlybackup.proto.Basic.HashIdentifierOrBuilder> 
+          getLeasedDataFieldBuilder() {
+        if (leasedDataBuilder_ == null) {
+          leasedDataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              com.geekcommune.friendlybackup.proto.Basic.HashIdentifier, com.geekcommune.friendlybackup.proto.Basic.HashIdentifier.Builder, com.geekcommune.friendlybackup.proto.Basic.HashIdentifierOrBuilder>(
+                  leasedData_,
+                  getParentForChildren(),
+                  isClean());
+          leasedData_ = null;
+        }
+        return leasedDataBuilder_;
+      }
+      
+      // required .geekcommune.friendlybackup.Signature signature = 6;
+      private com.geekcommune.friendlybackup.proto.Basic.Signature signature_ = com.geekcommune.friendlybackup.proto.Basic.Signature.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          com.geekcommune.friendlybackup.proto.Basic.Signature, com.geekcommune.friendlybackup.proto.Basic.Signature.Builder, com.geekcommune.friendlybackup.proto.Basic.SignatureOrBuilder> signatureBuilder_;
+      public boolean hasSignature() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.Signature getSignature() {
+        if (signatureBuilder_ == null) {
+          return signature_;
+        } else {
+          return signatureBuilder_.getMessage();
+        }
+      }
+      public Builder setSignature(com.geekcommune.friendlybackup.proto.Basic.Signature value) {
+        if (signatureBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          signature_ = value;
+          onChanged();
+        } else {
+          signatureBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      public Builder setSignature(
+          com.geekcommune.friendlybackup.proto.Basic.Signature.Builder builderForValue) {
+        if (signatureBuilder_ == null) {
+          signature_ = builderForValue.build();
+          onChanged();
+        } else {
+          signatureBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      public Builder mergeSignature(com.geekcommune.friendlybackup.proto.Basic.Signature value) {
+        if (signatureBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) == 0x00000020) &&
+              signature_ != com.geekcommune.friendlybackup.proto.Basic.Signature.getDefaultInstance()) {
+            signature_ =
+              com.geekcommune.friendlybackup.proto.Basic.Signature.newBuilder(signature_).mergeFrom(value).buildPartial();
+          } else {
+            signature_ = value;
+          }
+          onChanged();
+        } else {
+          signatureBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      public Builder clearSignature() {
+        if (signatureBuilder_ == null) {
+          signature_ = com.geekcommune.friendlybackup.proto.Basic.Signature.getDefaultInstance();
+          onChanged();
+        } else {
+          signatureBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000020);
+        return this;
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.Signature.Builder getSignatureBuilder() {
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return getSignatureFieldBuilder().getBuilder();
+      }
+      public com.geekcommune.friendlybackup.proto.Basic.SignatureOrBuilder getSignatureOrBuilder() {
+        if (signatureBuilder_ != null) {
+          return signatureBuilder_.getMessageOrBuilder();
+        } else {
+          return signature_;
+        }
+      }
+      private com.google.protobuf.SingleFieldBuilder<
+          com.geekcommune.friendlybackup.proto.Basic.Signature, com.geekcommune.friendlybackup.proto.Basic.Signature.Builder, com.geekcommune.friendlybackup.proto.Basic.SignatureOrBuilder> 
+          getSignatureFieldBuilder() {
+        if (signatureBuilder_ == null) {
+          signatureBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              com.geekcommune.friendlybackup.proto.Basic.Signature, com.geekcommune.friendlybackup.proto.Basic.Signature.Builder, com.geekcommune.friendlybackup.proto.Basic.SignatureOrBuilder>(
+                  signature_,
+                  getParentForChildren(),
+                  isClean());
+          signature_ = null;
+        }
+        return signatureBuilder_;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:geekcommune.friendlybackup.Lease)
+    }
+    
+    static {
+      defaultInstance = new Lease(true);
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:geekcommune.friendlybackup.Lease)
+  }
+  
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_geekcommune_friendlybackup_HashIdentifier_descriptor;
   private static
@@ -6212,6 +7157,11 @@ public final class Basic {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_geekcommune_friendlybackup_BackupManifest_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_geekcommune_friendlybackup_Lease_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_geekcommune_friendlybackup_Lease_fieldAccessorTable;
   
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -6254,8 +7204,15 @@ public final class Basic {
       "cIdentityHandle\"\213\001\n\016BackupManifest\022\022\n\007ve" +
       "rsion\030\001 \001(\005:\0011\022\035\n\025backupTimestampMillis\030" +
       "\002 \002(\003\022F\n\022backupFileLabelIds\030\003 \003(\0132*.geek" +
-      "commune.friendlybackup.HashIdentifierB&\n" +
-      "$com.geekcommune.friendlybackup.proto"
+      "commune.friendlybackup.HashIdentifier\"\376\001" +
+      "\n\005Lease\022\022\n\007version\030\001 \001(\005:\0011\022\022\n\nexpiratio" +
+      "n\030\002 \002(\003\022E\n\013ownerHandle\030\003 \002(\01320.geekcommu" +
+      "ne.friendlybackup.PublicIdentityHandle\022\014" +
+      "\n\004soft\030\004 \002(\010\022>\n\nleasedData\030\005 \002(\0132*.geekc" +
+      "ommune.friendlybackup.HashIdentifier\0228\n\t" +
+      "signature\030\006 \002(\0132%.geekcommune.friendlyba",
+      "ckup.SignatureB&\n$com.geekcommune.friend" +
+      "lybackup.proto"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -6342,6 +7299,14 @@ public final class Basic {
               new java.lang.String[] { "Version", "BackupTimestampMillis", "BackupFileLabelIds", },
               com.geekcommune.friendlybackup.proto.Basic.BackupManifest.class,
               com.geekcommune.friendlybackup.proto.Basic.BackupManifest.Builder.class);
+          internal_static_geekcommune_friendlybackup_Lease_descriptor =
+            getDescriptor().getMessageTypes().get(8);
+          internal_static_geekcommune_friendlybackup_Lease_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_geekcommune_friendlybackup_Lease_descriptor,
+              new java.lang.String[] { "Version", "Expiration", "OwnerHandle", "Soft", "LeasedData", "Signature", },
+              com.geekcommune.friendlybackup.proto.Basic.Lease.class,
+              com.geekcommune.friendlybackup.proto.Basic.Lease.Builder.class);
           return null;
         }
       };

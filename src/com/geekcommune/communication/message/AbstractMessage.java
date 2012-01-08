@@ -84,7 +84,7 @@ public abstract class AbstractMessage implements Message {
         return originNodePort;
     }
 
-    public void read(DataInputStream is) throws IOException {
+    public void read(DataInputStream is) throws IOException, FriendlyBackupException {
         transactionId = is.readInt();
         originNodePort = is.readInt();
     }
@@ -129,7 +129,7 @@ public abstract class AbstractMessage implements Message {
         }
     }
 
-    public static Message parseMessage(DataInputStream inputStream) throws IOException {
+    public static Message parseMessage(DataInputStream inputStream) throws IOException, FriendlyBackupException {
         int msgType = inputStream.readInt();
         MessageFactory factory = messageFactories.get(msgType);
         Message msg = factory.makeMessage();

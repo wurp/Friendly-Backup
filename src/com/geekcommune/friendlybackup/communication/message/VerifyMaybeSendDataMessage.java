@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.datastore.Lease;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
@@ -34,7 +35,7 @@ public class VerifyMaybeSendDataMessage extends VerifyMaybeSendMessage {
 
     //the write method is fully in the superclass
     @Override
-    public void read(DataInputStream is) throws IOException {
+    public void read(DataInputStream is) throws IOException, FriendlyBackupException {
         super.read(is);
         int len = is.readInt();
         

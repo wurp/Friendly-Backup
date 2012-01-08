@@ -2,7 +2,13 @@ package com.geekcommune.friendlybackup.datastore;
 
 import java.util.Date;
 
+import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
+
 import com.geekcommune.friendlybackup.FriendlyBackupException;
+import com.geekcommune.friendlybackup.format.BaseData;
+import com.geekcommune.friendlybackup.format.low.HashIdentifier;
+import com.geekcommune.friendlybackup.proto.Basic;
+import com.geekcommune.identity.PublicIdentity;
 import com.geekcommune.identity.PublicIdentityHandle;
 import com.geekcommune.identity.SecretIdentity;
 import com.geekcommune.identity.Signature;
@@ -17,12 +23,13 @@ import com.geekcommune.identity.Signature;
  * @author bobbym
  *
  */
-public class Lease {
+public class Lease extends BaseData<Basic.Lease>{
 
     private Date expiration;
     private PublicIdentityHandle owner;
     private boolean soft;
     private Signature signature;
+    private HashIdentifier leasedData;
 
     /**
      * Use when you are rebuilding an already signed lease.
@@ -41,11 +48,12 @@ public class Lease {
      * @param isSoft
      */
     public Lease(Date expiration, PublicIdentityHandle owner,
-            Signature signature, boolean isSoft) {
+            Signature signature, boolean isSoft, HashIdentifier leasedData) {
         this.expiration = expiration;
         this.owner = owner;
         this.signature = signature;
         this.soft = isSoft;
+        this.leasedData = leasedData;
     }
 
     /**
@@ -66,23 +74,41 @@ public class Lease {
     public Lease(
             Date expiration,
             SecretIdentity authenticatedUser,
-            boolean isSoft)
+            boolean isSoft,
+            HashIdentifier leasedData)
                     throws FriendlyBackupException {
         this.expiration = expiration;
         this.owner = authenticatedUser.getPublicIdentity().getHandle();
         this.soft = isSoft;
+        this.leasedData = leasedData;
         sign(authenticatedUser);
+    }
+
+    public Lease(Date date, PublicIdentityHandle owner,
+            Signature signature, HashIdentifier leasedData) {
+        this(date, owner, signature, false, leasedData);
     }
 
     private void sign(SecretIdentity authenticatedUser) throws FriendlyBackupException {
         //can't sign the signature; make sure it has a known value
         this.signature = Signature.INTERNAL_SELF_SIGNED;
-        this.signature = authenticatedUser.sign(toString().getBytes());
+        this.signature = authenticatedUser.sign(toProto().toByteArray());
     }
 
-    public Lease(Date date, PublicIdentityHandle owner,
-            Signature signature) {
-        this(date, owner, signature, false);
+    public boolean verifySignature(PGPPublicKeyRingCollection keyRings)
+            throws FriendlyBackupException {
+        PublicIdentity pubIdent = new PublicIdentity(keyRings, this.owner);
+        Signature origSig = this.signature;
+
+        boolean retval;
+        try {
+            this.signature = Signature.INTERNAL_SELF_SIGNED;
+            retval = origSig.verify(pubIdent, toProto().toByteArray());
+        } finally {
+            this.signature = origSig;
+        }
+        
+        return retval;
     }
 
     public Date getExpiry() {
@@ -96,14 +122,48 @@ public class Lease {
     public boolean isSoft() {
         return soft;
     }
+
+    public HashIdentifier getLeasedData() {
+        return this.leasedData;
+    }
+
+    public Signature getSignature() {
+        return this.signature;
+    }
     
     public String toString() {
         StringBuilder sb = new StringBuilder("Lease(");
         sb.append(this.expiration).append(",");
         sb.append(this.owner).append(",");
         sb.append(this.soft).append(",");
+        sb.append(this.leasedData).append(",");
         sb.append(this.signature);
         
         return sb.toString();
+    }
+
+    public com.geekcommune.friendlybackup.proto.Basic.Lease toProto() {
+        Basic.Lease.Builder bldrId = Basic.Lease.newBuilder();
+        
+        bldrId.setVersion(1);
+        bldrId.setExpiration(getExpiry().getTime());
+        bldrId.setOwnerHandle(getOwner().toProto());
+        bldrId.setSignature(getSignature().toProto());
+        bldrId.setSoft(isSoft());
+        bldrId.setLeasedData(getLeasedData().toProto());
+        
+        return bldrId.build();
+    }
+
+    public static Lease fromProto(Basic.Lease proto) throws FriendlyBackupException {
+        versionCheck(1, proto.getVersion(), proto);
+        
+        Date expiry = new Date(proto.getExpiration());
+        PublicIdentityHandle ownerHandle = PublicIdentityHandle.fromProto(proto.getOwnerHandle());
+        Signature sig = Signature.fromProto(proto.getSignature());
+        boolean soft = proto.getSoft();
+        HashIdentifier leasedData = HashIdentifier.fromProto(proto.getLeasedData());
+        
+        return new Lease(expiry, ownerHandle, sig, soft, leasedData);
     }
 }

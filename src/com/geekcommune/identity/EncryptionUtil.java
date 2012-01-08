@@ -180,7 +180,7 @@ public class EncryptionUtil {
                         kp.getPrivate(),
                         new Date(),
                         identity,
-                        PGPEncryptedData.CAST5,
+                        PGPEncryptedData.AES_256,
                         passPhrase,
                         null,
                         null,
@@ -282,8 +282,8 @@ public class EncryptionUtil {
             }
 
             PGPEncryptedDataGenerator cPk = oldFormat?
-               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, secRand, oldFormat, "BC"):
-               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, withIntegrityCheck, secRand, "BC");
+               new PGPEncryptedDataGenerator(PGPEncryptedData.AES_256, secRand, oldFormat, "BC"):
+               new PGPEncryptedDataGenerator(PGPEncryptedData.AES_256, withIntegrityCheck, secRand, "BC");
 
             cPk.addMethod(encKey);
 
@@ -373,8 +373,8 @@ public class EncryptionUtil {
 
             // Now encrypt the result
             PGPEncryptedDataGenerator cPk = oldFormat?
-               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, secRand, oldFormat, "BC"):
-               new PGPEncryptedDataGenerator(PGPEncryptedData.CAST5, withIntegrityCheck, secRand, "BC");
+               new PGPEncryptedDataGenerator(PGPEncryptedData.AES_256, secRand, oldFormat, "BC"):
+               new PGPEncryptedDataGenerator(PGPEncryptedData.AES_256, withIntegrityCheck, secRand, "BC");
 
             cPk.addMethod(encKey);
 

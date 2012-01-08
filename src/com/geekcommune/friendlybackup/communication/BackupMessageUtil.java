@@ -362,7 +362,7 @@ public class BackupMessageUtil extends MessageUtil {
                 
                 public void run() {
                     try {
-                        DataStore.instance().storeData(id, data, new Lease(DateUtil.oneHourHence(), bakcfg.getOwner().getHandle(), Signature.INTERNAL_SELF_SIGNED));
+                        DataStore.instance().storeData(id, data, new Lease(DateUtil.oneHourHence(), bakcfg.getOwner().getHandle(), Signature.INTERNAL_SELF_SIGNED, id));
                         continuation.run();
                     } catch (SQLException e) {
                         log.error(e.getMessage(), e);
@@ -492,7 +492,8 @@ public class BackupMessageUtil extends MessageUtil {
                         socket.getOutputStream().flush();
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("Error talking to " + socket + ", " + e.getMessage(), e);
+                } catch (FriendlyBackupException e) {
                     log.error("Error talking to " + socket + ", " + e.getMessage(), e);
                 } finally {
                     try {
@@ -514,12 +515,14 @@ public class BackupMessageUtil extends MessageUtil {
                     processMessage(msg, address);
                 } catch (SQLException e) {
                     log.error("Error talking processing " + msg + ": " + e.getMessage(), e);
+                } catch (FriendlyBackupException e) {
+                    log.error("Error talking processing " + msg + ": " + e.getMessage(), e);
                 }
             }
         };
     }
 
-    public void processMessage(Message msg, InetAddress inetAddress) throws SQLException {
+    public void processMessage(Message msg, InetAddress inetAddress) throws SQLException, FriendlyBackupException {
         log.debug("processing " + msg.getTransactionID());
         //TODO reject message if we've already processed its transaction id
         msg.setState(Message.State.Processing);
@@ -553,7 +556,7 @@ public class BackupMessageUtil extends MessageUtil {
                             bakcfg.getLocalPort(),
                             hashIDOfDataToRetrieve,
                             DataStore.instance().getData(hashIDOfDataToRetrieve),
-                            null));
+                            DataStore.instance().getLeases(hashIDOfDataToRetrieve).get(0)));
 
             msg.setState(Message.State.Finished);
         } else {

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 
 public abstract class DataStore {
@@ -41,6 +42,8 @@ public abstract class DataStore {
         return retval;
     }
 
+    public abstract List<Lease> getLeases(HashIdentifier id) throws FriendlyBackupException;
+    
     public static void setInstance(DataStore dataStore) {
         instance = dataStore;
     }

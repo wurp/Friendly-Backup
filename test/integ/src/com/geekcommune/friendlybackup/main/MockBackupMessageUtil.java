@@ -57,7 +57,8 @@ public class MockBackupMessageUtil extends BackupMessageUtil {
                             new Lease(
                                     DateUtil.oneHourHence(),
                                     getBackupConfig().getOwner().getHandle(),
-                                    Signature.INTERNAL_SELF_SIGNED));
+                                    Signature.INTERNAL_SELF_SIGNED,
+                                    vmsm.getDataHashID()));
                     endState = Message.State.Finished;
                 } catch (SQLException e) {
                     log.error(e.getMessage(), e);

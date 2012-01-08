@@ -114,7 +114,7 @@ public class EncryptionUtilTest extends TestCase {
         PGPPublicKeyRing pubKeyRing = (PGPPublicKeyRing) pubRing.getKeyRings().next();
 
         //make the GeekCommune version of the signing/identity classes
-        SecretIdentity secretIdent = new SecretIdentity(pubKeyRing, secRing, "blah".toCharArray());
+        SecretIdentity secretIdent = new SecretIdentity(pubKeyRing, secRing, "password".toCharArray());
         PublicIdentity pubIdent = secretIdent.getPublicIdentity();
 
         //sign some data

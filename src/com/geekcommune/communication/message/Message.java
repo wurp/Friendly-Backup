@@ -22,8 +22,9 @@ public interface Message {
      * read the message from the wire
      * @return
      * @throws IOException 
+     * @throws FriendlyBackupException 
      */
-    public void read(DataInputStream is) throws IOException;
+    public void read(DataInputStream is) throws IOException, FriendlyBackupException;
 
     public int getTransactionID();
     

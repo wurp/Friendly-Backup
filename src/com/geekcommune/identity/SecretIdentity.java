@@ -163,7 +163,8 @@ public class SecretIdentity {
         return new Lease(
                 expiryDate,
                 this,
-                false);
+                false,
+                id);
     }
 
     public void validatePassphrase(char[] passphrase2) throws FriendlyBackupException {
