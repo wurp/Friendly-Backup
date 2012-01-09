@@ -225,8 +225,8 @@ public class BackupConfig {
             KeyDataSource keyDataSource = new SwingUIKeyDataSource();
             try {
                 keyRings = EncryptionUtil.instance().getOrCreateKeyring(
-                        new File(getRoot(), "gnupg/pubring.gpg"),
-                        new File(getRoot(), "gnupg/secring.gpg"),
+                        getPublicKeyringFile(),
+                        getSecretKeyringFile(),
                         keyDataSource);
             } catch (FileNotFoundException e) {
                 throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
@@ -242,6 +242,14 @@ public class BackupConfig {
                 throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
             }
         }
+    }
+
+    public File getPublicKeyringFile() {
+        return new File(getRoot(), "gnupg/pubring.gpg");
+    }
+
+    public File getSecretKeyringFile() {
+        return new File(getRoot(), "gnupg/secring.gpg");
     }
 
     public File getRestoreRootDirectory() {

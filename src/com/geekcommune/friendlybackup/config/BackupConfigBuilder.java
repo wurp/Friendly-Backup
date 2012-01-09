@@ -70,14 +70,6 @@ public class BackupConfigBuilder {
             throw new FriendlyBackupException("Edit " + retval.getRoot().getAbsolutePath() + "/BackupConfig.properties and set the values appropriately (myName cannot be MyNickName).\nSee http://bobbymartin.name/friendlybackup/properties.html");
         }
         
-        //Tell the user if they don't have their keys set up
-        File secringFile = new File(retval.getRoot(), "gnupg/secring.gpg");
-        if( !secringFile.isFile() ) {
-            UserLog.instance().logError("Install gpg or GNU Privacy Assistant, create a key suitable for encryption & signing, and copy pubring.gpg and secring.gpg to " +
-                    secringFile.getParentFile().getAbsolutePath() + ".\nSee http://bobbymartin.name/friendlybackup/keygen.html");
-            System.exit(-1);
-        }
-        
         {
             String backupTime = myProps.getProperty(BACKUP_TIME_KEY);
             String[] timeBits = backupTime.split(":");

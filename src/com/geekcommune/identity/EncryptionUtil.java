@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -1660,5 +1661,41 @@ public class EncryptionUtil {
         }
         
         return retval;
+    }
+
+    public void generateKey(
+            String name,
+            String email,
+            char[] passphrase,
+            File publicKeyringFile,
+            File secretKeyringFile) throws IOException, InterruptedException {
+        String gpgInput =
+                "# input file to generate GnuPG keys automatically\n" +
+                "#######################################\n" + 
+                "# parameters for the key \n" +
+                "Key-Type: DSA\n" +
+                "Key-Length: 1024\n" +
+                "Subkey-Type: ELG-E\n" +
+                "Subkey-Length: 2048\n" +
+                "Name-Real: " + name + "\n" +
+                "Name-Email: " + email + "\n" +
+                "Passphrase: " + new String(passphrase) + "\n" +
+                "Name-Comment: friendly backup key\n" + 
+                "Expire-Date: 0\n" +
+                "######################################\n" + 
+                "# the keyring files \n" +
+                "%pubring " + publicKeyringFile.getCanonicalPath() + "\n" +
+                "%secring " + secretKeyringFile.getCanonicalPath() + "\n" +
+                "# perform key generation\n" + 
+                "%commit\n";
+        
+        String gpgCommand = "gpg --homedir tmp --no-options --batch --gen-key -";
+        
+        Process proc = Runtime.getRuntime().exec(gpgCommand);
+        PrintStream out = new PrintStream(proc.getOutputStream());
+        out.print(gpgInput);
+        out.close();
+        
+        proc.waitFor();
     }
 }
