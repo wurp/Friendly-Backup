@@ -11,7 +11,6 @@ import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasureMessage;
 import com.geekcommune.friendlybackup.config.BackupConfig;
-import com.geekcommune.friendlybackup.config.BackupConfigBuilder;
 import com.geekcommune.friendlybackup.config.SwingUIKeyDataSource;
 import com.geekcommune.friendlybackup.datastore.DBDataStore;
 import com.geekcommune.friendlybackup.datastore.DataStore;
@@ -47,9 +46,7 @@ public class App {
 
             //BackupConfig
             File cfgFile = new File(configFilePath);
-            BackupConfigBuilder bldr = new BackupConfigBuilder();
-            bldr.parseConfigFile(cfgFile);
-            bakcfg = bldr.makeBackupConfig();
+            bakcfg = new BackupConfig(cfgFile);
             bakcfg.setKeyDataSource(new SwingUIKeyDataSource());
 
             //DataStore

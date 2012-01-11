@@ -9,6 +9,7 @@ import org.bouncycastle.openpgp.PGPException;
 
 import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.config.SwingCreateAccountDialog;
+import com.geekcommune.friendlybackup.config.SwingUIKeyDataSource;
 import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.identity.EncryptionUtil;
 
@@ -34,6 +35,9 @@ public class Service extends App {
                 String name = createAccountDialog.getName();
                 String email = createAccountDialog.getEmail();
                 char[] passphrase = createAccountDialog.getPassphrase();
+                
+                getBackupConfig().setMyName(name);
+                ((SwingUIKeyDataSource)getBackupConfig().getKeyDataSource()).setPassphrase(passphrase);
                 
                 EncryptionUtil.instance().generateKey(
                         name,

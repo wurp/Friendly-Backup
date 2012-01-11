@@ -33,8 +33,8 @@ public class RemoteNodeHandle extends BaseData<Basic.RemoteNodeHandle> {
         return bldr.build();
     }
 
-    private String getConnectString() {
-        return "" + address.getHostAddress() + CONNECT_STRING_SEP + port;
+    public String getConnectString() {
+        return "" + address.getHostName() + CONNECT_STRING_SEP + port;
     }
 
     @Override
@@ -77,5 +77,9 @@ public class RemoteNodeHandle extends BaseData<Basic.RemoteNodeHandle> {
 
     public String getName() {
         return name;
+    }
+
+    public String getEmail() {
+        return email;
     }
 }
