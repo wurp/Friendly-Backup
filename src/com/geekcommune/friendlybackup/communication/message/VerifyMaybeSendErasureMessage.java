@@ -1,5 +1,8 @@
 package com.geekcommune.friendlybackup.communication.message;
 
+import java.io.DataInputStream;
+import java.io.IOException;
+
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.datastore.Lease;
@@ -37,12 +40,18 @@ public class VerifyMaybeSendErasureMessage extends VerifyMaybeSendMessage {
                     ", but it had id " +
                     erasure.getHashID());
         }
-        
+
         return erasure.toProto().toByteArray();
     }
 
     @Override
-    protected int getIntType() {
+	public final int getType() {
         return INT_TYPE;
     }
+
+	@Override
+	protected final void internalSendDataRead(DataInputStream is) throws IOException,
+			FriendlyBackupException {
+		throw new FriendlyBackupException("Reading " + getClass() + " is not supported");
+	}
 }

@@ -53,15 +53,17 @@ public class RetrieveDataMessage extends RestoreMessage {
     }
 
     @Override
-    public void read(DataInputStream is) throws IOException, FriendlyBackupException {
-        super.read(is);
+    protected final void internalRead(DataInputStream is) throws IOException, FriendlyBackupException {
         id = HashIdentifier.fromProto(Basic.HashIdentifier.parseDelimitedFrom(is));
     }
 
     @Override
-    public void write(DataOutputStream os) throws IOException, FriendlyBackupException {
-        os.writeInt(INT_TYPE);
-        super.write(os);
+    protected final void internalWrite(DataOutputStream os) throws IOException, FriendlyBackupException {
         id.toProto().writeDelimitedTo(os);
     }
+
+	@Override
+	public final int getType() {
+		return INT_TYPE;
+	}
 }
