@@ -273,13 +273,7 @@ public class EncryptionUtil {
                 signData(inFile, bOut, publicKey, privateKey);
             }
 
-            // Now encrypt the result
-            SecureRandom secRand;
-            if( seed != null ) {
-                secRand = new SecureRandom(seed);
-            } else {
-                secRand = new SecureRandom();
-            }
+            SecureRandom secRand = makeSecureRandom(seed);
 
             PGPEncryptedDataGenerator cPk = oldFormat?
                new PGPEncryptedDataGenerator(PGPEncryptedData.AES_256, secRand, oldFormat, "BC"):
@@ -364,12 +358,7 @@ public class EncryptionUtil {
             compressData(in, bOut, inName, inLength, inDate, oldFormat, Format.UNCOMPRESSED);
 
             // Now encrypt the result
-            SecureRandom secRand;
-            if( seed != null ) {
-                secRand = new SecureRandom(seed);
-            } else {
-                secRand = new SecureRandom();
-            }
+            SecureRandom secRand = makeSecureRandom(seed);
 
             // Now encrypt the result
             PGPEncryptedDataGenerator cPk = oldFormat?
@@ -399,6 +388,17 @@ public class EncryptionUtil {
             throw new PGPException("Error in encryption", e);
         }
     }
+
+	public SecureRandom makeSecureRandom(byte[] seed) throws NoSuchAlgorithmException, NoSuchProviderException {
+		SecureRandom secRand;
+		if( seed != null ) {
+		    secRand = SecureRandom.getInstance("SHA1PRNG");
+		    secRand.setSeed(seed);
+		} else {
+		    secRand = new SecureRandom();
+		}
+		return secRand;
+	}
 
     public PGPSecretKeyRingCollection readSecretKeyRingCollection(
             File secretRing) throws IOException, PGPException {

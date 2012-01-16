@@ -80,7 +80,9 @@ public abstract class VerifyMaybeSendMessage extends BackupMessage {
 
         getDataHashID().toProto().writeDelimitedTo(os);
         
-        getLease().toProto().writeDelimitedTo(os);
+        Lease lease = getLease();
+        Basic.Lease leaseProto = lease.toProto();
+        leaseProto.writeDelimitedTo(os);
         
         //the corresponding code is in VerifyMaybeSendDataMessage.read
         byte[] data = getData();

@@ -20,7 +20,7 @@ public class BackupConfigTest extends TestCase {
     }
     
     public void testBackupTime() throws Exception {
-        Assert.assertEquals(9, App.getBackupConfig().getBackupHour());
-        Assert.assertEquals(8, App.getBackupConfig().getBackupMinute());
+        Assert.assertEquals(22, App.getBackupConfig().getBackupHour());
+        Assert.assertEquals(20, App.getBackupConfig().getBackupMinute());
     }
 }
