@@ -8,7 +8,10 @@ import java.util.GregorianCalendar;
 import org.bouncycastle.openpgp.PGPException;
 
 import com.geekcommune.friendlybackup.FriendlyBackupException;
+import com.geekcommune.friendlybackup.config.SwingCreateAccountDialog;
+import com.geekcommune.friendlybackup.config.SwingUIKeyDataSource;
 import com.geekcommune.friendlybackup.logging.UserLog;
+import com.geekcommune.identity.EncryptionUtil;
 
 public class Service extends App {
     private Backup backup;
@@ -20,6 +23,30 @@ public class Service extends App {
         try {
             wire();
 
+            //if no secret keyring, create one
+            if( !getBackupConfig().getSecretKeyringFile().isFile() ) {
+                SwingCreateAccountDialog createAccountDialog = new SwingCreateAccountDialog();
+
+                if( createAccountDialog.getPassphrase() == null ) {
+                    UserLog.instance().logInfo("Exiting at user's request");
+                    System.exit(-1);
+                }
+
+                String name = createAccountDialog.getName();
+                String email = createAccountDialog.getEmail();
+                char[] passphrase = createAccountDialog.getPassphrase();
+                
+                getBackupConfig().setMyName(name);
+                ((SwingUIKeyDataSource)getBackupConfig().getKeyDataSource()).setPassphrase(passphrase);
+                
+                EncryptionUtil.instance().generateKey(
+                        name,
+                        email,
+                        passphrase,
+                        getBackupConfig().getPublicKeyringFile(),
+                        getBackupConfig().getSecretKeyringFile());
+            }
+            
             boolean passphraseCorrect = false;
             while(!passphraseCorrect) {
                 //make sure we have the passphrase now, since the user is presumably at the computer
@@ -56,6 +83,8 @@ public class Service extends App {
         } catch (FriendlyBackupException e) {
             UserLog.instance().logError(e.getMessage(), e);
             System.exit(-1);
+        } catch (InterruptedException e) {
+            UserLog.instance().logError("Could not generate keys", e);
         }
     }
     

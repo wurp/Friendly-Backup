@@ -1,16 +1,23 @@
 package com.geekcommune.friendlybackup.config;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.bouncycastle.openpgp.PGPException;
@@ -22,26 +29,41 @@ import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
+import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.identity.EncryptionUtil;
 import com.geekcommune.identity.KeyDataSource;
 import com.geekcommune.identity.PublicIdentity;
 import com.geekcommune.identity.PublicIdentityHandle;
 import com.geekcommune.identity.SecretIdentity;
 import com.geekcommune.util.FileUtil;
+import com.geekcommune.util.ObjectUtil;
 import com.geekcommune.util.Pair;
 
 public class BackupConfig {
     private static final Logger log = Logger.getLogger(BackupConfig.class);
 
-    static final String DELIM = "~";
+    private static final String FRIENDS_KEY = "friends";
+    private static final String BACKUP_ROOT_DIR_KEY = "backupRootDir";
+    private static final String RESTORE_ROOT_DIR_KEY = "restoreRootDir";
+    private static final String LOCAL_PORT_KEY = "port";
+    private static final String BACKUP_STREAM_NAME_KEY = "backupName";
+    private static final String COMPUTER_NAME_KEY = "computerName";
+    private static final String MY_NAME_KEY = "myName";
+    private static final String BACKUP_TIME_KEY = "dailyBackupTime";
+
+    private static final String FRIEND_PREFIX = "friend.";
+    private static final String EMAIL_SUFFIX = ".email";
+    private static final String CONNECT_INFO_SUFFIX = ".connectinfo";
+
+    private static final String DELIM = "~";
 
     String myName;
-    File backupRootDir;
+    String backupPath;
     String backupStreamName;
     String computerName;
     File root;
     RemoteNodeHandle[] storingNodes;
-    File restoreRootDir;
+    String restorePath;
     int localPort;
     Pair<PGPPublicKeyRingCollection, PGPSecretKeyRingCollection> keyRings;
     SecretIdentity secretIdentity;
@@ -54,6 +76,7 @@ public class BackupConfig {
     private char[] passphrase;
 
 	private InetSocketAddress serverAddress;
+    boolean dirty;
 
     BackupConfig() {
     }
@@ -146,7 +169,7 @@ public class BackupConfig {
 	 * @return
 	 */
     private File getBackupRootDir() {
-        return backupRootDir;
+        return new File(root, backupPath);
     }
 
     public String getDbConnectString() {
@@ -228,8 +251,8 @@ public class BackupConfig {
             KeyDataSource keyDataSource = new SwingUIKeyDataSource();
             try {
                 keyRings = EncryptionUtil.instance().getOrCreateKeyring(
-                        new File(getRoot(), "gnupg/pubring.gpg"),
-                        new File(getRoot(), "gnupg/secring.gpg"),
+                        getPublicKeyringFile(),
+                        getSecretKeyringFile(),
                         keyDataSource);
             } catch (FileNotFoundException e) {
                 throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
@@ -247,8 +270,16 @@ public class BackupConfig {
         }
     }
 
+    public File getPublicKeyringFile() {
+        return new File(getRoot(), "gnupg/pubring.gpg");
+    }
+
+    public File getSecretKeyringFile() {
+        return new File(getRoot(), "gnupg/secring.gpg");
+    }
+
     public File getRestoreRootDirectory() {
-        return restoreRootDir;
+        return new File(getRoot(), restorePath);
     }
 
     public String getRestorePath(String label) throws IOException {
@@ -294,5 +325,161 @@ public class BackupConfig {
     
     public InetSocketAddress getServerAddress() {
     	return serverAddress;
+    }
+    
+    public synchronized void setMyName(String name) {
+        this.myName = name;
+        dirty = true;
+    }
+    
+    private static String[] friends;
+
+    private Properties myProps;
+
+    File backupConfig;
+
+    public BackupConfig(File backupConfig) throws IOException, FriendlyBackupException {
+        myProps = new Properties();
+        this.backupConfig = backupConfig;
+        
+        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(backupConfig));
+        try {
+            myProps.load(bis);
+        } finally {
+            bis.close();
+        }
+
+        //populate from properties
+        initFromProps();
+
+        validate();
+    }
+
+    void validate() {
+        if( computerName.indexOf(BackupConfig.DELIM) != -1 ) {
+            UserLog.instance().logError("Computer name may not contain " + BackupConfig.DELIM);
+            throw new RuntimeException("Computer name may not contain " + BackupConfig.DELIM);
+        }
+    }
+
+    private synchronized void initFromProps() throws FriendlyBackupException, UnknownHostException {
+        root = backupConfig.getParentFile();
+
+        backupPath = myProps.getProperty(BACKUP_ROOT_DIR_KEY);
+        restorePath = myProps.getProperty(RESTORE_ROOT_DIR_KEY);
+        localPort = Integer.parseInt(myProps.getProperty(LOCAL_PORT_KEY));
+        backupStreamName = myProps.getProperty(BACKUP_STREAM_NAME_KEY);
+        computerName = myProps.getProperty(COMPUTER_NAME_KEY);
+        myName = myProps.getProperty(MY_NAME_KEY);
+        
+        //Make sure system is ready to run
+        if( "MyNickName".equals(getMyName()) ) {
+            throw new FriendlyBackupException("Edit " + getRoot().getAbsolutePath() + "/BackupConfig.properties and set the values appropriately (myName cannot be MyNickName).\nSee http://bobbymartin.name/friendlybackup/properties.html");
+        }
+        
+        {
+            String backupTime = myProps.getProperty(BACKUP_TIME_KEY);
+            String[] timeBits = backupTime.split(":");
+            backupHour = Integer.parseInt(timeBits[0]);
+            backupMinute = Integer.parseInt(timeBits[1]);
+        }
+        
+        friends = myProps.getProperty(FRIENDS_KEY).split(",");
+        initStoringNodes();
+        
+        dirty = false;
+    }
+
+    public Properties toProperties() {
+        Properties retval = new Properties();
+
+        retval.setProperty(BACKUP_ROOT_DIR_KEY, backupPath);
+        retval.setProperty(RESTORE_ROOT_DIR_KEY, restorePath);
+        retval.setProperty(LOCAL_PORT_KEY, ""+localPort);
+        retval.setProperty(BACKUP_STREAM_NAME_KEY, backupStreamName);
+        retval.setProperty(COMPUTER_NAME_KEY, computerName);
+        retval.setProperty(MY_NAME_KEY, myName);
+        retval.setProperty(BACKUP_TIME_KEY, backupHour+":"+backupMinute);
+        retval.setProperty(BACKUP_STREAM_NAME_KEY, backupStreamName);
+        
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for(int i = 0; i < storingNodes.length; ++i) {
+            String name = storingNodes[i].getName();
+            
+            if( !first ) {
+                sb.append(',');
+            }
+            first = false;
+            sb.append(name);
+            
+            retval.setProperty(FRIEND_PREFIX+name+EMAIL_SUFFIX, storingNodes[i].getEmail());
+            retval.setProperty(FRIEND_PREFIX+name+CONNECT_INFO_SUFFIX, storingNodes[i].getConnectString());
+        }
+        
+        retval.setProperty(FRIENDS_KEY, sb.toString());
+        
+        return retval;
+    }
+
+    public synchronized void save() throws IOException {
+        if( dirty ) {
+            doSave();
+        }
+    }
+    
+    private synchronized void doSave() throws IOException {
+        Properties props = toProperties();
+        
+        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(backupConfig));
+        try {
+            props.store(out, "Automatically generated by BackupConfig.doSave");
+        } finally {
+            out.close();
+        }
+
+        dirty = false;
+    }
+
+    private void initStoringNodes() throws FriendlyBackupException {
+        if( storingNodes == null ) {
+            storingNodes = new RemoteNodeHandle[friends.length];
+            for(int i = 0; i < friends.length; ++i) {
+                String email = myProps.getProperty(FRIEND_PREFIX+friends[i]+EMAIL_SUFFIX);
+                String connectInfo = myProps.getProperty(FRIEND_PREFIX+friends[i]+CONNECT_INFO_SUFFIX);
+
+                try {
+                    storingNodes[i] = new RemoteNodeHandle(
+                            friends[i],
+                            email,
+                            connectInfo);
+                } catch (UnknownHostException e) {
+                    throw new FriendlyBackupException("Please double check the host name in " + connectInfo, e);
+                }
+            }
+        }
+    }
+    
+    public boolean equals(Object obj) {
+        if( obj instanceof BackupConfig ) {
+            BackupConfig rhs = (BackupConfig) obj;
+            
+            boolean retval = true;
+            retval = retval && ObjectUtil.equals(backupPath, rhs.backupPath);
+            retval = retval && ObjectUtil.equals(restorePath, rhs.restorePath);
+            retval = retval && ObjectUtil.equals(backupStreamName, rhs.backupStreamName);
+            retval = retval && ObjectUtil.equals(computerName, rhs.computerName);
+            retval = retval && ObjectUtil.equals(myName, rhs.myName);
+            retval = retval && ObjectUtil.equals(backupStreamName, rhs.backupStreamName);
+            retval = retval && ObjectUtil.equals(backupPath, rhs.backupPath);
+            retval = retval && (localPort == rhs.localPort);
+            retval = retval && (backupHour == rhs.backupHour);
+            retval = retval && (backupMinute == rhs.backupMinute);
+            retval = retval && Arrays.equals(storingNodes, rhs.storingNodes);
+            
+            return retval;
+        } else {
+            return false;
+        }
     }
 }
