@@ -97,18 +97,19 @@ public class EncryptionUtilTest extends TestCase {
     
     public void testSecureRandomConsistency() throws Exception {
         byte[] seed = new byte[] { 1, 1, 1, 1 };
-        SecureRandom secRand = new SecureRandom(seed);
+        SecureRandom secRand = EncryptionUtil.instance().makeSecureRandom(seed);
         
         byte[] randBuff1 = new byte[1000000];
         secRand.nextBytes(randBuff1);
         
-        SecureRandom secRand2 = new SecureRandom(seed);
+        SecureRandom secRand2 = EncryptionUtil.instance().makeSecureRandom(seed);
         
         byte[] randBuff2 = new byte[1000000];
         secRand2.nextBytes(randBuff2);
         
         Assert.assertArrayEquals(randBuff1, randBuff2);
     }
+    
     public void testSignatureSerialization() throws Exception {
         //find the signing key
         PGPPublicKeyRing pubKeyRing = (PGPPublicKeyRing) pubRing.getKeyRings().next();

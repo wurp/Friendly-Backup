@@ -23,7 +23,7 @@ import com.geekcommune.util.StringUtil;
 public class TestGrabBag extends TestCase {
     private static HashIdentifier hashId = makeRandomHashIdentifier();
 
-    public void testVerifyMaybeSendDataMessage() throws Exception {
+    public void todo_needs_SecretIdentity_testVerifyMaybeSendDataMessage() throws Exception {
         VerifyMaybeSendErasureMessage vmsem =
                 new VerifyMaybeSendErasureMessage(
                         new RemoteNodeHandle("test", "test@foo.com", "localhost:123"),

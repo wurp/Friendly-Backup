@@ -11,6 +11,7 @@ import com.geekcommune.friendlybackup.communication.ProgressWhenCompleteListener
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasureMessage;
 import com.geekcommune.friendlybackup.config.BackupConfig;
+import com.geekcommune.friendlybackup.datastore.Lease;
 import com.geekcommune.friendlybackup.erasure.BytesErasureFinder;
 import com.geekcommune.friendlybackup.erasure.ErasureFinder;
 import com.geekcommune.friendlybackup.erasure.ErasureUtil;
@@ -109,7 +110,7 @@ public class ErasureManifestBuilder {
                     erasureId,
                     erasureFinder,
                     idx,
-                    owner.makeLease(erasureId, expiryDate));
+                    new Lease(expiryDate, owner, false, erasureId));
             msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
             MessageUtil.instance().queueMessage(
                     msg);
@@ -131,7 +132,7 @@ public class ErasureManifestBuilder {
                     localPort,
                     manifest.getHashID(),
                     manifest.toProto().toByteArray(),
-                    owner.makeLease(manifest.getHashID(), expiryDate));
+                    new Lease(expiryDate, owner, false, manifest.getHashID()));
             msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
             MessageUtil.instance().queueMessage(msg);
 		}

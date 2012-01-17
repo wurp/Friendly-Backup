@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>FriendlyBackup</name>
+	<name>Friendly-Backup</name>
 	<comment></comment>
 	<projects>
+		<project>Friendly-Backup-lib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

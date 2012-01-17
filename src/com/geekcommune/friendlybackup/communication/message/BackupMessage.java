@@ -16,10 +16,4 @@ public abstract class BackupMessage extends AbstractMessage {
     public BackupMessage(int transactionId, int originNodePort) {
         super(transactionId, originNodePort);
     }
-
-    public static final String TYPE = "backup";
-    
-    public String getType() {
-        return TYPE;
-    }
 }

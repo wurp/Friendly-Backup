@@ -5,3 +5,4 @@ do
 done
 
 java -classpath "$cp" org.junit.runner.JUnitCore $1
+

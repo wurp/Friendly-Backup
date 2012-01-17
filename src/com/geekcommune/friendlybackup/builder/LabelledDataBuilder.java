@@ -7,6 +7,7 @@ import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.ProgressWhenCompleteListener;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
+import com.geekcommune.friendlybackup.datastore.Lease;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
 import com.geekcommune.friendlybackup.main.ProgressTracker;
@@ -38,7 +39,11 @@ public class LabelledDataBuilder {
                     localPort,
                     labelledData.getHashID(), 
                     labelledData.toProto().toByteArray(),
-                    owner.makeLease(labelledData.getHashID(), expiryDate));
+                    new Lease(
+                            expiryDate,
+                            owner,
+                            false,
+                            labelledData.getHashID()));
             msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
             MessageUtil.instance().queueMessage(
                     msg);

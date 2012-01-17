@@ -35,8 +35,7 @@ public class VerifyMaybeSendDataMessage extends VerifyMaybeSendMessage {
 
     //the write method is fully in the superclass
     @Override
-    public void read(DataInputStream is) throws IOException, FriendlyBackupException {
-        super.read(is);
+    protected final void internalSendDataRead(DataInputStream is) throws IOException, FriendlyBackupException {
         int len = is.readInt();
         
         if( len != 0 ) {
@@ -61,7 +60,7 @@ public class VerifyMaybeSendDataMessage extends VerifyMaybeSendMessage {
     }
 
     @Override
-    protected int getIntType() {
+	public final int getType() {
         return INT_TYPE;
     }
 }
