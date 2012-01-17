@@ -5,6 +5,7 @@ import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -51,6 +52,8 @@ public class BackupConfig {
     int backupHour;
 
     private char[] passphrase;
+
+	private InetSocketAddress serverAddress;
 
     BackupConfig() {
     }
@@ -287,5 +290,9 @@ public class BackupConfig {
 
     public int getBackupMinute() {
         return backupMinute;
+    }
+    
+    public InetSocketAddress getServerAddress() {
+    	return serverAddress;
     }
 }
