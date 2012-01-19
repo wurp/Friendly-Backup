@@ -8,7 +8,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +25,7 @@ import org.apache.log4j.Logger;
 import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.communication.message.AbstractMessage;
+import com.geekcommune.communication.message.HasResponseHandler;
 import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
@@ -73,7 +73,8 @@ public class BackupMessageUtil extends MessageUtil {
     /**
      * Map from transaction id to the continuation for handling the data requested in that xaction
      */
-    private ConcurrentHashMap<Integer, UnaryContinuation<byte[]>> responseHandlers = new ConcurrentHashMap<Integer, UnaryContinuation<byte[]>>();
+    private ConcurrentHashMap<Integer, UnaryContinuation<Message>> responseHandlers =
+    	new ConcurrentHashMap<Integer, UnaryContinuation<Message>>();
 
     private ConcurrentHashMap<Pair<InetAddress, Integer>, Socket> socketMap = new ConcurrentHashMap<Pair<InetAddress,Integer>, Socket>();
 
@@ -103,8 +104,8 @@ public class BackupMessageUtil extends MessageUtil {
                         public void run() {
                             msg.setState(Message.State.Processing);
 
-                            if( msg instanceof RetrieveDataMessage ) {
-                                RetrieveDataMessage rdm = (RetrieveDataMessage) msg;
+                            if( msg instanceof HasResponseHandler ) {
+                            	HasResponseHandler rdm = (HasResponseHandler) msg;
                                 responseHandlers.put(
                                         rdm.getTransactionID(),
                                         rdm.getResponseHandler());
@@ -219,7 +220,7 @@ public class BackupMessageUtil extends MessageUtil {
     public void retrieve(RemoteNodeHandle[] storingNodes, final HashIdentifier id, final Continuation continuation) {
         ResponseManager requestManager = new ResponseManager();
         
-        UnaryContinuation<byte[]> handler = makeReceiveDataHandler(id, continuation, requestManager);
+        UnaryContinuation<Message> handler = makeReceiveDataHandler(id, continuation, requestManager);
         
         for(RemoteNodeHandle storingNode : storingNodes) {
             RetrieveDataMessage msg = new RetrieveDataMessage(
@@ -275,7 +276,7 @@ public class BackupMessageUtil extends MessageUtil {
                 } catch (SQLException e) {
                     log.error(e.getMessage(), e);
                     UserLog.instance().logError(exceptionMessage, e);
-                } catch (UnknownHostException e) {
+                } catch (FriendlyBackupException e) {
                     log.error(e.getMessage(), e);
                     UserLog.instance().logError(exceptionMessage, e);
                 }
@@ -351,17 +352,19 @@ public class BackupMessageUtil extends MessageUtil {
         };
     }
 
-    private UnaryContinuation<byte[]> makeReceiveDataHandler(
+    private UnaryContinuation<Message> makeReceiveDataHandler(
             final HashIdentifier id,
             final Continuation continuation,
             final ResponseManager requestManager) {
-        return new UnaryContinuation<byte[]>() {
+        return new UnaryContinuation<Message>() {
 
-        public void run(final byte[] data) {
+        public void run(final Message msg) {
             requestManager.doOnce(new Continuation() {
                 
                 public void run() {
                     try {
+                    	VerifyMaybeSendDataMessage vmsdm = (VerifyMaybeSendDataMessage) msg;
+                    	byte[] data = vmsdm.getData();
                         DataStore.instance().storeData(id, data, new Lease(DateUtil.oneHourHence(), bakcfg.getOwner().getHandle(), Signature.INTERNAL_SELF_SIGNED, id));
                         continuation.run();
                     } catch (SQLException e) {
@@ -527,18 +530,20 @@ public class BackupMessageUtil extends MessageUtil {
         //TODO reject message if we've already processed its transaction id
         msg.setState(Message.State.Processing);
 
+        UnaryContinuation<Message> responseHandler =
+            responseHandlers.get(msg.getTransactionID());
+
+        if( responseHandler != null ) {
+            responseHandler.run(msg);
+        }
+        
         if( msg instanceof VerifyMaybeSendDataMessage ) {
             VerifyMaybeSendDataMessage dataMessage = (VerifyMaybeSendDataMessage) msg;
-
-            UnaryContinuation<byte[]> responseHandler =
-                    responseHandlers.get(dataMessage.getTransactionID());
 
             //unsolicited data is assumed to be data we should store
             if( responseHandler == null ) {
                 //TODO check that sender (and lease owner) is in the friend node list
                 DataStore.instance().storeData(dataMessage.getDataHashID(), dataMessage.getData(), dataMessage.getLease());
-            } else {
-                responseHandler.run(dataMessage.getData());
             }
             
             msg.setState(Message.State.Finished);

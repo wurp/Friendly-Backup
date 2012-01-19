@@ -7,10 +7,13 @@ import java.util.GregorianCalendar;
 
 import org.bouncycastle.openpgp.PGPException;
 
+import com.geekcommune.communication.message.ClientStartupMessage;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
+import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.config.SwingCreateAccountDialog;
 import com.geekcommune.friendlybackup.config.SwingUIKeyDataSource;
 import com.geekcommune.friendlybackup.logging.UserLog;
+import com.geekcommune.friendlybackup.server.format.high.ClientUpdate;
 import com.geekcommune.identity.EncryptionUtil;
 
 public class Service extends App {
@@ -24,51 +27,11 @@ public class Service extends App {
             wire();
 
             //if no secret keyring, create one
-            if( !getBackupConfig().getSecretKeyringFile().isFile() ) {
-                SwingCreateAccountDialog createAccountDialog = new SwingCreateAccountDialog();
-
-                if( createAccountDialog.getPassphrase() == null ) {
-                    UserLog.instance().logInfo("Exiting at user's request");
-                    System.exit(-1);
-                }
-
-                String name = createAccountDialog.getName();
-                String email = createAccountDialog.getEmail();
-                char[] passphrase = createAccountDialog.getPassphrase();
-                
-                getBackupConfig().setMyName(name);
-                ((SwingUIKeyDataSource)getBackupConfig().getKeyDataSource()).setPassphrase(passphrase);
-                
-                EncryptionUtil.instance().generateKey(
-                        name,
-                        email,
-                        passphrase,
-                        getBackupConfig().getPublicKeyringFile(),
-                        getBackupConfig().getSecretKeyringFile());
-            }
+            createKeyringIfNeeded();
             
-            boolean passphraseCorrect = false;
-            while(!passphraseCorrect) {
-                //make sure we have the passphrase now, since the user is presumably at the computer
-                //Empty passphrase is interpreted as meaning "quit"
-                if( getBackupConfig().getKeyDataSource().getPassphrase() == null ) {
-                    UserLog.instance().logInfo("Exiting at user's request");
-                    System.exit(-1);
-                }
-                
-                //verify that the passphrase is correct
-                try {
-                    getBackupConfig().getAuthenticatedOwner().sign(new byte[] { 1, 2, 3, 4, 5 });
-                    passphraseCorrect = true;
-                } catch (FriendlyBackupException e) {
-                    UserLog.instance().logError("pwd error", e);
-                    if( e.getCause() instanceof PGPException ) {
-                        getBackupConfig().getKeyDataSource().clearPassphrase();
-                    } else {
-                        throw e;
-                    }
-                }
-            }
+            authenticateUser();
+            
+            updateServer();
             
             restoreFile = new File(getBackupConfig().getRoot(), "restore.txt");
             
@@ -87,6 +50,78 @@ public class Service extends App {
             UserLog.instance().logError("Could not generate keys", e);
         }
     }
+
+	private void updateServer() throws FriendlyBackupException, IOException {
+		ClientUpdate cu = new ClientUpdate(
+				getBackupConfig().getMyName(),
+				getBackupConfig().getEmail(),
+				getBackupConfig().getRoot().getFreeSpace(),
+				getBackupConfig().getPublicKeyRing().getEncoded(),
+				getBackupConfig().getAuthenticatedOwner());
+			;
+
+		ClientStartupMessage csm = new ClientStartupMessage(
+				getBackupConfig().getServerAddress(),
+				getBackupConfig().getLocalPort(),
+				cu);
+
+		BackupMessageUtil.instance().queueMessage(csm);
+		
+		//block for the response
+		
+	}
+
+	private void createKeyringIfNeeded() throws IOException,
+			InterruptedException {
+		if( !getBackupConfig().getSecretKeyringFile().isFile() ) {
+		    SwingCreateAccountDialog createAccountDialog = new SwingCreateAccountDialog();
+
+		    if( createAccountDialog.getPassphrase() == null ) {
+		        UserLog.instance().logInfo("Exiting at user's request");
+		        System.exit(-1);
+		    }
+
+		    String name = createAccountDialog.getName();
+		    String email = createAccountDialog.getEmail();
+		    char[] passphrase = createAccountDialog.getPassphrase();
+		    
+		    getBackupConfig().setMyName(name);
+		    getBackupConfig().setEmail(email);
+		    ((SwingUIKeyDataSource)getBackupConfig().getKeyDataSource()).setPassphrase(passphrase);
+		    
+		    EncryptionUtil.instance().generateKey(
+		            name,
+		            email,
+		            passphrase,
+		            getBackupConfig().getPublicKeyringFile(),
+		            getBackupConfig().getSecretKeyringFile());
+		}
+	}
+
+	private void authenticateUser() throws FriendlyBackupException {
+		boolean passphraseCorrect = false;
+		while(!passphraseCorrect) {
+		    //make sure we have the passphrase now, since the user is presumably at the computer
+		    //Empty passphrase is interpreted as meaning "quit"
+		    if( getBackupConfig().getKeyDataSource().getPassphrase() == null ) {
+		        UserLog.instance().logInfo("Exiting at user's request");
+		        System.exit(-1);
+		    }
+		    
+		    //verify that the passphrase is correct
+		    try {
+		        getBackupConfig().getAuthenticatedOwner().sign(new byte[] { 1, 2, 3, 4, 5 });
+		        passphraseCorrect = true;
+		    } catch (FriendlyBackupException e) {
+		        UserLog.instance().logError("pwd error", e);
+		        if( e.getCause() instanceof PGPException ) {
+		            getBackupConfig().getKeyDataSource().clearPassphrase();
+		        } else {
+		            throw e;
+		        }
+		    }
+		}
+	}
     
     public static void main(String[] args) throws Exception {
         Service svc = new Service();

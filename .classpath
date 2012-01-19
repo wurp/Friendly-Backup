@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="tmp/src-gen"/>
-	<classpathentry kind="src" path="test/integ/src"/>
 	<classpathentry kind="src" path="test/unit/src"/>
 	<classpathentry kind="lib" path="resource-debug"/>
 	<classpathentry kind="lib" path="resource"/>

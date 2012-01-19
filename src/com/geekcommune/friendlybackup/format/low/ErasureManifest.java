@@ -1,6 +1,5 @@
 package com.geekcommune.friendlybackup.format.low;
 
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,7 +14,8 @@ import com.geekcommune.friendlybackup.proto.Basic.ErasureManifest.FetchInfo;
 import com.geekcommune.util.Pair;
 
 /**
- * Use Google Protocols
+ * Contains all the information needed to find a set of erasures and, given the
+ * minimum number of them, reconstruct the original data.
  * @author bobbym
  *
  */
@@ -30,8 +30,9 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
     }
 
 	public void add(HashIdentifier erasureId, RemoteNodeHandle storingNode) {
-		erasureFetchList.add(new Pair<HashIdentifier, RemoteNodeHandle>(erasureId, storingNode));
-		
+		erasureFetchList.add(
+				new Pair<HashIdentifier,
+				RemoteNodeHandle>(erasureId, storingNode));
 	}
 
     public List<Pair<HashIdentifier, RemoteNodeHandle>> getRetrievalData() {
@@ -62,8 +63,10 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
         this.totalErasures = totalErasures;
     }
 
-    public int getIndex(HashIdentifier hashID) throws FriendlyBackupException {
-        //walk the list of erasures & find the one with this hashID, then return its index
+    public int getIndex(HashIdentifier hashID)
+    	throws FriendlyBackupException {
+        //walk the list of erasures & find the one with this hashID,
+    	//then return its index
         int idx = -1;
         int i = 0;
         for(Pair<HashIdentifier, RemoteNodeHandle> fetchData : erasureFetchList) {
@@ -75,7 +78,9 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
         }
         
         if( idx == -1 ) {
-            throw new FriendlyBackupException("Did not find erasure with hash ID " + hashID + " in erasure manifest");
+            throw new FriendlyBackupException(
+            		"Did not find erasure with hash ID " + hashID +
+            		" in erasure manifest");
         }
         return idx;
     }
@@ -109,7 +114,7 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
         return proto.build();
     }
 
-    public static ErasureManifest fromProto(Basic.ErasureManifest proto) throws UnknownHostException {
+    public static ErasureManifest fromProto(Basic.ErasureManifest proto) throws FriendlyBackupException {
         versionCheck(1, proto.getVersion(), proto);
         ErasureManifest retval = new ErasureManifest();
         retval.setContentSize((int)proto.getContentSize());

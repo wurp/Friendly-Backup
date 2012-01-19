@@ -9,8 +9,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -50,12 +48,14 @@ public class BackupConfig {
     private static final String COMPUTER_NAME_KEY = "computerName";
     private static final String MY_NAME_KEY = "myName";
     private static final String BACKUP_TIME_KEY = "dailyBackupTime";
+	private static final String SERVER_CONNECT_INFO_KEY = "server.connectinfo";
 
     private static final String FRIEND_PREFIX = "friend.";
     private static final String EMAIL_SUFFIX = ".email";
     private static final String CONNECT_INFO_SUFFIX = ".connectinfo";
 
     private static final String DELIM = "~";
+
 
     String myName;
     String backupPath;
@@ -72,11 +72,10 @@ public class BackupConfig {
     KeyDataSource keyDataSource;
     int backupMinute;
     int backupHour;
-
     private char[] passphrase;
+	private RemoteNodeHandle serverAddress;
 
-	private InetSocketAddress serverAddress;
-    boolean dirty;
+	boolean dirty;
 
     BackupConfig() {
     }
@@ -211,7 +210,7 @@ public class BackupConfig {
         return owner;
     }
 
-    private synchronized PGPPublicKeyRing getPublicKeyRing() throws FriendlyBackupException {
+    public synchronized PGPPublicKeyRing getPublicKeyRing() throws FriendlyBackupException {
         if( this.pubkeyring == null ) {
             final String EXCEPTION_MESSAGE = "Failed to retrieve public keyring";
 
@@ -323,7 +322,7 @@ public class BackupConfig {
         return backupMinute;
     }
     
-    public InetSocketAddress getServerAddress() {
+    public RemoteNodeHandle getServerAddress() {
     	return serverAddress;
     }
     
@@ -337,6 +336,8 @@ public class BackupConfig {
     private Properties myProps;
 
     File backupConfig;
+
+	private String email;
 
     public BackupConfig(File backupConfig) throws IOException, FriendlyBackupException {
         myProps = new Properties();
@@ -362,29 +363,33 @@ public class BackupConfig {
         }
     }
 
-    private synchronized void initFromProps() throws FriendlyBackupException, UnknownHostException {
+    private synchronized void initFromProps() throws FriendlyBackupException {
         root = backupConfig.getParentFile();
 
-        backupPath = myProps.getProperty(BACKUP_ROOT_DIR_KEY);
-        restorePath = myProps.getProperty(RESTORE_ROOT_DIR_KEY);
-        localPort = Integer.parseInt(myProps.getProperty(LOCAL_PORT_KEY));
-        backupStreamName = myProps.getProperty(BACKUP_STREAM_NAME_KEY);
-        computerName = myProps.getProperty(COMPUTER_NAME_KEY);
-        myName = myProps.getProperty(MY_NAME_KEY);
+        backupPath = (BACKUP_ROOT_DIR_KEY);
+        restorePath = getProp(RESTORE_ROOT_DIR_KEY);
+        localPort = Integer.parseInt(getProp(LOCAL_PORT_KEY));
+        backupStreamName = getProp(BACKUP_STREAM_NAME_KEY);
+        computerName = getProp(COMPUTER_NAME_KEY);
+        myName = getProp(MY_NAME_KEY);
         
         //Make sure system is ready to run
         if( "MyNickName".equals(getMyName()) ) {
-            throw new FriendlyBackupException("Edit " + getRoot().getAbsolutePath() + "/BackupConfig.properties and set the values appropriately (myName cannot be MyNickName).\nSee http://bobbymartin.name/friendlybackup/properties.html");
+            throw new FriendlyBackupException(
+            		"Edit " + getRoot().getAbsolutePath() +
+            		"/BackupConfig.properties and set the values " +
+            		"appropriately (myName cannot be MyNickName).\nSee " +
+            		"http://bobbymartin.name/friendlybackup/properties.html");
         }
         
         {
-            String backupTime = myProps.getProperty(BACKUP_TIME_KEY);
+            String backupTime = getProp(BACKUP_TIME_KEY);
             String[] timeBits = backupTime.split(":");
             backupHour = Integer.parseInt(timeBits[0]);
             backupMinute = Integer.parseInt(timeBits[1]);
         }
         
-        friends = myProps.getProperty(FRIENDS_KEY).split(",");
+        friends = getProp(FRIENDS_KEY).split(",");
         initStoringNodes();
         
         dirty = false;
@@ -443,22 +448,33 @@ public class BackupConfig {
 
     private void initStoringNodes() throws FriendlyBackupException {
         if( storingNodes == null ) {
+			String serverConnectInfo = getProp(SERVER_CONNECT_INFO_KEY);
+			serverAddress = new RemoteNodeHandle(
+					"backupserver",
+					"backupserver1@geekcommune.com",
+					serverConnectInfo
+					);
+
             storingNodes = new RemoteNodeHandle[friends.length];
             for(int i = 0; i < friends.length; ++i) {
-                String email = myProps.getProperty(FRIEND_PREFIX+friends[i]+EMAIL_SUFFIX);
-                String connectInfo = myProps.getProperty(FRIEND_PREFIX+friends[i]+CONNECT_INFO_SUFFIX);
+				String email = getProp(FRIEND_PREFIX+friends[i]+EMAIL_SUFFIX);
+                String connectInfo = getProp(FRIEND_PREFIX+friends[i]+CONNECT_INFO_SUFFIX);
 
-                try {
-                    storingNodes[i] = new RemoteNodeHandle(
-                            friends[i],
-                            email,
-                            connectInfo);
-                } catch (UnknownHostException e) {
-                    throw new FriendlyBackupException("Please double check the host name in " + connectInfo, e);
-                }
+                storingNodes[i] = new RemoteNodeHandle(
+                        friends[i],
+                        email,
+                        connectInfo);
             }
         }
     }
+
+	private String getProp(String propName) throws FriendlyBackupException {
+		String retval = myProps.getProperty(propName);
+		if( retval == null ) {
+			throw new FriendlyBackupException("It looks as if " + propName + " is missing from BackupConfig.properties");
+		}
+		return retval;
+	}
     
     public boolean equals(Object obj) {
         if( obj instanceof BackupConfig ) {
@@ -482,4 +498,13 @@ public class BackupConfig {
             return false;
         }
     }
+
+	public synchronized void setEmail(String email) {
+        this.email = email;
+        dirty = true;
+	}
+
+	public synchronized String getEmail() {
+        return this.email;
+	}
 }

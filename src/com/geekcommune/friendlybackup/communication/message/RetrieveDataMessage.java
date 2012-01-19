@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import com.geekcommune.communication.RemoteNodeHandle;
+import com.geekcommune.communication.message.HasResponseHandler;
 import com.geekcommune.communication.message.Message;
 import com.geekcommune.communication.message.MessageFactory;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
@@ -12,7 +13,7 @@ import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.proto.Basic;
 import com.geekcommune.util.UnaryContinuation;
 
-public class RetrieveDataMessage extends RestoreMessage {
+public class RetrieveDataMessage extends RestoreMessage implements HasResponseHandler {
 
     public static final int INT_TYPE = 3;
     public static final MessageFactory FACTORY = new MessageFactory() {
@@ -23,9 +24,9 @@ public class RetrieveDataMessage extends RestoreMessage {
     };
 
     private HashIdentifier id;
-    private UnaryContinuation<byte[]> responseHandler;
+    private UnaryContinuation<Message> responseHandler;
 
-    public RetrieveDataMessage(RemoteNodeHandle destination, int originNodePort, HashIdentifier id, UnaryContinuation<byte[]> responseHandler) {
+    public RetrieveDataMessage(RemoteNodeHandle destination, int originNodePort, HashIdentifier id, UnaryContinuation<Message> responseHandler) {
         super(destination, originNodePort);
         this.id = id;
         this.responseHandler = responseHandler;
@@ -40,7 +41,7 @@ public class RetrieveDataMessage extends RestoreMessage {
         this.id = id;
     }
 
-    public UnaryContinuation<byte[]> getResponseHandler() {
+    public UnaryContinuation<Message> getResponseHandler() {
         return responseHandler;
     }
     
@@ -48,8 +49,8 @@ public class RetrieveDataMessage extends RestoreMessage {
         return id;
     }
 
-    public void handleResponse(byte[] data) {
-        responseHandler.run(data);
+    public void handleResponse(Message msg) {
+        responseHandler.run(msg);
     }
 
     @Override
