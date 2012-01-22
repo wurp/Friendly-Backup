@@ -1,26 +1,25 @@
 Backup:
   Note to customer
     8 gb
-    get at least three friends (and no more than 60)
     as long as at least 2/3 of your friends respond, your backup can be recovered
     May not back up files that changed during the backup process
       -- only way to avoid this is to copy each file before backing up, which could take lots of space and would make backup slower
 
   Todo now!:
+    backup & restore should fail gracefully
+    add link to forum, my email address to gui somewhere
+    server inform node of friends list
+    server check & update friend states
+    test for above
     test: job scheduling; run as "service"
-    test: some way to initiate restore :-O
-    check for bad password; retry
-    real-world testing
     template properties file + instructions:
-      gen gpg key
-      add friends' public keys to keyring
       notes about max key size for default jvm; pointer to how to upgrade
     **distribute**
-    create keys if none exist
+    real-world testing
+    figure out why db so big
+    forum for 
     only upload blocks not already uploaded
     remove all blocks not in the new backup
-    send lease over wire
-    validate lease signature
     remove items that have no lease
     integration test that backs up empty dir
 

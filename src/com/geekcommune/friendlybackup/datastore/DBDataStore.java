@@ -50,83 +50,99 @@ public class DBDataStore extends DataStore {
      * @return
      * @throws SQLException 
      */
-    public synchronized byte[] getData(HashIdentifier id) throws SQLException {
+    public synchronized byte[] getData(HashIdentifier id) throws FriendlyBackupException {
 
-        //retrieve content from db
-        PreparedStatement select = getConnection().
-          prepareStatement("select data from chunk where key = ?");
-        //TODO make sure that bytes.equals(Id.build(bytes).toByteArray()) for our hash function
-        select.setBytes(1, id.getData());
-        select.execute();
+		try {
+	        //retrieve content from db
+	        PreparedStatement select = getConnection().
+			  prepareStatement("select data from chunk where key = ?");
+	        //TODO make sure that bytes.equals(Id.build(bytes).toByteArray()) for our hash function
+	        select.setBytes(1, id.getData());
+	        select.execute();
 
-        byte[] retval = null;
-        ResultSet rs = select.getResultSet();
-        if( rs.next() ) {
-          byte[] content = rs.getBytes(1);
+	        byte[] retval = null;
+	        ResultSet rs = select.getResultSet();
+	        if( rs.next() ) {
+	          byte[] content = rs.getBytes(1);
 
-          retval = content;
-        }
+	          retval = content;
+	        }
 
-        log.info("Got " + (retval == null ? null : retval.length) + " bytes for " + id);
-        return retval;
+	        log.info("Got " + (retval == null ? null : retval.length) + " bytes for " + id);
+	        return retval;
+		} catch (SQLException e) {
+            throw new FriendlyBackupException("Failed to retrieve data from database for " + id, e);
+		}
     }
 
 
-    public synchronized void storeData(HashIdentifier id, byte[] data, Lease lease) throws SQLException {
+    public synchronized void storeData(HashIdentifier id, byte[] data, Lease lease) throws FriendlyBackupException {
         storeData(id, data, Collections.singletonList(lease));
     }
 
-    public synchronized void storeData(HashIdentifier id, byte[] data, List<Lease> leases) throws SQLException {
-        if( getData(id) != null ) {
-            PreparedStatement insert = getConnection().
-                    prepareStatement("delete from chunk where key = ?");
-                  insert.setBytes(1, id.getData());
-                  insert.execute();
-        }
-        
-        //TODO make sure that bytes.equals(Id.build(bytes).toByteArray()) for our hash function
+    public synchronized void storeData(HashIdentifier id, byte[] data, List<Lease> leases) throws FriendlyBackupException {
+		try {
+	        if( getData(id) != null ) {
+				PreparedStatement insert = getConnection().prepareStatement(
+						"delete from chunk where key = ?");
+				insert.setBytes(1, id.getData());
+				insert.execute();
+	        }
+	        
+	        //TODO make sure that bytes.equals(Id.build(bytes).toByteArray()) for our hash function
 
-        //insert self into db
-        PreparedStatement insert = getConnection().
-          prepareStatement("insert into chunk values (?, ?)");
-        insert.setBytes(1, id.getData());
-        insert.setBytes(2, data);
-        insert.execute();
-        log.info("Writing " + (data == null ? null : data.length) + " bytes for " + id);
-        
-        addLeases(id, leases);
+	        //insert self into db
+	        PreparedStatement insert = getConnection().
+	          prepareStatement("insert into chunk values (?, ?)");
+	        insert.setBytes(1, id.getData());
+	        insert.setBytes(2, data);
+	        insert.execute();
+	        log.info("Writing " + (data == null ? null : data.length) + " bytes for " + id);
+	        
+	        addLeases(id, leases);
+		} catch (SQLException e) {
+            throw new FriendlyBackupException("Failed to store data in database for " + id, e);
+		}
      }
 
     //TODO needs tests
-    public void addLeases(HashIdentifier id, List<Lease> leases) throws SQLException {
-        PreparedStatement insert = getConnection().
-                prepareStatement("insert into lease values (?, ?, ?, ?, ?)");
-        for(Lease lease : leases) {
-            insert.setBytes(    1, id.getData());
-            insert.setTimestamp(2, new Timestamp(lease.getExpiry().getTime()));
-            insert.setLong(   3, lease.getOwner().getSigningKeyID());
-            insert.setBoolean(  4, lease.isSoft());
-            insert.setBytes(5, lease.getSignature().toProto().toByteArray());
-            insert.execute();
-            log.info("Writing lease " + lease + " for " + id);
-        }
+    public void addLeases(HashIdentifier id, List<Lease> leases) throws FriendlyBackupException {
+		try {
+	        PreparedStatement insert = getConnection().
+            prepareStatement("insert into lease values (?, ?, ?, ?, ?)");
+	        for(Lease lease : leases) {
+	            insert.setBytes(    1, id.getData());
+	            insert.setTimestamp(2, new Timestamp(lease.getExpiry().getTime()));
+	            insert.setLong(   3, lease.getOwner().getSigningKeyID());
+	            insert.setBoolean(  4, lease.isSoft());
+	            insert.setBytes(5, lease.getSignature().toProto().toByteArray());
+	            insert.execute();
+	            log.info("Writing lease " + lease + " for " + id);
+	        }
+		} catch (SQLException e) {
+            throw new FriendlyBackupException("Failed to store leases in database for " + id, e);
+		}
     }
 
     //TODO needs tests
-    public void removeLeases(HashIdentifier id, PublicIdentityHandle owner, boolean includeSoft) throws SQLException {
-        String sql = "delete from lease where owner = ?";
+    public void removeLeases(HashIdentifier id, PublicIdentityHandle owner, boolean includeSoft) throws FriendlyBackupException {
+		try {
+	        String sql = "delete from lease where owner = ?";
 
-        String sqlSuffix = "";
-        if( !includeSoft ) {
-            sqlSuffix = " and soft = false";
-        }
-        
-        PreparedStatement delete = getConnection().
-                prepareStatement(sql + sqlSuffix);
+	        String sqlSuffix = "";
+	        if( !includeSoft ) {
+	            sqlSuffix = " and soft = false";
+	        }
+	        
+	        PreparedStatement delete = getConnection().
+	                prepareStatement(sql + sqlSuffix);
 
-        delete.setLong(1, owner.getSigningKeyID());
+	        delete.setLong(1, owner.getSigningKeyID());
 
-        delete.execute();
+	        delete.execute();
+		} catch (SQLException e) {
+            throw new FriendlyBackupException("Failed to remove leases from database for " + id, e);
+		}
     }
 
     //TODO needs tests
@@ -147,7 +163,8 @@ public class DBDataStore extends DataStore {
                             rs.getDate("expiry"),
                             new PublicIdentityHandle(0, rs.getLong("owner")),
                             Signature.fromProto(Basic.Signature.parseFrom(rs.getBytes("signature"))),
-                            rs.getBoolean("soft"), id);
+                            rs.getBoolean("soft"),
+                            id);
                     retval.add(lease);
                     log.info("Found " + lease + " for " + id);
                 } catch (InvalidProtocolBufferException e) {
@@ -171,19 +188,23 @@ public class DBDataStore extends DataStore {
       return "DataStore(" + connectString + ")";
     }
 
-    public static Connection makeConnection(String connectString) throws SQLException {
-        try {
-            Class.forName("org.hsqldb.jdbcDriver");
-        } catch (ClassNotFoundException e) {
-            log.error(e.getMessage(), e);
-            UserLog.instance().logError(e.getMessage(), e);
-        }
-        
-        return DriverManager.getConnection(connectString,
-                "SA", "");
+    public static Connection makeConnection(String connectString) throws FriendlyBackupException {
+		try {
+	        try {
+	            Class.forName("org.hsqldb.jdbcDriver");
+	        } catch (ClassNotFoundException e) {
+	            log.error(e.getMessage(), e);
+	            UserLog.instance().logError(e.getMessage(), e);
+	        }
+	        
+	        return DriverManager.getConnection(connectString,
+	                "SA", "");
+		} catch (SQLException e) {
+            throw new FriendlyBackupException("Failed to create connection");
+		}
     }
 
-    public synchronized Connection getConnection() throws SQLException {
+    public synchronized Connection getConnection() throws FriendlyBackupException {
       if( conn == null ) {
         conn = makeConnection(connectString);
 
@@ -196,27 +217,31 @@ public class DBDataStore extends DataStore {
       return conn;
     }
 
-    public void dbInit(Connection conn) throws SQLException {
-      if( !dbInitChecked ) {
-        try {
-          //we just try to pull data from the table, and if it's not there
-          //(throws an exception), we assume that the db hasn't been created
-          PreparedStatement stmt = conn.prepareStatement("select key from chunk limit 1");
-          stmt.execute();
-        } catch( Exception e ) {
-            // TODO should use artificial, generated, primary key?
-            String[] dbInitStrings = {
-                    "create table chunk(key BINARY(20),       data BLOB, PRIMARY KEY (key));",
-                    "create table lease(chunk_key BINARY(20), expiry TIMESTAMP, owner BIGINT, soft BOOLEAN, signature BLOB, PRIMARY KEY (chunk_key, expiry, owner, soft));",
-                    };
-            for(String dbInitString : dbInitStrings) {
-                PreparedStatement stmt = conn.prepareStatement(dbInitString);
-                log.debug(stmt.execute());
-            }
-        }
+    public void dbInit(Connection conn) throws FriendlyBackupException {
+		try {
+		      if( !dbInitChecked ) {
+		          try {
+		            //we just try to pull data from the table, and if it's not there
+		            //(throws an exception), we assume that the db hasn't been created
+		            PreparedStatement stmt = conn.prepareStatement("select key from chunk limit 1");
+		            stmt.execute();
+		          } catch( Exception e ) {
+		              // TODO should use artificial, generated, primary key?
+		              String[] dbInitStrings = {
+		                      "create table chunk(key BINARY(20),       data BLOB, PRIMARY KEY (key));",
+		                      "create table lease(chunk_key BINARY(20), expiry TIMESTAMP, owner BIGINT, soft BOOLEAN, signature BLOB, PRIMARY KEY (chunk_key, expiry, owner, soft));",
+		                      };
+		              for(String dbInitString : dbInitStrings) {
+		                  PreparedStatement stmt = conn.prepareStatement(dbInitString);
+		                  log.debug(stmt.execute());
+		              }
+		          }
 
-        dbInitChecked  = true;
-      }
+		          dbInitChecked  = true;
+		        }
+		} catch (SQLException e) {
+            throw new FriendlyBackupException("Failed to initialize database", e);
+		}
     }
 
     public String getDbConnectString() {
@@ -227,8 +252,12 @@ public class DBDataStore extends DataStore {
         instance = dataStore;
     }
 
-    protected Object makeObject(Class<?> clazz, ResultSet rs) throws SQLException {
-        return resultSetFactories.get(clazz).make(rs);
+    protected Object makeObject(Class<?> clazz, ResultSet rs) throws FriendlyBackupException {
+		try {
+	        return resultSetFactories.get(clazz).make(rs);
+		} catch (SQLException e) {
+            throw new FriendlyBackupException("Failed to make object from result set: " + rs, e);
+		}
     }
     
     /**

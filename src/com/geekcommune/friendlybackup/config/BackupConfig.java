@@ -172,10 +172,10 @@ public class BackupConfig {
     }
 
     public String getDbConnectString() {
-        return "jdbc:hsqldb:file:" + getDbFile().getAbsolutePath().replace('\\', '/');
+        return "jdbc:hsqldb:file:" + getDBFile().getAbsolutePath().replace('\\', '/');
     }
 
-    private File getDbFile() {
+    public File getDBFile() {
         File dbDir = new File(getRoot(), "db");
         dbDir.mkdirs();
         return new File(dbDir, "friendbackups");
@@ -366,7 +366,7 @@ public class BackupConfig {
     private synchronized void initFromProps() throws FriendlyBackupException {
         root = backupConfig.getParentFile();
 
-        backupPath = (BACKUP_ROOT_DIR_KEY);
+        backupPath = getProp(BACKUP_ROOT_DIR_KEY);
         restorePath = getProp(RESTORE_ROOT_DIR_KEY);
         localPort = Integer.parseInt(getProp(LOCAL_PORT_KEY));
         backupStreamName = getProp(BACKUP_STREAM_NAME_KEY);

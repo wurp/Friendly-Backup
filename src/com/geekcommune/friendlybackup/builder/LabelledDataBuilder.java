@@ -2,9 +2,9 @@ package com.geekcommune.friendlybackup.builder;
 
 import java.util.Date;
 
-import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
+import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.communication.ProgressWhenCompleteListener;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.datastore.Lease;
@@ -45,7 +45,7 @@ public class LabelledDataBuilder {
                             false,
                             labelledData.getHashID()));
             msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
-            MessageUtil.instance().queueMessage(
+            BackupMessageUtil.instance().queueMessage(
                     msg);
 		}
 

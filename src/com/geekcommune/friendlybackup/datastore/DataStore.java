@@ -21,15 +21,15 @@ public abstract class DataStore {
      * @return
      * @throws SQLException 
      */
-    public abstract byte[] getData(HashIdentifier id) throws SQLException;
+    public abstract byte[] getData(HashIdentifier id) throws FriendlyBackupException;
 
-    public void storeData(HashIdentifier id, byte[] data, Lease lease) throws SQLException {
+    public void storeData(HashIdentifier id, byte[] data, Lease lease) throws FriendlyBackupException {
         storeData(id, data, Collections.singletonList(lease));
     }
 
-    public abstract void storeData(HashIdentifier id, byte[] data, List<Lease> leases) throws SQLException;
+    public abstract void storeData(HashIdentifier id, byte[] data, List<Lease> leases) throws FriendlyBackupException;
     
-    public List<byte[]> getDataList(List<HashIdentifier> ids) throws SQLException {
+    public List<byte[]> getDataList(List<HashIdentifier> ids) throws FriendlyBackupException {
         List<byte[]> retval = new ArrayList<byte[]>(ids.size());
         
         for(HashIdentifier id : ids) {

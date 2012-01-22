@@ -3,7 +3,6 @@ package com.geekcommune.friendlybackup.main;
 import java.io.File;
 import java.io.IOException;
 
-import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.message.AbstractMessage;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
@@ -55,7 +54,6 @@ public class App {
             //BackupMessageUtil
             BackupMessageUtil.setInstance(new BackupMessageUtil());
             BackupMessageUtil.instance().setBackupConfig(bakcfg);
-            MessageUtil.setInstance(BackupMessageUtil.instance());
             BackupMessageUtil.instance().startListenThread();
             
             //set up messages to be read from the input data

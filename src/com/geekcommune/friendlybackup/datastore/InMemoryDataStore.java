@@ -1,6 +1,5 @@
 package com.geekcommune.friendlybackup.datastore;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,13 +15,12 @@ public class InMemoryDataStore extends DataStore {
     private ConcurrentHashMap<HashIdentifier, List<Lease>> leaseMap = new ConcurrentHashMap<HashIdentifier, List<Lease>>();
     
     @Override
-    public byte[] getData(HashIdentifier id) throws SQLException {
+    public byte[] getData(HashIdentifier id) {
         return dataMap.get(id);
     }
 
     @Override
-    public void storeData(HashIdentifier id, byte[] data, List<Lease> leases)
-            throws SQLException {
+    public void storeData(HashIdentifier id, byte[] data, List<Lease> leases) {
         dataMap.put(id, data);
         
         leaseMap.putIfAbsent(id, Collections.synchronizedList(new ArrayList<Lease>()));

@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
-import com.geekcommune.communication.MessageUtil;
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
+import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.communication.ProgressWhenCompleteListener;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasureMessage;
@@ -112,7 +112,7 @@ public class ErasureManifestBuilder {
                     idx,
                     new Lease(expiryDate, owner, false, erasureId));
             msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
-            MessageUtil.instance().queueMessage(
+            BackupMessageUtil.instance().queueMessage(
                     msg);
 
 			//put the erasure in the manifest
@@ -134,7 +134,7 @@ public class ErasureManifestBuilder {
                     manifest.toProto().toByteArray(),
                     new Lease(expiryDate, owner, false, manifest.getHashID()));
             msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
-            MessageUtil.instance().queueMessage(msg);
+            BackupMessageUtil.instance().queueMessage(msg);
 		}
 
 		return manifest;
