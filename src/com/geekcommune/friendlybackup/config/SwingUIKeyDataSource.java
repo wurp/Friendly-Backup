@@ -1,5 +1,7 @@
 package com.geekcommune.friendlybackup.config;
 
+import java.util.Properties;
+
 import com.geekcommune.identity.KeyDataSource;
 
 public class SwingUIKeyDataSource implements KeyDataSource {
@@ -28,5 +30,10 @@ public class SwingUIKeyDataSource implements KeyDataSource {
     public void clearPassphrase() {
         passphrase = null;
     }
+
+	@Override
+	public void initFromProps(String propNamePrefix, Properties props) {
+		//nothing to do
+	}
 
 }

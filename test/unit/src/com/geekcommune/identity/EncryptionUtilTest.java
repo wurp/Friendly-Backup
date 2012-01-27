@@ -9,6 +9,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Properties;
 import java.util.Random;
 
 import junit.framework.TestCase;
@@ -258,6 +259,12 @@ public class EncryptionUtilTest extends TestCase {
                 // TODO Auto-generated method stub
                 
             }
+
+			@Override
+			public void initFromProps(String propNamePrefix, Properties props) {
+				// TODO Auto-generated method stub
+				
+			}
             
         });
     }
@@ -287,6 +294,13 @@ public class EncryptionUtilTest extends TestCase {
                                 // TODO Auto-generated method stub
                                 
                             }
+
+							@Override
+							public void initFromProps(String propNamePrefix,
+									Properties props) {
+								// TODO Auto-generated method stub
+								
+							}
             
                         });
         

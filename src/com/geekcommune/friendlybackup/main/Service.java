@@ -8,6 +8,7 @@ import java.util.GregorianCalendar;
 import org.bouncycastle.openpgp.PGPException;
 
 import com.geekcommune.communication.message.ClientStartupMessage;
+import com.geekcommune.communication.message.ConfirmationMessage;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.config.SwingCreateAccountDialog;
@@ -21,19 +22,39 @@ public class Service extends App {
     private Restore restore;
     private Date nextBackupTime;
     private File restoreFile;
+    private File backupFile;
 
+    /**
+     * Ask the user for the passphrase
+     */
     public Service() {
+    	this(null, null);
+    }
+
+    /**
+     * Ask the user for the passphrase
+     */
+    public Service(String configFilePath) {
+    	this(null, configFilePath);
+    }
+
+    public Service(char[] passphrase, String configFilePath) {
         try {
-            wire();
+        	if( configFilePath == null ) {
+                wire();
+        	} else {
+                wire(configFilePath);
+        	}
 
             //if no secret keyring, create one
             createKeyringIfNeeded();
             
-            authenticateUser();
+            authenticateUser(passphrase);
             
             updateServer();
             
             restoreFile = new File(getBackupConfig().getRoot(), "restore.txt");
+            backupFile = new File(getBackupConfig().getRoot(), "backup.txt");
             
             backup = new Backup();
             restore = new Restore();
@@ -68,7 +89,17 @@ public class Service extends App {
 		BackupMessageUtil.instance().queueMessage(csm);
 		
 		//block for the response
+		try {
+			csm.awaitResponse(30000);
+		} catch (InterruptedException e) {
+			throw new FriendlyBackupException("Interrupted while waiting for response from server", e);
+		}
 		
+		ConfirmationMessage confirmationMsg = csm.getConfirmation();
+		if( !confirmationMsg.isOK() ) {
+			throw new FriendlyBackupException("Could not register with server: " +
+					confirmationMsg.getErrorMessage());
+		}
 	}
 
 	private void createKeyringIfNeeded() throws IOException,
@@ -98,7 +129,7 @@ public class Service extends App {
 		}
 	}
 
-	private void authenticateUser() throws FriendlyBackupException {
+	private void authenticateUser(char[] passphrase) throws FriendlyBackupException {
 		boolean passphraseCorrect = false;
 		while(!passphraseCorrect) {
 		    //make sure we have the passphrase now, since the user is presumably at the computer
@@ -124,7 +155,12 @@ public class Service extends App {
 	}
     
     public static void main(String[] args) throws Exception {
-        Service svc = new Service();
+        Service svc;
+    	if( args.length == 0) {
+    		svc = new Service();
+    	} else {
+    		svc = new Service(args[0]);
+    	}
         svc.go();
     }
 
@@ -150,8 +186,15 @@ public class Service extends App {
                 }
             }
             
+            //do a backup if backup.txt exists in same directory as BackupConfig.properties
+            boolean doBackup = false;
+            if( backupFile.isFile() ) {
+                backupFile.delete();
+                doBackup = true;
+            }
+            
             Date timestamp = new Date();
-            if( timestamp.after(nextBackupTime) ) {
+            if( doBackup || timestamp.after(nextBackupTime) ) {
                 try {
                     backup.doBackup();
                 } catch (IOException e) {

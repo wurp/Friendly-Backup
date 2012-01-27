@@ -49,12 +49,14 @@ public class BackupConfig {
     private static final String MY_NAME_KEY = "myName";
     private static final String BACKUP_TIME_KEY = "dailyBackupTime";
 	private static final String SERVER_CONNECT_INFO_KEY = "server.connectinfo";
+	private static final String KEY_DATASOURCE_CLASS_KEY = "keyDataSourceClass";
 
     private static final String FRIEND_PREFIX = "friend.";
     private static final String EMAIL_SUFFIX = ".email";
     private static final String CONNECT_INFO_SUFFIX = ".connectinfo";
 
     private static final String DELIM = "~";
+
 
 
     String myName;
@@ -392,10 +394,25 @@ public class BackupConfig {
         friends = getProp(FRIENDS_KEY).split(",");
         initStoringNodes();
         
+        {
+        	String keyDataSourceClass = getProp(KEY_DATASOURCE_CLASS_KEY, false);
+        	if( keyDataSourceClass == null ) {
+        		keyDataSource = new SwingUIKeyDataSource();
+        	} else {
+        		try {
+            		Class<?> clazz = Class.forName(keyDataSourceClass);
+            		keyDataSource = (KeyDataSource) clazz.newInstance();
+            		keyDataSource.initFromProps(KEY_DATASOURCE_CLASS_KEY, myProps);
+        		} catch(Exception e) {
+        			throw new FriendlyBackupException("Could not initialize key datasource: " + e.getMessage(), e);
+        		}
+        	}
+        }
+        
         dirty = false;
     }
 
-    public Properties toProperties() {
+	public Properties toProperties() {
         Properties retval = new Properties();
 
         retval.setProperty(BACKUP_ROOT_DIR_KEY, backupPath);
@@ -469,8 +486,12 @@ public class BackupConfig {
     }
 
 	private String getProp(String propName) throws FriendlyBackupException {
+		return getProp(propName, true);
+	}
+	
+	private String getProp(String propName, boolean required) throws FriendlyBackupException {
 		String retval = myProps.getProperty(propName);
-		if( retval == null ) {
+		if( required && retval == null ) {
 			throw new FriendlyBackupException("It looks as if " + propName + " is missing from BackupConfig.properties");
 		}
 		return retval;

@@ -46,7 +46,6 @@ public class App {
             //BackupConfig
             File cfgFile = new File(configFilePath);
             bakcfg = new BackupConfig(cfgFile);
-            bakcfg.setKeyDataSource(new SwingUIKeyDataSource());
 
             //DataStore
             DataStore.setInstance(new DBDataStore(bakcfg.getDbConnectString()));
