@@ -56,8 +56,8 @@ public class Service extends App {
             restoreFile = new File(getBackupConfig().getRoot(), "restore.txt");
             backupFile = new File(getBackupConfig().getRoot(), "backup.txt");
             
-            backup = new Backup();
-            restore = new Restore();
+            backup = new Backup(getBackupConfig());
+            restore = new Restore(getBackupConfig());
 
             nextBackupTime = findNextBackupTime();
             UserLog.instance().logInfo("Next backup at " + nextBackupTime);
@@ -90,7 +90,9 @@ public class Service extends App {
 		
 		//block for the response
 		try {
-			csm.awaitResponse(30000);
+			if( !csm.awaitResponse(30000) ) {
+			    throw new FriendlyBackupException("Timed out waiting for " + getBackupConfig().getServerAddress());
+			}
 		} catch (InterruptedException e) {
 			throw new FriendlyBackupException("Interrupted while waiting for response from server", e);
 		}
@@ -178,7 +180,7 @@ public class Service extends App {
                 restoreFile.delete();
                 
                 try {
-                    restore.doRestore();
+                    restore();
                 } catch (FriendlyBackupException e) {
                     UserLog.instance().logError("Restore failed", e);
                 } catch (InterruptedException e) {
@@ -196,7 +198,7 @@ public class Service extends App {
             Date timestamp = new Date();
             if( doBackup || timestamp.after(nextBackupTime) ) {
                 try {
-                    backup.doBackup();
+                    backup();
                 } catch (IOException e) {
                     UserLog.instance().logError("Backup failed", e);
                 } catch (InterruptedException e) {
@@ -206,6 +208,14 @@ public class Service extends App {
                 UserLog.instance().logInfo("Next backup at " + nextBackupTime);
             }
         }
+    }
+
+    public void backup() throws IOException, InterruptedException {
+        backup.doBackup();
+    }
+
+    public void restore() throws FriendlyBackupException, InterruptedException {
+        restore.doRestore();
     }
 
     /**

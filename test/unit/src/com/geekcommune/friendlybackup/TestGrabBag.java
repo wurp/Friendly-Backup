@@ -14,6 +14,7 @@ import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasu
 import com.geekcommune.friendlybackup.config.SwingPassphraseDialog;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.proto.Basic;
+import com.geekcommune.identity.PublicIdentityHandle;
 import com.geekcommune.util.StringUtil;
 
 /**
@@ -26,7 +27,7 @@ public class TestGrabBag extends TestCase {
     public void todo_needs_SecretIdentity_testVerifyMaybeSendDataMessage() throws Exception {
         VerifyMaybeSendErasureMessage vmsem =
                 new VerifyMaybeSendErasureMessage(
-                        new RemoteNodeHandle("test", "test@foo.com", "localhost:123"),
+                        new RemoteNodeHandle("test", "test@foo.com", "localhost:123", new PublicIdentityHandle(0, 0)),
                         123,
                         hashId,
                         null,

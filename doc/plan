@@ -14,6 +14,7 @@ Backup:
     test: job scheduling; run as "service"
     template properties file + instructions:
       notes about max key size for default jvm; pointer to how to upgrade
+    refactor to create FriendlyBackupClientInterface and FriendlyBackupServerInterface; possibly eliminate subclasses of MessageUtil
     **distribute**
     real-world testing
     figure out why db so big

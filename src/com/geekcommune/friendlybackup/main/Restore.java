@@ -32,9 +32,11 @@ public class Restore extends Action {
     private static final Logger log = Logger.getLogger(Restore.class);
     
     private ProgressTracker progressTracker;
+    private BackupConfig bakcfg;
 
-    public Restore() throws IOException {
+    public Restore(BackupConfig bakcfg) throws IOException {
         super();
+        this.bakcfg = bakcfg;
     }
 
     /**
@@ -44,8 +46,6 @@ public class Restore extends Action {
      * @throws FriendlyBackupException 
      */
     public void start(final SecretIdentity authenticatedOwner) throws FriendlyBackupException {
-        final BackupConfig bakcfg = App.getBackupConfig();
-        
         final UserLog userlog = UserLog.instance();
 
         //retrieve my latest backup manifest label
@@ -132,7 +132,7 @@ public class Restore extends Action {
 
     public void doRestore() throws FriendlyBackupException, InterruptedException {
         UserLog.instance().logInfo("Starting restore");
-        start(App.getBackupConfig().getAuthenticatedOwner());
+        start(bakcfg.getAuthenticatedOwner());
         ProgressTracker progressTracker = getProgressTracker();
         while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
             UserLog.instance().info(progressTracker.getStatusMessage());
