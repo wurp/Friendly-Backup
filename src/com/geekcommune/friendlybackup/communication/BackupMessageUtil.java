@@ -14,6 +14,7 @@ import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.communication.message.Message;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
+import com.geekcommune.friendlybackup.communication.message.UpdateFriendListMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.config.BackupConfig;
 import com.geekcommune.friendlybackup.datastore.DataStore;
@@ -21,10 +22,12 @@ import com.geekcommune.friendlybackup.datastore.Lease;
 import com.geekcommune.friendlybackup.erasure.ErasureUtil;
 import com.geekcommune.friendlybackup.format.low.Erasure;
 import com.geekcommune.friendlybackup.format.low.ErasureManifest;
+import com.geekcommune.friendlybackup.format.low.FriendListUpdate;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
 import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.friendlybackup.proto.Basic;
+import com.geekcommune.identity.PublicIdentityHandle;
 import com.geekcommune.identity.Signature;
 import com.geekcommune.util.BinaryContinuation;
 import com.geekcommune.util.Continuation;
@@ -69,37 +72,85 @@ public class BackupMessageUtil extends MessageUtil {
 				return handled;
 			}
 		});
-		
-    	addMessageHandler(new MessageHandler() {
-			@Override
-			public boolean handleMessage(Message msg, InetAddress address, boolean responseHandled) throws FriendlyBackupException {
-				boolean handled = false;
-				if( msg instanceof RetrieveDataMessage) {
-					handled = true;
-		            RetrieveDataMessage retrieveMessage = (RetrieveDataMessage) msg;
-		            RemoteNodeHandle destination =
-		                    bakcfg.getFriend(
-		                    		address,
-		                            retrieveMessage.getOriginNodePort());
-		            HashIdentifier hashIDOfDataToRetrieve = retrieveMessage.getHashIDOfDataToRetrieve();
-		            queueMessage(
-		                    new VerifyMaybeSendDataMessage(
-		                            destination,
-		                            retrieveMessage.getTransactionID(),
-		                            bakcfg.getLocalPort(),
-		                            hashIDOfDataToRetrieve,
-		                            DataStore.instance().getData(hashIDOfDataToRetrieve),
-		                            DataStore.instance().getLeases(hashIDOfDataToRetrieve).get(0)));
+        
+        addMessageHandler(new MessageHandler() {
+            @Override
+            public boolean handleMessage(Message msg, InetAddress address, boolean responseHandled) throws FriendlyBackupException {
+                boolean handled = false;
+                if( msg instanceof RetrieveDataMessage) {
+                    handled = true;
+                    RetrieveDataMessage retrieveMessage = (RetrieveDataMessage) msg;
+                    RemoteNodeHandle destination =
+                            bakcfg.getFriend(
+                                    address,
+                                    retrieveMessage.getOriginNodePort());
+                    HashIdentifier hashIDOfDataToRetrieve = retrieveMessage.getHashIDOfDataToRetrieve();
+                    queueMessage(
+                            new VerifyMaybeSendDataMessage(
+                                    destination,
+                                    retrieveMessage.getTransactionID(),
+                                    bakcfg.getLocalPort(),
+                                    hashIDOfDataToRetrieve,
+                                    DataStore.instance().getData(hashIDOfDataToRetrieve),
+                                    DataStore.instance().getLeases(hashIDOfDataToRetrieve).get(0)));
 
-		            msg.setState(Message.State.Finished);
-		        }
-				
-				return handled;
-			}
-    	});
+                    msg.setState(Message.State.Finished);
+                }
+                
+                return handled;
+            }
+        });
+        
+        addMessageHandler(new MessageHandler() {
+            @Override
+            public boolean handleMessage(Message msg, InetAddress address, boolean responseHandled) throws FriendlyBackupException {
+                boolean handled = false;
+                if( msg instanceof RetrieveDataMessage) {
+                    handled = true;
+                    UpdateFriendListMessage uflMessage = (UpdateFriendListMessage) msg;
+                    updateFriends(uflMessage.getFriendListUpdate());
+
+                    msg.setState(Message.State.Finished);
+                }
+                
+                return handled;
+            }
+        });
 	}
 
-	public BackupConfig getBackupConfig() {
+    private void updateFriends(FriendListUpdate friendListUpdate) {
+        List<RemoteNodeHandle> newFriends = new ArrayList<RemoteNodeHandle>();
+
+        if( !friendListUpdate.isRemoveAll() ) {
+            //TODO make it so as many of the friends who aren't changing stay in the same
+            //index in the list as possible
+
+            //form a list of public identity handles we don't want in the new friends list
+            List<RemoteNodeHandle> friendsToRemove = friendListUpdate.getRemoveList();
+            List<PublicIdentityHandle> removePihList = new ArrayList<PublicIdentityHandle>();
+            for(RemoteNodeHandle rnh : friendsToRemove) {
+                removePihList.add(rnh.getPublicIdentity());
+            }
+
+            //put all the curr friends that aren't in our "remove" list into the
+            //list of new friends
+            RemoteNodeHandle[] currFriends = getBackupConfig().getStoringNodes();
+            for(RemoteNodeHandle rnh : currFriends) {
+                if( !removePihList.contains(rnh.getPublicIdentity()) ) {
+                    newFriends.add(rnh);
+                }
+            }
+        }
+
+        //put all the added friends in at the end of the list
+        for(RemoteNodeHandle rnh : friendListUpdate.getAddList() ) {
+            newFriends.add(rnh);
+        }
+
+        getBackupConfig().setStoringNodes(newFriends.toArray(new RemoteNodeHandle[newFriends.size()]));
+    }
+    
+    public BackupConfig getBackupConfig() {
         return bakcfg;
     }
     

@@ -33,8 +33,11 @@ public class Backup extends Action {
 
     private Thread backupThread;
     private ProgressTracker progressTracker;
+    private BackupConfig bakcfg;
 
-    public Backup() throws IOException {
+
+    public Backup(BackupConfig bakcfg) throws IOException {
+        this.bakcfg = bakcfg;
     }
 
     /**
@@ -48,8 +51,6 @@ public class Backup extends Action {
         }
 
         progressTracker = new ProgressTracker(105);
-
-        final BackupConfig bakcfg = App.getBackupConfig();
 
         backupThread = new Thread(new Runnable() {
             public void run() {
@@ -73,7 +74,7 @@ public class Backup extends Action {
     public void doBackup() throws IOException, InterruptedException {
         try {
             UserLog.instance().logInfo("Starting backup");
-            start(App.getBackupConfig().getAuthenticatedOwner());
+            start(bakcfg.getAuthenticatedOwner());
             backupThread.join();
             backupThread = null;
 

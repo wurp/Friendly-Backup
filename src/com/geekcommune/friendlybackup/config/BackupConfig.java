@@ -38,6 +38,10 @@ import com.geekcommune.util.ObjectUtil;
 import com.geekcommune.util.Pair;
 
 public class BackupConfig {
+    private static final String SERVER_EMAIL = "backupserver1@geekcommune.com";
+
+    private static final String SERVER_NAME = "backupserver";
+
     private static final Logger log = Logger.getLogger(BackupConfig.class);
 
     private static final String FRIENDS_KEY = "friends";
@@ -48,14 +52,19 @@ public class BackupConfig {
     private static final String COMPUTER_NAME_KEY = "computerName";
     private static final String MY_NAME_KEY = "myName";
     private static final String BACKUP_TIME_KEY = "dailyBackupTime";
+    private static final String EMAIL = "email";
 	private static final String SERVER_CONNECT_INFO_KEY = "server.connectinfo";
 	private static final String KEY_DATASOURCE_CLASS_KEY = "keyDataSourceClass";
 
     private static final String FRIEND_PREFIX = "friend.";
     private static final String EMAIL_SUFFIX = ".email";
     private static final String CONNECT_INFO_SUFFIX = ".connectinfo";
+    private static final String SIGN_KEY_SUFFIX = ".signingKey";
+    private static final String ENCRYPT_KEY_SUFFIX = ".encryptingKey";
 
     private static final String DELIM = "~";
+
+
 
 
 
@@ -76,6 +85,11 @@ public class BackupConfig {
     int backupHour;
     private char[] passphrase;
 	private RemoteNodeHandle serverAddress;
+    private static String[] friends;
+    File backupConfig;
+    private String email;
+    private Properties myProps;
+
 
 	boolean dirty;
 
@@ -333,14 +347,6 @@ public class BackupConfig {
         dirty = true;
     }
     
-    private static String[] friends;
-
-    private Properties myProps;
-
-    File backupConfig;
-
-	private String email;
-
     public BackupConfig(File backupConfig) throws IOException, FriendlyBackupException {
         myProps = new Properties();
         this.backupConfig = backupConfig;
@@ -374,6 +380,7 @@ public class BackupConfig {
         backupStreamName = getProp(BACKUP_STREAM_NAME_KEY);
         computerName = getProp(COMPUTER_NAME_KEY);
         myName = getProp(MY_NAME_KEY);
+        email = getProp(EMAIL);
         
         //Make sure system is ready to run
         if( "MyNickName".equals(getMyName()) ) {
@@ -423,7 +430,8 @@ public class BackupConfig {
         retval.setProperty(MY_NAME_KEY, myName);
         retval.setProperty(BACKUP_TIME_KEY, backupHour+":"+backupMinute);
         retval.setProperty(BACKUP_STREAM_NAME_KEY, backupStreamName);
-        
+        retval.setProperty(SERVER_CONNECT_INFO_KEY, getServerAddress().getConnectString());
+
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for(int i = 0; i < storingNodes.length; ++i) {
@@ -467,9 +475,11 @@ public class BackupConfig {
         if( storingNodes == null ) {
 			String serverConnectInfo = getProp(SERVER_CONNECT_INFO_KEY);
 			serverAddress = new RemoteNodeHandle(
-					"backupserver",
-					"backupserver1@geekcommune.com",
-					serverConnectInfo
+					SERVER_NAME,
+					SERVER_EMAIL,
+                    serverConnectInfo,
+                    //TODO use real identity handle for server
+                    new PublicIdentityHandle(0, 0)
 					);
 
             storingNodes = new RemoteNodeHandle[friends.length];
@@ -477,14 +487,72 @@ public class BackupConfig {
 				String email = getProp(FRIEND_PREFIX+friends[i]+EMAIL_SUFFIX);
                 String connectInfo = getProp(FRIEND_PREFIX+friends[i]+CONNECT_INFO_SUFFIX);
 
+                PublicIdentityHandle pih = getFriendPublicIdentityHandle(friends[i]);
                 storingNodes[i] = new RemoteNodeHandle(
                         friends[i],
                         email,
-                        connectInfo);
+                        connectInfo,
+                        pih
+                        );
             }
         }
     }
 
+    public PublicIdentityHandle getFriendPublicIdentityHandle(String friend)
+            throws FriendlyBackupException {
+        String signKeyProp = FRIEND_PREFIX+friend+SIGN_KEY_SUFFIX;
+        String encryptKeyProp = FRIEND_PREFIX+friend+ENCRYPT_KEY_SUFFIX;
+
+        PublicIdentityHandle pih = null;
+        if( propExists(signKeyProp) && propExists(encryptKeyProp) ) {
+            long signKeyId = getLongProp(signKeyProp);
+            long encryptKeyId = getLongProp(encryptKeyProp);
+            pih = new PublicIdentityHandle(encryptKeyId, signKeyId);
+        } else {
+            pih = lookupFriendPublicIdentityHandle(friend);
+        }
+
+        return pih;
+    }
+
+    private PublicIdentityHandle lookupFriendPublicIdentityHandle(String friend)
+            throws FriendlyBackupException {
+        try {
+            PGPPublicKeyRing pubKeyRing = EncryptionUtil.instance()
+                    .findPublicKeyRing(getPublicKeyRingCollection(), friend);
+
+            PGPPublicKey signingKey = EncryptionUtil.instance()
+                    .findFirstSigningKey(pubKeyRing);
+
+            PGPPublicKey pubEncryptingKey = EncryptionUtil.instance()
+                    .findFirstEncryptingKey(pubKeyRing);
+
+            return new PublicIdentityHandle(signingKey, pubEncryptingKey);
+        } catch (PGPException e) {
+            throw new FriendlyBackupException(
+                    "Could not find encrypting and/or signing key for friend "
+                            + friend, e);
+        } catch (IOException e) {
+            throw new FriendlyBackupException(
+                    "Could not find encrypting and/or signing key for friend "
+                            + friend, e);
+        }
+    }
+      
+    private boolean propExists(String propName) {
+        return myProps.getProperty(propName) != null;
+    }
+
+    private long getLongProp(String propName) throws NumberFormatException, FriendlyBackupException {
+        return Long.valueOf(getProp(propName));
+    }
+
+
+    public void setStoringNodes(RemoteNodeHandle[] newStoringNodes) {
+        storingNodes = newStoringNodes;
+    }
+
+    
 	private String getProp(String propName) throws FriendlyBackupException {
 		return getProp(propName, true);
 	}
