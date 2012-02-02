@@ -17,7 +17,7 @@ import com.geekcommune.friendlybackup.logging.UserLog;
 import com.geekcommune.friendlybackup.server.format.high.ClientUpdate;
 import com.geekcommune.identity.EncryptionUtil;
 
-public class Service extends App {
+public class FBNodeApp extends App {
     private Backup backup;
     private Restore restore;
     private Date nextBackupTime;
@@ -27,18 +27,18 @@ public class Service extends App {
     /**
      * Ask the user for the passphrase
      */
-    public Service() {
+    public FBNodeApp() {
     	this(null, null);
     }
 
     /**
      * Ask the user for the passphrase
      */
-    public Service(String configFilePath) {
+    public FBNodeApp(String configFilePath) {
     	this(null, configFilePath);
     }
 
-    public Service(char[] passphrase, String configFilePath) {
+    public FBNodeApp(char[] passphrase, String configFilePath) {
         try {
         	if( configFilePath == null ) {
                 wire();
@@ -157,11 +157,11 @@ public class Service extends App {
 	}
     
     public static void main(String[] args) throws Exception {
-        Service svc;
+        FBNodeApp svc;
     	if( args.length == 0) {
-    		svc = new Service();
+    		svc = new FBNodeApp();
     	} else {
-    		svc = new Service(args[0]);
+    		svc = new FBNodeApp(args[0]);
     	}
         svc.go();
     }
