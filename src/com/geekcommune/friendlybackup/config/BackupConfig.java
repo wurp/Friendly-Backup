@@ -428,6 +428,7 @@ public class BackupConfig {
         retval.setProperty(BACKUP_STREAM_NAME_KEY, backupStreamName);
         retval.setProperty(COMPUTER_NAME_KEY, computerName);
         retval.setProperty(MY_NAME_KEY, myName);
+        retval.setProperty(EMAIL, email);
         retval.setProperty(BACKUP_TIME_KEY, backupHour+":"+backupMinute);
         retval.setProperty(BACKUP_STREAM_NAME_KEY, backupStreamName);
         retval.setProperty(SERVER_CONNECT_INFO_KEY, getServerAddress().getConnectString());
@@ -588,6 +589,23 @@ public class BackupConfig {
         }
     }
 
+    public String toString() {
+        StringBuilder sb = new StringBuilder("BackupConfig(");
+        sb.append("backupPath: ").append(backupPath);
+        sb.append(", restorePath: ").append(restorePath);
+        sb.append(", backupStreamName: ").append(backupStreamName);
+        sb.append(", computerName: ").append(computerName);
+        sb.append(", myName: ").append(myName);
+        sb.append(", backupStreamName: ").append(backupStreamName);
+        sb.append(", backupPath: ").append(backupPath);
+        sb.append(", localPort: ").append(localPort);
+        sb.append(", backupHour: ").append(backupHour);
+        sb.append(", backupMinute: ").append(backupMinute);
+        sb.append(", storingNodes: ").append(Arrays.toString(storingNodes));
+        sb.append(")");
+        return sb.toString();
+    }
+    
 	public synchronized void setEmail(String email) {
         this.email = email;
         dirty = true;

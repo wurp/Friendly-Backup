@@ -17,3 +17,7 @@ out*
 dist/run/db/*
 dist/gnupg/*
 tmp
+*.tmp
+*.swp
+log.txt
+log2.txt

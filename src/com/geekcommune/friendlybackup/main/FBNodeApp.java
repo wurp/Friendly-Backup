@@ -5,24 +5,26 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import org.bouncycastle.openpgp.PGPException;
-
-import com.geekcommune.communication.message.ClientStartupMessage;
-import com.geekcommune.communication.message.ConfirmationMessage;
+import com.geekcommune.communication.message.AbstractMessage;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
-import com.geekcommune.friendlybackup.config.SwingCreateAccountDialog;
-import com.geekcommune.friendlybackup.config.SwingUIKeyDataSource;
+import com.geekcommune.friendlybackup.communication.message.RetrieveDataMessage;
+import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
+import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasureMessage;
+import com.geekcommune.friendlybackup.config.BackupConfig;
+import com.geekcommune.friendlybackup.datastore.DBDataStore;
+import com.geekcommune.friendlybackup.datastore.DataStore;
+import com.geekcommune.friendlybackup.logging.LoggingUserLog;
 import com.geekcommune.friendlybackup.logging.UserLog;
-import com.geekcommune.friendlybackup.server.format.high.ClientUpdate;
-import com.geekcommune.identity.EncryptionUtil;
 
-public class FBNodeApp extends App {
-    private Backup backup;
-    private Restore restore;
+public class FBNodeApp {
+    public static final String BACKUP_CONFIG_PROP_KEY = "BackupConfigFile";
+
+    private boolean wired = false;
     private Date nextBackupTime;
     private File restoreFile;
     private File backupFile;
+    private FBNodeImpl fbNode;
 
     /**
      * Ask the user for the passphrase
@@ -47,18 +49,15 @@ public class FBNodeApp extends App {
         	}
 
             //if no secret keyring, create one
-            createKeyringIfNeeded();
+            fbNode.createKeyringIfNeeded();
             
-            authenticateUser(passphrase);
+            fbNode.authenticateUser(passphrase);
             
-            updateServer();
+            fbNode.updateServer();
             
-            restoreFile = new File(getBackupConfig().getRoot(), "restore.txt");
-            backupFile = new File(getBackupConfig().getRoot(), "backup.txt");
+            restoreFile = new File(fbNode.getBackupConfig().getRoot(), "restore.txt");
+            backupFile = new File(fbNode.getBackupConfig().getRoot(), "backup.txt");
             
-            backup = new Backup(getBackupConfig());
-            restore = new Restore(getBackupConfig());
-
             nextBackupTime = findNextBackupTime();
             UserLog.instance().logInfo("Next backup at " + nextBackupTime);
         } catch(IOException e) {
@@ -71,90 +70,6 @@ public class FBNodeApp extends App {
             UserLog.instance().logError("Could not generate keys", e);
         }
     }
-
-	private void updateServer() throws FriendlyBackupException, IOException {
-		ClientUpdate cu = new ClientUpdate(
-				getBackupConfig().getMyName(),
-				getBackupConfig().getEmail(),
-				getBackupConfig().getRoot().getFreeSpace(),
-				getBackupConfig().getPublicKeyRing().getEncoded(),
-				getBackupConfig().getAuthenticatedOwner());
-			;
-
-		ClientStartupMessage csm = new ClientStartupMessage(
-				getBackupConfig().getServerAddress(),
-				getBackupConfig().getLocalPort(),
-				cu);
-
-		BackupMessageUtil.instance().queueMessage(csm);
-		
-		//block for the response
-		try {
-			if( !csm.awaitResponse(30000) ) {
-			    throw new FriendlyBackupException("Timed out waiting for " + getBackupConfig().getServerAddress());
-			}
-		} catch (InterruptedException e) {
-			throw new FriendlyBackupException("Interrupted while waiting for response from server", e);
-		}
-		
-		ConfirmationMessage confirmationMsg = csm.getConfirmation();
-		if( !confirmationMsg.isOK() ) {
-			throw new FriendlyBackupException("Could not register with server: " +
-					confirmationMsg.getErrorMessage());
-		}
-	}
-
-	private void createKeyringIfNeeded() throws IOException,
-			InterruptedException {
-		if( !getBackupConfig().getSecretKeyringFile().isFile() ) {
-		    SwingCreateAccountDialog createAccountDialog = new SwingCreateAccountDialog();
-
-		    if( createAccountDialog.getPassphrase() == null ) {
-		        UserLog.instance().logInfo("Exiting at user's request");
-		        System.exit(-1);
-		    }
-
-		    String name = createAccountDialog.getName();
-		    String email = createAccountDialog.getEmail();
-		    char[] passphrase = createAccountDialog.getPassphrase();
-		    
-		    getBackupConfig().setMyName(name);
-		    getBackupConfig().setEmail(email);
-		    ((SwingUIKeyDataSource)getBackupConfig().getKeyDataSource()).setPassphrase(passphrase);
-		    
-		    EncryptionUtil.instance().generateKey(
-		            name,
-		            email,
-		            passphrase,
-		            getBackupConfig().getPublicKeyringFile(),
-		            getBackupConfig().getSecretKeyringFile());
-		}
-	}
-
-	private void authenticateUser(char[] passphrase) throws FriendlyBackupException {
-		boolean passphraseCorrect = false;
-		while(!passphraseCorrect) {
-		    //make sure we have the passphrase now, since the user is presumably at the computer
-		    //Empty passphrase is interpreted as meaning "quit"
-		    if( getBackupConfig().getKeyDataSource().getPassphrase() == null ) {
-		        UserLog.instance().logInfo("Exiting at user's request");
-		        System.exit(-1);
-		    }
-		    
-		    //verify that the passphrase is correct
-		    try {
-		        getBackupConfig().getAuthenticatedOwner().sign(new byte[] { 1, 2, 3, 4, 5 });
-		        passphraseCorrect = true;
-		    } catch (FriendlyBackupException e) {
-		        UserLog.instance().logError("pwd error", e);
-		        if( e.getCause() instanceof PGPException ) {
-		            getBackupConfig().getKeyDataSource().clearPassphrase();
-		        } else {
-		            throw e;
-		        }
-		    }
-		}
-	}
     
     public static void main(String[] args) throws Exception {
         FBNodeApp svc;
@@ -180,7 +95,7 @@ public class FBNodeApp extends App {
                 restoreFile.delete();
                 
                 try {
-                    restore();
+                    fbNode.restore();
                 } catch (FriendlyBackupException e) {
                     UserLog.instance().logError("Restore failed", e);
                 } catch (InterruptedException e) {
@@ -198,7 +113,7 @@ public class FBNodeApp extends App {
             Date timestamp = new Date();
             if( doBackup || timestamp.after(nextBackupTime) ) {
                 try {
-                    backup();
+                    fbNode.backup();
                 } catch (IOException e) {
                     UserLog.instance().logError("Backup failed", e);
                 } catch (InterruptedException e) {
@@ -210,21 +125,13 @@ public class FBNodeApp extends App {
         }
     }
 
-    public void backup() throws IOException, InterruptedException {
-        backup.doBackup();
-    }
-
-    public void restore() throws FriendlyBackupException, InterruptedException {
-        restore.doRestore();
-    }
-
     /**
      * Find the earliest future backup time.
      * @return
      */
     public Date findNextBackupTime() {
-        int backupHour = getBackupConfig().getBackupHour();
-        int backupMinute = getBackupConfig().getBackupMinute();
+        int backupHour = fbNode.getBackupConfig().getBackupHour();
+        int backupMinute = fbNode.getBackupConfig().getBackupMinute();
         
         GregorianCalendar retval = new GregorianCalendar();
         
@@ -242,5 +149,53 @@ public class FBNodeApp extends App {
         retval.set(GregorianCalendar.SECOND, 0);
         
         return retval.getTime();
+    }
+
+    /**
+     * Dependency Injection
+     * @throws IOException 
+     * @throws FriendlyBackupException 
+     */
+    public synchronized void wire() throws IOException, FriendlyBackupException {
+        wire(System.getProperty(BACKUP_CONFIG_PROP_KEY));
+    }
+
+    /**
+     * Dependency Injection
+     * @throws IOException 
+     * @throws FriendlyBackupException 
+     */
+    public synchronized void wire(String configFilePath) throws IOException, FriendlyBackupException {
+        if( !wired ) {
+            wired = true;
+            
+            //UserLog
+            UserLog.setInstance(new LoggingUserLog());
+
+            //BackupConfig
+            File cfgFile = new File(configFilePath);
+            fbNode = new FBNodeImpl(new BackupConfig(cfgFile));
+
+            //DataStore
+            DataStore.setInstance(new DBDataStore(fbNode.getBackupConfig().getDbConnectString()));
+            
+            //BackupMessageUtil
+            BackupMessageUtil.setInstance(new BackupMessageUtil());
+            BackupMessageUtil.instance().setBackupConfig(fbNode.getBackupConfig());
+            BackupMessageUtil.instance().startListenThread();
+            
+            //set up messages to be read from the input data
+            AbstractMessage.registerMessageFactory(VerifyMaybeSendDataMessage.INT_TYPE, VerifyMaybeSendDataMessage.FACTORY);
+            AbstractMessage.registerMessageFactory(RetrieveDataMessage.INT_TYPE, RetrieveDataMessage.FACTORY);
+            AbstractMessage.registerMessageFactory(VerifyMaybeSendErasureMessage.INT_TYPE, VerifyMaybeSendErasureMessage.FACTORY);
+        }
+    }
+
+    /**
+     * convenience method to get the backup config from the FBNode api.
+     * @return
+     */
+    public BackupConfig getBackupConfig() {
+        return fbNode.getBackupConfig();
     }
 }
