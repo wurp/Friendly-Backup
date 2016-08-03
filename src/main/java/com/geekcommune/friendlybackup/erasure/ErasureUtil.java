@@ -26,11 +26,11 @@ public class ErasureUtil {
      * @param totalErasures
      * @return
      */
-	public static Buffer[] encode(byte[] data, int erasuresNeeded, int totalErasures) {
-		int erasureSize = calcErasureBufferLength(erasuresNeeded, data.length);
-		
-		//We have to put the input data into Buffers for FEC to process it.
-		//Buffer reuses, rather than copies, the data in the byte[]
+    public static Buffer[] encode(byte[] data, int erasuresNeeded, int totalErasures) {
+        int erasureSize = calcErasureBufferLength(erasuresNeeded, data.length);
+        
+        //We have to put the input data into Buffers for FEC to process it.
+        //Buffer reuses, rather than copies, the data in the byte[]
         Buffer[] sourceBuffers = new Buffer[erasuresNeeded];
 
         for (int i = 0; i < sourceBuffers.length; i++) {
@@ -85,8 +85,8 @@ public class ErasureUtil {
         System.arraycopy(sourceBuffers, 0, allErasureBuffers, 0, sourceBuffers.length);
         System.arraycopy(repairBuffers, 0, allErasureBuffers, sourceBuffers.length, repairBuffers.length);
         
-		return allErasureBuffers;
-	}
+        return allErasureBuffers;
+    }
 
     private static synchronized FECCode getFECCode(int erasuresNeeded, int totalErasures) {
         Pair<Integer,Integer> key = new Pair<Integer,Integer>(erasuresNeeded,totalErasures);
@@ -102,11 +102,11 @@ public class ErasureUtil {
     private static int calcErasureBufferLength(int erasuresNeeded,
             int dataLength) {
         int erasureSize = dataLength / erasuresNeeded;
-		if( dataLength % erasuresNeeded != 0 ) {
-		    erasureSize += 1;
-		}
-		
-		return erasureSize;
+        if( dataLength % erasuresNeeded != 0 ) {
+            erasureSize += 1;
+        }
+        
+        return erasureSize;
     }
 
     /**
