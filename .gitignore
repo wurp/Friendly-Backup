@@ -21,3 +21,4 @@ tmp
 *.swp
 log.txt
 log2.txt
+target/
