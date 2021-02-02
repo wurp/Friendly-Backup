@@ -8,6 +8,9 @@ import java.io.DataOutputStream;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
+import org.junit.Test;
+import org.junit.Ignore;
+
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendErasureMessage;
@@ -21,9 +24,11 @@ import com.geekcommune.util.StringUtil;
  * A place to stick random little tests.
  * @author bobbym
  */
-public class TestGrabBag extends TestCase {
+public class TestGrabBag {
     private static HashIdentifier hashId = makeRandomHashIdentifier();
 
+    @Test
+    @Ignore
     public void todo_needs_SecretIdentity_testVerifyMaybeSendDataMessage() throws Exception {
         VerifyMaybeSendErasureMessage vmsem =
                 new VerifyMaybeSendErasureMessage(
@@ -63,6 +68,7 @@ public class TestGrabBag extends TestCase {
         //Assert.assertEquals(expected, actual);
     }
 
+    @Test
     public void testProtoStream() throws Exception {
         HashIdentifier expected = hashId;
 
@@ -102,6 +108,8 @@ public class TestGrabBag extends TestCase {
         return expected;
     }
     
+    @Test
+    @Ignore
     public void testPwdDialog() throws Exception {
         SwingPassphraseDialog dlg = new SwingPassphraseDialog();
         Assert.assertNotNull(dlg.getPassphrase());
