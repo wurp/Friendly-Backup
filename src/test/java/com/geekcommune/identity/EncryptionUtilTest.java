@@ -13,12 +13,15 @@ import java.util.Properties;
 import java.util.Random;
 
 import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Before;
+import org.junit.Test;
 
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
-import org.junit.Assert;
 
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.format.low.LabelledData;
@@ -27,12 +30,13 @@ import com.geekcommune.util.FileUtil;
 import com.geekcommune.util.Pair;
 import com.geekcommune.util.StringUtil;
 
-public class EncryptionUtilTest extends TestCase {
+public class EncryptionUtilTest {
     private PGPPublicKeyRingCollection pubRing;
     private PGPSecretKeyRingCollection secRing;
     private String recipient;
     private char[] passwd;
 
+    @Before
     public void setUp() throws Exception {
         //initialize encryption (e.g. load provider)
         EncryptionUtil.instance();
@@ -50,6 +54,7 @@ public class EncryptionUtilTest extends TestCase {
         passwd = "password".toCharArray();
     }
     
+    @Test
     public void testEncryptConsistently() throws Exception {
         for(int i = 0; i < 50; ++i) {
             helpEncryptConsistently(100);
@@ -78,6 +83,7 @@ public class EncryptionUtilTest extends TestCase {
         Assert.assertArrayEquals("encryption was not consistent", encrypted1, encrypted2);
     }
     
+    @Test
     public void testEncryptConsistently2() throws Exception {
         //find the signing key
         PGPPublicKeyRing pubKeyRing = (PGPPublicKeyRing) pubRing.getKeyRings().next();
@@ -98,6 +104,7 @@ public class EncryptionUtilTest extends TestCase {
         Assert.assertArrayEquals("encryption was not consistent", encrypted1, encrypted2);
     }
     
+    @Test
     public void testSecureRandomConsistency() throws Exception {
         byte[] seed = new byte[] { 1, 1, 1, 1 };
         SecureRandom secRand = EncryptionUtil.instance().makeSecureRandom(seed);
@@ -113,6 +120,7 @@ public class EncryptionUtilTest extends TestCase {
         Assert.assertArrayEquals(randBuff1, randBuff2);
     }
     
+    @Test
     public void testSignatureSerialization() throws Exception {
         //find the signing key
         PGPPublicKeyRing pubKeyRing = (PGPPublicKeyRing) pubRing.getKeyRings().next();
@@ -138,10 +146,12 @@ public class EncryptionUtilTest extends TestCase {
         Assert.assertFalse(recoveredSig.verify(pubIdent, bytesToSign));
     }
     
+    @Test
     public void testFileErasureFinder() throws Exception {
         
     }
     
+    @Test
     public void testFileEncryption() throws Exception {
         URL url = getClass().getResource("test-input.txt");
         File inFile;
@@ -170,12 +180,14 @@ public class EncryptionUtilTest extends TestCase {
         decryptedOut.close();
     }
 
+    @Test
     public void testBufferEncryption() throws Exception {
         byte[] input = "Some stuff\nMore stuff\nHi Bobby!\n\n".getBytes();
 
         validateDataEncryption(input, secRing, pubRing, recipient, passwd);
     }
 
+    @Test
     public void testMediumBufferEncryption() throws Exception {
         byte[] input = new byte[16*1024];
 
@@ -190,7 +202,9 @@ public class EncryptionUtilTest extends TestCase {
      * Takes a long time to run; omitting from testing for now (passes)
      * @throws Exception
      */
-    public void _testBigBufferEncryption() throws Exception {
+    @Ignore
+    @Test
+    public void testBigBufferEncryption() throws Exception {
         byte[] input = new byte[64*1024*1024];
 
         for(int i = 0; i < input.length; ++i) {
@@ -233,9 +247,12 @@ public class EncryptionUtilTest extends TestCase {
         Assert.assertArrayEquals(input, decrypted);
     }
 
+    /**
+     * Test not yet implemented
+     */
+    @Ignore
+    @Test
     public void testCreateKeyringIfNone() throws Exception {
-        fail("unimplemented");
-
         File keyRingDir = new File("target/test-classes/encrypt-working");
         keyRingDir.mkdirs();
         
@@ -271,6 +288,7 @@ public class EncryptionUtilTest extends TestCase {
         });
     }
 
+    @Test
     public void testLoadKeyring() throws Exception {
         File keyRingDir = new File("target/test-classes/encrypt-working");
         keyRingDir.mkdirs();
@@ -315,6 +333,7 @@ public class EncryptionUtilTest extends TestCase {
         return input;
     }
     
+    @Test
     public void testFBEncryption() throws Exception {
         //find the signing key
         PGPPublicKeyRing pubKeyRing = (PGPPublicKeyRing) pubRing.getKeyRings().next();
@@ -336,6 +355,7 @@ public class EncryptionUtilTest extends TestCase {
         Assert.assertArrayEquals(encrypted, encrypted2);
     }
     
+    @Test
     public void testLabelledDataSignVerify() throws Exception {
         //find the signing key
         PGPPublicKeyRing pubKeyRing = (PGPPublicKeyRing) pubRing.getKeyRings().next();
