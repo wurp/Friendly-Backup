@@ -37,10 +37,12 @@ public class EncryptionUtilTest extends TestCase {
         //initialize encryption (e.g. load provider)
         EncryptionUtil.instance();
         InputStream publicRing = getClass().getResourceAsStream("test-pubkeyring.asc");
+        Assert.assertNotNull(publicRing);
         pubRing = EncryptionUtil.instance().readPublicKeyRingCollection(publicRing);
         publicRing.close();
 
         InputStream secretRing = getClass().getResourceAsStream("test-seckeyring.gpg");
+        Assert.assertNotNull(secretRing);
         secRing = EncryptionUtil.instance().readSecretKeyRingCollection(secretRing);
         secretRing.close();
         
@@ -234,7 +236,7 @@ public class EncryptionUtilTest extends TestCase {
     public void testCreateKeyringIfNone() throws Exception {
         fail("unimplemented");
 
-        File keyRingDir = new File("test/unit/encrypt-working");
+        File keyRingDir = new File("target/test-classes/encrypt-working");
         keyRingDir.mkdirs();
         
         File secretKeyRingFile = new File(keyRingDir, "secring.gpg");
@@ -260,17 +262,17 @@ public class EncryptionUtilTest extends TestCase {
                 
             }
 
-			@Override
-			public void initFromProps(String propNamePrefix, Properties props) {
-				// TODO Auto-generated method stub
-				
-			}
+            @Override
+            public void initFromProps(String propNamePrefix, Properties props) {
+                // TODO Auto-generated method stub
+                
+            }
             
         });
     }
 
     public void testLoadKeyring() throws Exception {
-        File keyRingDir = new File("test/unit/encrypt-working");
+        File keyRingDir = new File("target/test-classes/encrypt-working");
         keyRingDir.mkdirs();
         
         File secretKeyRingFile = new File(keyRingDir, "secring.gpg");
@@ -295,12 +297,12 @@ public class EncryptionUtilTest extends TestCase {
                                 
                             }
 
-							@Override
-							public void initFromProps(String propNamePrefix,
-									Properties props) {
-								// TODO Auto-generated method stub
-								
-							}
+                            @Override
+                            public void initFromProps(String propNamePrefix,
+                                    Properties props) {
+                                // TODO Auto-generated method stub
+                                
+                            }
             
                         });
         
