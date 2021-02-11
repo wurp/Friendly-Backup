@@ -33,7 +33,6 @@ public class FBNodeImpl {
                 getBackupConfig().getRoot().getFreeSpace(),
                 getBackupConfig().getPublicKeyRing().getEncoded(),
                 getBackupConfig().getAuthenticatedOwner());
-            ;
 
         ClientStartupMessage csm = new ClientStartupMessage(
                 getBackupConfig().getServerAddress(),

@@ -1,8 +1,8 @@
 See https://github.com/wurp/Friendly-Backup/wiki
 
-Build jars with ...
+Build jars with 'mvn clean compile assembly:single'
 
-Copy jars and contents of dist/generic to your working directory
+cp target/*.jar and contents of dist/generic to your working directory
 Edit var/BackupConfig.properties and set the values to those of your friends
 
 Once you've done so, you can start up the backup process with run.sh or run.cmd
