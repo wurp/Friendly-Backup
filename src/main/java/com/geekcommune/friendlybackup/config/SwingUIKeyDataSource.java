@@ -31,9 +31,9 @@ public class SwingUIKeyDataSource implements KeyDataSource {
         passphrase = null;
     }
 
-	@Override
-	public void initFromProps(String propNamePrefix, Properties props) {
-		//nothing to do
-	}
+    @Override
+    public void initFromProps(String propNamePrefix, Properties props) {
+        //nothing to do
+    }
 
 }

@@ -10,7 +10,7 @@ import com.onionnetworks.util.Buffer;
  */
 public class BytesErasureFinder implements ErasureFinder {
 
-	private int totalErasures;
+    private int totalErasures;
     private int erasuresNeeded;
     private byte[] data;
 
@@ -21,18 +21,18 @@ public class BytesErasureFinder implements ErasureFinder {
      * @param totalErasures
      */
     public BytesErasureFinder(byte[] data, int erasuresNeeded, int totalErasures) {
-	    this.data = data;
-	    this.erasuresNeeded = erasuresNeeded;
-	    this.totalErasures = totalErasures;
-	}
+        this.data = data;
+        this.erasuresNeeded = erasuresNeeded;
+        this.totalErasures = totalErasures;
+    }
 
-	public Buffer getErasure(int idx) throws FriendlyBackupException {
-	    Buffer[] erasures =
-	            ErasureUtil.encode(
-	                    data,
-	                    erasuresNeeded,
-	                    totalErasures);
-		return erasures[idx];
-	}
+    public Buffer getErasure(int idx) throws FriendlyBackupException {
+        Buffer[] erasures =
+                ErasureUtil.encode(
+                        data,
+                        erasuresNeeded,
+                        totalErasures);
+        return erasures[idx];
+    }
 
 }

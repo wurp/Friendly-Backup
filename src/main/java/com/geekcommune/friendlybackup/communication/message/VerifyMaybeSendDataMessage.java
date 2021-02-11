@@ -60,7 +60,7 @@ public class VerifyMaybeSendDataMessage extends VerifyMaybeSendMessage {
     }
 
     @Override
-	public final int getType() {
+    public final int getType() {
         return INT_TYPE;
     }
 }

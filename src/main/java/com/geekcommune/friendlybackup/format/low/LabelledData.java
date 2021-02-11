@@ -77,22 +77,22 @@ public class LabelledData extends BaseData<Basic.LabelledData> {
         return pointingAt;
     }
 
-	private void sign(SecretIdentity authenticatedUser) throws FriendlyBackupException {
-	    //can't sign the signature; make sure it has a known value
+    private void sign(SecretIdentity authenticatedUser) throws FriendlyBackupException {
+        //can't sign the signature; make sure it has a known value
         this.signature = Signature.INTERNAL_SELF_SIGNED;
-	    this.signature = authenticatedUser.sign(toProto().toByteArray());
-	}
-	
-	/**
-	 * LabelledData is special in that the HashID only depends on
-	 * the owner's public identity handle and the label.  The "pointingAt"
-	 * will change over time, but we need to be able to find the labelled data
-	 * in a consistent way.  Also, of course, the signature depends on
-	 * the value of "pointingAt".
-	 */
-	public HashIdentifier getHashID() {
-		return getHashID(getOwner(), encryptedLabel);
-	}
+        this.signature = authenticatedUser.sign(toProto().toByteArray());
+    }
+    
+    /**
+     * LabelledData is special in that the HashID only depends on
+     * the owner's public identity handle and the label.  The "pointingAt"
+     * will change over time, but we need to be able to find the labelled data
+     * in a consistent way.  Also, of course, the signature depends on
+     * the value of "pointingAt".
+     */
+    public HashIdentifier getHashID() {
+        return getHashID(getOwner(), encryptedLabel);
+    }
 
     public Basic.LabelledData toProto() {
         Basic.LabelledData.Builder bldrId = Basic.LabelledData.newBuilder();

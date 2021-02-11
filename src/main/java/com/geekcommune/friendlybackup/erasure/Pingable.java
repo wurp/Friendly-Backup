@@ -8,5 +8,5 @@ package com.geekcommune.friendlybackup.erasure;
  */
 public interface Pingable {
 
-	public void ping();
+    public void ping();
 }

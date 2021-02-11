@@ -63,8 +63,8 @@ public class RetrieveDataMessage extends RestoreMessage implements HasResponseHa
         id.toProto().writeDelimitedTo(os);
     }
 
-	@Override
-	public final int getType() {
-		return INT_TYPE;
-	}
+    @Override
+    public final int getType() {
+        return INT_TYPE;
+    }
 }

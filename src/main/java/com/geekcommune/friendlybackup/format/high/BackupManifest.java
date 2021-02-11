@@ -16,12 +16,12 @@ public class BackupManifest extends BaseData<Basic.BackupManifest>{
     private List<HashIdentifier> backupFileLabelIds = new ArrayList<HashIdentifier>();
 
     public BackupManifest(Date backupDate) {
-		this.backupDate = backupDate;
-	}
+        this.backupDate = backupDate;
+    }
 
-	public void add(HashIdentifier labelIdOfBackupFile) {
-		backupFileLabelIds.add(labelIdOfBackupFile);
-	}
+    public void add(HashIdentifier labelIdOfBackupFile) {
+        backupFileLabelIds.add(labelIdOfBackupFile);
+    }
 
     public List<HashIdentifier> getFileLabelIDs() {
         return Collections.unmodifiableList(backupFileLabelIds);

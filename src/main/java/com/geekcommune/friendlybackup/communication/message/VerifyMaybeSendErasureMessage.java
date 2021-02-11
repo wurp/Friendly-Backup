@@ -45,13 +45,13 @@ public class VerifyMaybeSendErasureMessage extends VerifyMaybeSendMessage {
     }
 
     @Override
-	public final int getType() {
+    public final int getType() {
         return INT_TYPE;
     }
 
-	@Override
-	protected final void internalSendDataRead(DataInputStream is) throws IOException,
-			FriendlyBackupException {
-		throw new FriendlyBackupException("Reading " + getClass() + " is not supported");
-	}
+    @Override
+    protected final void internalSendDataRead(DataInputStream is) throws IOException,
+            FriendlyBackupException {
+        throw new FriendlyBackupException("Reading " + getClass() + " is not supported");
+    }
 }

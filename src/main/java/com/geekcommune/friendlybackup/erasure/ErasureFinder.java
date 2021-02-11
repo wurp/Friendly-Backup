@@ -4,5 +4,5 @@ import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.onionnetworks.util.Buffer;
 
 public interface ErasureFinder {
-	public Buffer getErasure(int idx) throws FriendlyBackupException;
+    public Buffer getErasure(int idx) throws FriendlyBackupException;
 }

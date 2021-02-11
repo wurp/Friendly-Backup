@@ -53,18 +53,18 @@ public class ErasureManifestBuilder {
                         owner,
                         erasuresNeeded,
                         totalErasures);
-		
-		return build(
-		        FileUtil.instance().getFileContents(f),
-		        erasureFinder,
-		        storingNodes,
-		        bakcfg.getLocalPort(),
-		        erasuresNeeded,
-				totalErasures,
-				expiryDate,
-				owner,
-				progressTracker);
-	}
+        
+        return build(
+                FileUtil.instance().getFileContents(f),
+                erasureFinder,
+                storingNodes,
+                bakcfg.getLocalPort(),
+                erasuresNeeded,
+                totalErasures,
+                expiryDate,
+                owner,
+                progressTracker);
+    }
 
     private ErasureManifest build(
             byte[] data,
@@ -79,31 +79,31 @@ public class ErasureManifestBuilder {
         return buildFromEncrypted(owner.encryptConsistently(data), erasureFinder, storingNodes, localPort, erasuresNeeded, totalErasures, expiryDate, owner, progressTracker);
     }
 
-	private ErasureManifest buildFromEncrypted(
-	        byte[] data,
-	        ErasureFinder erasureFinder,
-			RemoteNodeHandle[] storingNodes,
-			final int localPort,
-			final int erasuresNeeded,
-			final int totalErasures,
-			final Date expiryDate,
-			final SecretIdentity owner,
+    private ErasureManifest buildFromEncrypted(
+            byte[] data,
+            ErasureFinder erasureFinder,
+            RemoteNodeHandle[] storingNodes,
+            final int localPort,
+            final int erasuresNeeded,
+            final int totalErasures,
+            final Date expiryDate,
+            final SecretIdentity owner,
             ProgressTracker progressTracker) throws FriendlyBackupException {
-	    progressTracker.rebase(totalErasures + storingNodes.length);
+        progressTracker.rebase(totalErasures + storingNodes.length);
 
-		ErasureManifest manifest = new ErasureManifest();
+        ErasureManifest manifest = new ErasureManifest();
 
-		//break the file down into totalErasures chunks, in such a way that we
-		//can reconstitute it from any erasuresNeeded chunks
-		Buffer[] erasures = ErasureUtil.encode(data, erasuresNeeded, totalErasures);
+        //break the file down into totalErasures chunks, in such a way that we
+        //can reconstitute it from any erasuresNeeded chunks
+        Buffer[] erasures = ErasureUtil.encode(data, erasuresNeeded, totalErasures);
 
-		int idx = 0;
-		for(Buffer erasureBuffer : erasures) {
-		    Erasure erasure = new Erasure(erasureBuffer, idx);
-			HashIdentifier erasureId = erasure.getHashID();
+        int idx = 0;
+        for(Buffer erasureBuffer : erasures) {
+            Erasure erasure = new Erasure(erasureBuffer, idx);
+            HashIdentifier erasureId = erasure.getHashID();
 
-			//store the erasure on its correct node
-			RemoteNodeHandle storingNode = calculateStoringNode(storingNodes, idx);
+            //store the erasure on its correct node
+            RemoteNodeHandle storingNode = calculateStoringNode(storingNodes, idx);
             VerifyMaybeSendErasureMessage msg = new VerifyMaybeSendErasureMessage(
                     storingNode,
                     localPort,
@@ -115,18 +115,18 @@ public class ErasureManifestBuilder {
             BackupMessageUtil.instance().queueMessage(
                     msg);
 
-			//put the erasure in the manifest
-			manifest.add(erasureId, storingNode);
-			
-			++idx;
-		}
+            //put the erasure in the manifest
+            manifest.add(erasureId, storingNode);
+            
+            ++idx;
+        }
 
         manifest.setContentSize(data.length);
         manifest.setErasuresNeeded(erasuresNeeded);
         manifest.setTotalErasures(totalErasures);
 
-		//for now, store the manifest on all storing nodes
-		for(RemoteNodeHandle node : storingNodes) {
+        //for now, store the manifest on all storing nodes
+        for(RemoteNodeHandle node : storingNodes) {
             VerifyMaybeSendDataMessage msg = new VerifyMaybeSendDataMessage(
                     node,
                     localPort,
@@ -135,25 +135,25 @@ public class ErasureManifestBuilder {
                     new Lease(expiryDate, owner, false, manifest.getHashID()));
             msg.addStateListener(new ProgressWhenCompleteListener(progressTracker, 1));
             BackupMessageUtil.instance().queueMessage(msg);
-		}
+        }
 
-		return manifest;
-	}
+        return manifest;
+    }
 
-	private RemoteNodeHandle calculateStoringNode(
-			RemoteNodeHandle[] storingNodes, int idx) {
-		// TODO figure out a way to not leave the last node(s) underused.  Add hash of erasure manifest before doing modulo?
-		return storingNodes[idx % storingNodes.length];
-	}
+    private RemoteNodeHandle calculateStoringNode(
+            RemoteNodeHandle[] storingNodes, int idx) {
+        // TODO figure out a way to not leave the last node(s) underused.  Add hash of erasure manifest before doing modulo?
+        return storingNodes[idx % storingNodes.length];
+    }
 
-	public ErasureManifest buildFromBytes(
-	        RemoteNodeHandle[] storingNodes,
-	        byte[] data,
-	        BackupConfig bakcfg,
-	        Date expiryDate,
-	        SecretIdentity owner,
+    public ErasureManifest buildFromBytes(
+            RemoteNodeHandle[] storingNodes,
+            byte[] data,
+            BackupConfig bakcfg,
+            Date expiryDate,
+            SecretIdentity owner,
             ProgressTracker progressTracker) throws FriendlyBackupException {
-		int erasuresNeeded = bakcfg.getErasuresNeeded();
+        int erasuresNeeded = bakcfg.getErasuresNeeded();
         int totalErasures = bakcfg.getTotalErasures();
 
         data = owner.encryptConsistently(data);
@@ -164,19 +164,19 @@ public class ErasureManifestBuilder {
                         erasuresNeeded,
                         totalErasures);
 
-		return buildFromEncrypted(
-		        data,
-		        erasureFinder,
-		        storingNodes,
-		        bakcfg.getLocalPort(),
-		        erasuresNeeded,
-				totalErasures,
+        return buildFromEncrypted(
+                data,
+                erasureFinder,
+                storingNodes,
+                bakcfg.getLocalPort(),
+                erasuresNeeded,
+                totalErasures,
                 expiryDate,
                 owner,
                 progressTracker);
-	}
+    }
 
-	public static ErasureManifestBuilder instance() {
-		return instance ;
-	}
+    public static ErasureManifestBuilder instance() {
+        return instance ;
+    }
 }

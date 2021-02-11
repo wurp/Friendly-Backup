@@ -20,8 +20,8 @@ import com.geekcommune.util.Pair;
  *
  */
 public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
-	private List<Pair<HashIdentifier, RemoteNodeHandle>> erasureFetchList =
-	        new ArrayList<Pair<HashIdentifier, RemoteNodeHandle>>();
+    private List<Pair<HashIdentifier, RemoteNodeHandle>> erasureFetchList =
+            new ArrayList<Pair<HashIdentifier, RemoteNodeHandle>>();
     private int contentSize;
     private int erasuresNeeded;
     private int totalErasures;
@@ -29,11 +29,11 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
     public ErasureManifest() {
     }
 
-	public void add(HashIdentifier erasureId, RemoteNodeHandle storingNode) {
-		erasureFetchList.add(
-				new Pair<HashIdentifier,
-				RemoteNodeHandle>(erasureId, storingNode));
-	}
+    public void add(HashIdentifier erasureId, RemoteNodeHandle storingNode) {
+        erasureFetchList.add(
+                new Pair<HashIdentifier,
+                RemoteNodeHandle>(erasureId, storingNode));
+    }
 
     public List<Pair<HashIdentifier, RemoteNodeHandle>> getRetrievalData() {
         return Collections.unmodifiableList(erasureFetchList);
@@ -64,9 +64,9 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
     }
 
     public int getIndex(HashIdentifier hashID)
-    	throws FriendlyBackupException {
+        throws FriendlyBackupException {
         //walk the list of erasures & find the one with this hashID,
-    	//then return its index
+        //then return its index
         int idx = -1;
         int i = 0;
         for(Pair<HashIdentifier, RemoteNodeHandle> fetchData : erasureFetchList) {
@@ -79,8 +79,8 @@ public class ErasureManifest extends BaseData<Basic.ErasureManifest> {
         
         if( idx == -1 ) {
             throw new FriendlyBackupException(
-            		"Did not find erasure with hash ID " + hashID +
-            		" in erasure manifest");
+                    "Did not find erasure with hash ID " + hashID +
+                    " in erasure manifest");
         }
         return idx;
     }

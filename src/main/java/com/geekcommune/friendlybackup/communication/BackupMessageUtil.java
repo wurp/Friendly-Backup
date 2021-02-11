@@ -55,23 +55,23 @@ public class BackupMessageUtil extends MessageUtil {
     }
     
     private void initMessageHandlers() {
-    	addMessageHandler(new MessageHandler() {
-			@Override
-			public boolean handleMessage(Message msg, InetAddress address, boolean responseHandled) throws FriendlyBackupException {
-				boolean handled = false;
-		        if( !responseHandled && msg instanceof VerifyMaybeSendDataMessage ) {
-		        	handled = true;
-		            VerifyMaybeSendDataMessage dataMessage = (VerifyMaybeSendDataMessage) msg;
+        addMessageHandler(new MessageHandler() {
+            @Override
+            public boolean handleMessage(Message msg, InetAddress address, boolean responseHandled) throws FriendlyBackupException {
+                boolean handled = false;
+                if( !responseHandled && msg instanceof VerifyMaybeSendDataMessage ) {
+                    handled = true;
+                    VerifyMaybeSendDataMessage dataMessage = (VerifyMaybeSendDataMessage) msg;
 
-	                //TODO check that sender (and lease owner) is in the friend node list
-	                DataStore.instance().storeData(dataMessage.getDataHashID(), dataMessage.getData(), dataMessage.getLease());
-		            
-		            msg.setState(Message.State.Finished);
-		        }
-		        
-				return handled;
-			}
-		});
+                    //TODO check that sender (and lease owner) is in the friend node list
+                    DataStore.instance().storeData(dataMessage.getDataHashID(), dataMessage.getData(), dataMessage.getLease());
+                    
+                    msg.setState(Message.State.Finished);
+                }
+                
+                return handled;
+            }
+        });
         
         addMessageHandler(new MessageHandler() {
             @Override
@@ -116,7 +116,7 @@ public class BackupMessageUtil extends MessageUtil {
                 return handled;
             }
         });
-	}
+    }
 
     private void updateFriends(FriendListUpdate friendListUpdate) {
         List<RemoteNodeHandle> newFriends = new ArrayList<RemoteNodeHandle>();
@@ -306,8 +306,8 @@ public class BackupMessageUtil extends MessageUtil {
                 
                 public void run() {
                     try {
-                    	VerifyMaybeSendDataMessage vmsdm = (VerifyMaybeSendDataMessage) msg;
-                    	byte[] data = vmsdm.getData();
+                        VerifyMaybeSendDataMessage vmsdm = (VerifyMaybeSendDataMessage) msg;
+                        byte[] data = vmsdm.getData();
                         DataStore.instance().storeData(id, data, new Lease(DateUtil.oneHourHence(), bakcfg.getOwner().getHandle(), Signature.INTERNAL_SELF_SIGNED, id));
                         continuation.run();
                     } catch (FriendlyBackupException e) {
@@ -385,8 +385,8 @@ public class BackupMessageUtil extends MessageUtil {
         this.bakcfg = bakcfg;
     }
 
-	@Override
-	protected int getLocalPort() {
-		return bakcfg.getLocalPort();
-	}
+    @Override
+    protected int getLocalPort() {
+        return bakcfg.getLocalPort();
+    }
 }

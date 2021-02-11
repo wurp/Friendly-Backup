@@ -74,7 +74,7 @@ public abstract class VerifyMaybeSendMessage extends BackupMessage {
 
     protected abstract void internalSendDataRead(DataInputStream is)  throws IOException, FriendlyBackupException;
 
-	@Override
+    @Override
     protected final void internalWrite(DataOutputStream os) throws IOException, FriendlyBackupException {
         getDataHashID().toProto().writeDelimitedTo(os);
         

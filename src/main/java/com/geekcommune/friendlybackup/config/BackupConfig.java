@@ -53,8 +53,8 @@ public class BackupConfig {
     private static final String MY_NAME_KEY = "myName";
     private static final String BACKUP_TIME_KEY = "dailyBackupTime";
     private static final String EMAIL = "email";
-	private static final String SERVER_CONNECT_INFO_KEY = "server.connectinfo";
-	private static final String KEY_DATASOURCE_CLASS_KEY = "keyDataSourceClass";
+    private static final String SERVER_CONNECT_INFO_KEY = "server.connectinfo";
+    private static final String KEY_DATASOURCE_CLASS_KEY = "keyDataSourceClass";
 
     private static final String FRIEND_PREFIX = "friend.";
     private static final String EMAIL_SUFFIX = ".email";
@@ -84,19 +84,19 @@ public class BackupConfig {
     int backupMinute;
     int backupHour;
     private char[] passphrase;
-	private RemoteNodeHandle serverAddress;
+    private RemoteNodeHandle serverAddress;
     private static String[] friends;
     File backupConfig;
     private String email;
     private Properties myProps;
 
 
-	boolean dirty;
+    boolean dirty;
 
     BackupConfig() {
     }
 
-	public KeyDataSource getKeyDataSource() {
+    public KeyDataSource getKeyDataSource() {
         return keyDataSource;
     }
 
@@ -105,9 +105,9 @@ public class BackupConfig {
     }
 
     //a name for the series of backups this configuration configures
-	public String getBackupStreamName() {
-		return backupStreamName;
-	}
+    public String getBackupStreamName() {
+        return backupStreamName;
+    }
 
     public String getFullFilePath(File f) throws IOException {
         return getComputerName() + DELIM + f.getCanonicalPath();
@@ -123,41 +123,41 @@ public class BackupConfig {
         return fullFilePath.split(DELIM);
     }
 
-	public String getComputerName() {
-		return computerName;
-	}
+    public String getComputerName() {
+        return computerName;
+    }
 
-	public int getTotalErasures() {
-		return 60;
-	}
+    public int getTotalErasures() {
+        return 60;
+    }
 
-	public int getErasuresNeeded() {
-		return 40;
-	}
+    public int getErasuresNeeded() {
+        return 40;
+    }
 
-	public synchronized RemoteNodeHandle[] getStoringNodes() {
-		return storingNodes;
-	}
+    public synchronized RemoteNodeHandle[] getStoringNodes() {
+        return storingNodes;
+    }
 
-	public synchronized SecretIdentity getAuthenticatedOwner() throws FriendlyBackupException {
-	    //if we haven't initialized, or if the passphrase has been changed since we last tried to initialize
-	    if( secretIdentity == null || passphrase != keyDataSource.getPassphrase() ) {
-	        passphrase = keyDataSource.getPassphrase();
+    public synchronized SecretIdentity getAuthenticatedOwner() throws FriendlyBackupException {
+        //if we haven't initialized, or if the passphrase has been changed since we last tried to initialize
+        if( secretIdentity == null || passphrase != keyDataSource.getPassphrase() ) {
+            passphrase = keyDataSource.getPassphrase();
             secretIdentity = new SecretIdentity(
                     getPublicKeyRing(),
                     getSecretKeyRingCollection(),
                     passphrase);
-	    }
-	    
-	    return secretIdentity;
-	}
+        }
+        
+        return secretIdentity;
+    }
 
-	public File getRoot() {
-	    return root;
-	}
-	
-	public List<File> getFilesToBackup() {
-		File root = getBackupRootDir();
+    public File getRoot() {
+        return root;
+    }
+    
+    public List<File> getFilesToBackup() {
+        File root = getBackupRootDir();
         List<File> retval = new ArrayList<File>();
 
         FileUtil.instance().listTree(retval, root, new FileFilter() {
@@ -165,24 +165,24 @@ public class BackupConfig {
                 return pathname.isFile();
             }
         });
-		
+        
         return retval;
-	}
+    }
 
     /**
      * Get the directories to be backed up.
      * Note that some subtrees may have blacklisted subtrees or files within them.
      * @return
      */
-	public File[] getBackupRootDirectories() {
-	    return new File[] { getBackupRootDir() };
-	}
-	
-	/**
-	 * Get the directory to be backed up.  This is temporary
-	 * until I get the infrastructure in place to pull from many directories, with the ability to blacklist subtrees.
-	 * @return
-	 */
+    public File[] getBackupRootDirectories() {
+        return new File[] { getBackupRootDir() };
+    }
+    
+    /**
+     * Get the directory to be backed up.  This is temporary
+     * until I get the infrastructure in place to pull from many directories, with the ability to blacklist subtrees.
+     * @return
+     */
     private File getBackupRootDir() {
         return new File(root, backupPath);
     }
@@ -339,7 +339,7 @@ public class BackupConfig {
     }
     
     public RemoteNodeHandle getServerAddress() {
-    	return serverAddress;
+        return serverAddress;
     }
     
     public synchronized void setMyName(String name) {
@@ -385,10 +385,10 @@ public class BackupConfig {
         //Make sure system is ready to run
         if( "MyNickName".equals(getMyName()) ) {
             throw new FriendlyBackupException(
-            		"Edit " + getRoot().getAbsolutePath() +
-            		"/BackupConfig.properties and set the values " +
-            		"appropriately (myName cannot be MyNickName).\nSee " +
-            		"http://bobbymartin.name/friendlybackup/properties.html");
+                    "Edit " + getRoot().getAbsolutePath() +
+                    "/BackupConfig.properties and set the values " +
+                    "appropriately (myName cannot be MyNickName).\nSee " +
+                    "http://bobbymartin.name/friendlybackup/properties.html");
         }
         
         {
@@ -402,24 +402,24 @@ public class BackupConfig {
         initStoringNodes();
         
         {
-        	String keyDataSourceClass = getProp(KEY_DATASOURCE_CLASS_KEY, false);
-        	if( keyDataSourceClass == null ) {
-        		keyDataSource = new SwingUIKeyDataSource();
-        	} else {
-        		try {
-            		Class<?> clazz = Class.forName(keyDataSourceClass);
-            		keyDataSource = (KeyDataSource) clazz.newInstance();
-            		keyDataSource.initFromProps(KEY_DATASOURCE_CLASS_KEY, myProps);
-        		} catch(Exception e) {
-        			throw new FriendlyBackupException("Could not initialize key datasource: " + e.getMessage(), e);
-        		}
-        	}
+            String keyDataSourceClass = getProp(KEY_DATASOURCE_CLASS_KEY, false);
+            if( keyDataSourceClass == null ) {
+                keyDataSource = new SwingUIKeyDataSource();
+            } else {
+                try {
+                    Class<?> clazz = Class.forName(keyDataSourceClass);
+                    keyDataSource = (KeyDataSource) clazz.newInstance();
+                    keyDataSource.initFromProps(KEY_DATASOURCE_CLASS_KEY, myProps);
+                } catch(Exception e) {
+                    throw new FriendlyBackupException("Could not initialize key datasource: " + e.getMessage(), e);
+                }
+            }
         }
         
         dirty = false;
     }
 
-	public Properties toProperties() {
+    public Properties toProperties() {
         Properties retval = new Properties();
 
         retval.setProperty(BACKUP_ROOT_DIR_KEY, backupPath);
@@ -474,18 +474,18 @@ public class BackupConfig {
 
     private void initStoringNodes() throws FriendlyBackupException {
         if( storingNodes == null ) {
-			String serverConnectInfo = getProp(SERVER_CONNECT_INFO_KEY);
-			serverAddress = new RemoteNodeHandle(
-					SERVER_NAME,
-					SERVER_EMAIL,
+            String serverConnectInfo = getProp(SERVER_CONNECT_INFO_KEY);
+            serverAddress = new RemoteNodeHandle(
+                    SERVER_NAME,
+                    SERVER_EMAIL,
                     serverConnectInfo,
                     //TODO use real identity handle for server
                     new PublicIdentityHandle(0, 0)
-					);
+                    );
 
             storingNodes = new RemoteNodeHandle[friends.length];
             for(int i = 0; i < friends.length; ++i) {
-				String email = getProp(FRIEND_PREFIX+friends[i]+EMAIL_SUFFIX);
+                String email = getProp(FRIEND_PREFIX+friends[i]+EMAIL_SUFFIX);
                 String connectInfo = getProp(FRIEND_PREFIX+friends[i]+CONNECT_INFO_SUFFIX);
 
                 PublicIdentityHandle pih = getFriendPublicIdentityHandle(friends[i]);
@@ -554,17 +554,17 @@ public class BackupConfig {
     }
 
     
-	private String getProp(String propName) throws FriendlyBackupException {
-		return getProp(propName, true);
-	}
-	
-	private String getProp(String propName, boolean required) throws FriendlyBackupException {
-		String retval = myProps.getProperty(propName);
-		if( required && retval == null ) {
-			throw new FriendlyBackupException("It looks as if " + propName + " is missing from BackupConfig.properties");
-		}
-		return retval;
-	}
+    private String getProp(String propName) throws FriendlyBackupException {
+        return getProp(propName, true);
+    }
+    
+    private String getProp(String propName, boolean required) throws FriendlyBackupException {
+        String retval = myProps.getProperty(propName);
+        if( required && retval == null ) {
+            throw new FriendlyBackupException("It looks as if " + propName + " is missing from BackupConfig.properties");
+        }
+        return retval;
+    }
     
     public boolean equals(Object obj) {
         if( obj instanceof BackupConfig ) {
@@ -606,12 +606,12 @@ public class BackupConfig {
         return sb.toString();
     }
     
-	public synchronized void setEmail(String email) {
+    public synchronized void setEmail(String email) {
         this.email = email;
         dirty = true;
-	}
+    }
 
-	public synchronized String getEmail() {
+    public synchronized String getEmail() {
         return this.email;
-	}
+    }
 }

@@ -30,23 +30,23 @@ public class FBNodeApp {
      * Ask the user for the passphrase
      */
     public FBNodeApp() {
-    	this(null, null);
+        this(null, null);
     }
 
     /**
      * Ask the user for the passphrase
      */
     public FBNodeApp(String configFilePath) {
-    	this(null, configFilePath);
+        this(null, configFilePath);
     }
 
     public FBNodeApp(char[] passphrase, String configFilePath) {
         try {
-        	if( configFilePath == null ) {
+            if( configFilePath == null ) {
                 wire();
-        	} else {
+            } else {
                 wire(configFilePath);
-        	}
+            }
 
             //if no secret keyring, create one
             fbNode.createKeyringIfNeeded();
@@ -73,11 +73,11 @@ public class FBNodeApp {
     
     public static void main(String[] args) throws Exception {
         FBNodeApp svc;
-    	if( args.length == 0) {
-    		svc = new FBNodeApp();
-    	} else {
-    		svc = new FBNodeApp(args[0]);
-    	}
+        if( args.length == 0) {
+            svc = new FBNodeApp();
+        } else {
+            svc = new FBNodeApp(args[0]);
+        }
         svc.go();
     }
 
