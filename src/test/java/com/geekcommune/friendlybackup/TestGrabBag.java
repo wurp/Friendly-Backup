@@ -5,11 +5,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.junit.Ignore;
+import org.junit.Assert;
 
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.communication.message.VerifyMaybeSendDataMessage;

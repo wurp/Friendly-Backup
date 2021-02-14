@@ -233,7 +233,7 @@ public class BackupConfig {
             PGPPublicKeyRingCollection pkrc;
             try {
                 pkrc = getPublicKeyRingCollection();
-                this.pubkeyring = EncryptionUtil.instance().findPublicKeyRing(pkrc, getMyName());
+                this.pubkeyring = EncryptionUtil.instance().findPublicKeyRing(pkrc, getEmail());
             } catch (IOException e) {
                 throw new FriendlyBackupException(EXCEPTION_MESSAGE, e);
             } catch (PGPException e) {
@@ -488,7 +488,7 @@ public class BackupConfig {
                 String email = getProp(FRIEND_PREFIX+friends[i]+EMAIL_SUFFIX);
                 String connectInfo = getProp(FRIEND_PREFIX+friends[i]+CONNECT_INFO_SUFFIX);
 
-                PublicIdentityHandle pih = getFriendPublicIdentityHandle(friends[i]);
+                PublicIdentityHandle pih = getFriendPublicIdentityHandle(email);
                 storingNodes[i] = new RemoteNodeHandle(
                         friends[i],
                         email,

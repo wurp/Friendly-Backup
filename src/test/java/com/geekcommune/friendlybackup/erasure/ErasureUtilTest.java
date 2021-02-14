@@ -2,20 +2,17 @@ package com.geekcommune.friendlybackup.erasure;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
-import junit.framework.TestCase;
-
 import org.bouncycastle.util.Arrays;
+import org.junit.Assert;
+import org.junit.Test;
 
-import com.geekcommune.friendlybackup.erasure.Erasure;
-import com.geekcommune.friendlybackup.erasure.ErasureUtil;
-import com.geekcommune.friendlybackup.erasure.PrimeGenerator;
 import com.onionnetworks.util.Buffer;
 
-public class ErasureUtilTest extends TestCase {
+public class ErasureUtilTest {
+    @Test
     public void testPrime() {
         PrimeGenerator pg = new PrimeGenerator();
         for(int i = 0; i < 15; ++i) {
@@ -23,6 +20,7 @@ public class ErasureUtilTest extends TestCase {
         }
     }
     
+    @Test
     public void testSmall() throws Exception {
         int[] sizes = {0, 1, 59, 60, 61, 3599, 3600, 3601 };
         for(int i = 0; i < sizes.length; ++i) {
@@ -36,6 +34,7 @@ public class ErasureUtilTest extends TestCase {
         public boolean shouldKill(int i, int numBuffers);
     }
 
+    @Test
     public void testMissingErasures() throws Exception {
         int[] sizes = {0, 1, 59, 60, 61, 3599, 3600, 3601, 60 * 1024, 100 * 1024, 60 * 1024 - 1 };
         for(int i = 0; i < sizes.length; ++i) {
@@ -75,6 +74,7 @@ public class ErasureUtilTest extends TestCase {
 
     public enum Order { IN_ORDER, SCRAMBLE };
     
+    @Test
     public void testScrambleOrder() throws Exception {
         int[] sizes = {0, 1, 59, 60, 61, 3599, 3600, 3601, 60 * 1024, 100 * 1024, 60 * 1024 - 1 };
         for(int i = 0; i < sizes.length; ++i) {
@@ -115,6 +115,7 @@ public class ErasureUtilTest extends TestCase {
         }
     }
 
+    @Test
     public void testMegs() throws Exception {
         int[] sizes = { 100 * 1024, 150 * 1024, 225 * 1024, 375 * 1024, 512 * 1024,
                 768 * 1024, 1000 * 1024, 1024 * 1024, 5 * 1024 * 1024, 15 * 1024 * 1024, 30 * 1024 * 1024, 60 * 1024 * 1024 };
@@ -175,17 +176,12 @@ public class ErasureUtilTest extends TestCase {
         }
         
         if( order == Order.SCRAMBLE ) {
-            Collections.sort(erasureWrappers, new Comparator<Erasure>() {
-                public int compare(Erasure o1, Erasure o2) {
-                    double rand = Math.random();
-                    return rand < 0.33 ? -1 : (rand > 0.66 ? 1 : 0);
-                }
-            });
+            Collections.shuffle(erasureWrappers);
         }
         
         byte[] result = new byte[input.length];
         ErasureUtil.decode(result, erasuresNeeded, totalErasures, erasureWrappers);
         
-        assertTrue("Input data different from output data", Arrays.areEqual(input, result));
+        Assert.assertTrue("Input data different from output data", Arrays.areEqual(input, result));
     }
 }

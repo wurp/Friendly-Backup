@@ -12,16 +12,14 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
 
-import junit.framework.TestCase;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Before;
-import org.junit.Test;
-
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
 import com.geekcommune.friendlybackup.format.low.LabelledData;

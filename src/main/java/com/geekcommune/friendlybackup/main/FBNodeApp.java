@@ -62,9 +62,11 @@ public class FBNodeApp {
             UserLog.instance().logInfo("Next backup at " + nextBackupTime);
         } catch(IOException e) {
             UserLog.instance().logError("Could not start service", e);
+            try { Thread.sleep(100); } catch(InterruptedException e1) {}
             System.exit(-1);
         } catch (FriendlyBackupException e) {
             UserLog.instance().logError(e.getMessage(), e);
+            try { Thread.sleep(100); } catch(InterruptedException e1) {}
             System.exit(-1);
         } catch (InterruptedException e) {
             UserLog.instance().logError("Could not generate keys", e);

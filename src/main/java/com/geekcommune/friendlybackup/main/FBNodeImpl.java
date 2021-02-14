@@ -16,7 +16,10 @@ import com.geekcommune.friendlybackup.server.format.high.ClientUpdate;
 import com.geekcommune.identity.EncryptionUtil;
 
 public class FBNodeImpl {
-    private Backup backup;
+	// TODO make configurable?
+    private static final int MAX_PASSWORD_RETRIES = 5;
+    
+	private Backup backup;
     private Restore restore;
     private BackupConfig bakcfg;
 
@@ -27,34 +30,35 @@ public class FBNodeImpl {
     }
 
     public void updateServer() throws FriendlyBackupException, IOException {
-        ClientUpdate cu = new ClientUpdate(
-                getBackupConfig().getMyName(),
-                getBackupConfig().getEmail(),
-                getBackupConfig().getRoot().getFreeSpace(),
-                getBackupConfig().getPublicKeyRing().getEncoded(),
-                getBackupConfig().getAuthenticatedOwner());
-
-        ClientStartupMessage csm = new ClientStartupMessage(
-                getBackupConfig().getServerAddress(),
-                getBackupConfig().getLocalPort(),
-                cu);
-
-        BackupMessageUtil.instance().queueMessage(csm);
-        
-        //block for the response
-        try {
-            if( !csm.awaitResponse(30000) ) {
-                throw new FriendlyBackupException("Timed out waiting for " + getBackupConfig().getServerAddress());
-            }
-        } catch (InterruptedException e) {
-            throw new FriendlyBackupException("Interrupted while waiting for response from server", e);
-        }
-        
-        ConfirmationMessage confirmationMsg = csm.getConfirmation();
-        if( !confirmationMsg.isOK() ) {
-            throw new FriendlyBackupException("Could not register with server: " +
-                    confirmationMsg.getErrorMessage());
-        }
+    	// TODO bobby I don't remember what I was doing with the server exactly :-O
+//        ClientUpdate cu = new ClientUpdate(
+//                getBackupConfig().getMyName(),
+//                getBackupConfig().getEmail(),
+//                getBackupConfig().getRoot().getFreeSpace(),
+//                getBackupConfig().getPublicKeyRing().getEncoded(),
+//                getBackupConfig().getAuthenticatedOwner());
+//
+//        ClientStartupMessage csm = new ClientStartupMessage(
+//                getBackupConfig().getServerAddress(),
+//                getBackupConfig().getLocalPort(),
+//                cu);
+//
+//        BackupMessageUtil.instance().queueMessage(csm);
+//        
+//        //block for the response
+//        try {
+//            if( !csm.awaitResponse(30000) ) {
+//                throw new FriendlyBackupException("Timed out waiting for " + getBackupConfig().getServerAddress());
+//            }
+//        } catch (InterruptedException e) {
+//            throw new FriendlyBackupException("Interrupted while waiting for response from server", e);
+//        }
+//        
+//        ConfirmationMessage confirmationMsg = csm.getConfirmation();
+//        if( !confirmationMsg.isOK() ) {
+//            throw new FriendlyBackupException("Could not register with server: " +
+//                    confirmationMsg.getErrorMessage());
+//        }
     }
 
     public void createKeyringIfNeeded() throws IOException,
@@ -64,6 +68,7 @@ public class FBNodeImpl {
 
             if( createAccountDialog.getPassphrase() == null ) {
                 UserLog.instance().logInfo("Exiting at user's request");
+                Thread.sleep(100);
                 System.exit(-1);
             }
 
@@ -86,11 +91,13 @@ public class FBNodeImpl {
 
     public void authenticateUser(char[] passphrase) throws FriendlyBackupException {
         boolean passphraseCorrect = false;
+        int badPasswordCount = 0;
         while(!passphraseCorrect) {
             //make sure we have the passphrase now, since the user is presumably at the computer
             //Empty passphrase is interpreted as meaning "quit"
             if( getBackupConfig().getKeyDataSource().getPassphrase() == null ) {
                 UserLog.instance().logInfo("Exiting at user's request");
+                try { Thread.sleep(100); } catch(InterruptedException e) {}
                 System.exit(-1);
             }
             
@@ -101,7 +108,12 @@ public class FBNodeImpl {
             } catch (FriendlyBackupException e) {
                 UserLog.instance().logError("pwd error", e);
                 if( e.getCause() instanceof PGPException ) {
-                    getBackupConfig().getKeyDataSource().clearPassphrase();
+                	if (badPasswordCount < MAX_PASSWORD_RETRIES) {
+                    	++badPasswordCount;
+                        getBackupConfig().getKeyDataSource().clearPassphrase();
+                	} else {
+                        throw e;
+                	}
                 } else {
                     throw e;
                 }
