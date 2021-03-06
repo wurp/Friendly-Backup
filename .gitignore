@@ -22,3 +22,4 @@ tmp*
 log.txt
 log2.txt
 target/
+.settings/org.eclipse.core.resources.prefs

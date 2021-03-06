@@ -4,15 +4,11 @@ import java.io.IOException;
 
 import org.bouncycastle.openpgp.PGPException;
 
-import com.geekcommune.communication.message.ClientStartupMessage;
-import com.geekcommune.communication.message.ConfirmationMessage;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
-import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
 import com.geekcommune.friendlybackup.config.BackupConfig;
 import com.geekcommune.friendlybackup.config.SwingCreateAccountDialog;
 import com.geekcommune.friendlybackup.config.SwingUIKeyDataSource;
 import com.geekcommune.friendlybackup.logging.UserLog;
-import com.geekcommune.friendlybackup.server.format.high.ClientUpdate;
 import com.geekcommune.identity.EncryptionUtil;
 
 public class FBNodeImpl {
@@ -64,6 +60,7 @@ public class FBNodeImpl {
     public void createKeyringIfNeeded() throws IOException,
             InterruptedException {
         if( !getBackupConfig().getSecretKeyringFile().isFile() ) {
+        	// TODO make this work for non-interactive key data sources
             SwingCreateAccountDialog createAccountDialog = new SwingCreateAccountDialog();
 
             if( createAccountDialog.getPassphrase() == null ) {

@@ -134,12 +134,13 @@ public class SignedFileProcessor
         
         sGen.initSign(PGPSignature.BINARY_DOCUMENT, pgpPrivKey);
         
-        Iterator    it = pgpSec.getPublicKey().getUserIDs();
+        @SuppressWarnings("unchecked")
+		Iterator<String>    it = (Iterator<String>)pgpSec.getPublicKey().getUserIDs();
         if (it.hasNext())
         {
             PGPSignatureSubpacketGenerator  spGen = new PGPSignatureSubpacketGenerator();
             
-            spGen.setSignerUserID(false, (String)it.next());
+            spGen.setSignerUserID(false, it.next());
             sGen.setHashedSubpackets(spGen.generate());
         }
         
@@ -152,22 +153,27 @@ public class SignedFileProcessor
         
         File                        file = new File(fileName);
         PGPLiteralDataGenerator     lGen = new PGPLiteralDataGenerator();
-        OutputStream                lOut = lGen.open(bOut, PGPLiteralData.BINARY, file);
-        FileInputStream             fIn = new FileInputStream(file);
-        int                         ch = 0;
-        
-        while ((ch = fIn.read()) >= 0)
+        try (OutputStream           lOut = lGen.open(bOut, PGPLiteralData.BINARY, file))
         {
-            lOut.write(ch);
-            sGen.update((byte)ch);
-        }
+            try (FileInputStream             fIn = new FileInputStream(file))
+            {
+                int                         ch = 0;
+                
+                while ((ch = fIn.read()) >= 0)
+                {
+                    lOut.write(ch);
+                    sGen.update((byte)ch);
+                }
+            }
 
-        lGen.close();
+            lGen.close();
+        }
 
         sGen.generate().encode(bOut);
 
         cGen.close();
 
+        // TODO we should either close always or leave open always...
         if (armor)
         {
             out.close();

@@ -63,11 +63,12 @@ public class PubringDump
         PGPPublicKeyRingCollection    pubRings = new PGPPublicKeyRingCollection(
             PGPUtil.getDecoderStream(new FileInputStream(args[0])));
 
-        Iterator    rIt = pubRings.getKeyRings();
+        @SuppressWarnings("unchecked")
+		Iterator<PGPPublicKeyRing>    rIt = pubRings.getKeyRings();
             
         while (rIt.hasNext())
         {
-            PGPPublicKeyRing    pgpPub = (PGPPublicKeyRing)rIt.next();
+            PGPPublicKeyRing    pgpPub = rIt.next();
 
             try
             {
@@ -79,11 +80,12 @@ public class PubringDump
                 continue;
             }
 
-            Iterator    it = pgpPub.getPublicKeys();
+            @SuppressWarnings("unchecked")
+			Iterator<PGPPublicKey>    it = pgpPub.getPublicKeys();
             boolean     first = true;
             while (it.hasNext())
             {
-                PGPPublicKey    pgpKey = (PGPPublicKey)it.next();
+                PGPPublicKey    pgpKey = it.next();
 
                 if (first)
                 {

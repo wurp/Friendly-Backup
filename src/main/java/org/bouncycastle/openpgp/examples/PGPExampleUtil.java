@@ -84,15 +84,17 @@ class PGPExampleUtil
         // world you would probably want to be a bit smarter about this.
         //
 
-        Iterator keyRingIter = pgpPub.getKeyRings();
+        @SuppressWarnings("unchecked")
+		Iterator<PGPPublicKeyRing> keyRingIter = pgpPub.getKeyRings();
         while (keyRingIter.hasNext())
         {
-            PGPPublicKeyRing keyRing = (PGPPublicKeyRing)keyRingIter.next();
+            PGPPublicKeyRing keyRing = keyRingIter.next();
 
-            Iterator keyIter = keyRing.getPublicKeys();
+            @SuppressWarnings("unchecked")
+			Iterator<PGPPublicKey> keyIter = keyRing.getPublicKeys();
             while (keyIter.hasNext())
             {
-                PGPPublicKey key = (PGPPublicKey)keyIter.next();
+                PGPPublicKey key = keyIter.next();
 
                 if (key.isEncryptionKey())
                 {
@@ -131,15 +133,17 @@ class PGPExampleUtil
         // world you would probably want to be a bit smarter about this.
         //
 
-        Iterator keyRingIter = pgpSec.getKeyRings();
+        @SuppressWarnings("unchecked")
+		Iterator<PGPSecretKeyRing> keyRingIter = pgpSec.getKeyRings();
         while (keyRingIter.hasNext())
         {
-            PGPSecretKeyRing keyRing = (PGPSecretKeyRing)keyRingIter.next();
+            PGPSecretKeyRing keyRing = keyRingIter.next();
 
-            Iterator keyIter = keyRing.getSecretKeys();
+            @SuppressWarnings("unchecked")
+			Iterator<PGPSecretKey> keyIter = keyRing.getSecretKeys();
             while (keyIter.hasNext())
             {
-                PGPSecretKey key = (PGPSecretKey)keyIter.next();
+                PGPSecretKey key = keyIter.next();
 
                 if (key.isSigningKey())
                 {
