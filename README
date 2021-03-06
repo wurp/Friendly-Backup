@@ -1,8 +1,8 @@
 See https://github.com/wurp/Friendly-Backup/wiki
 
-Build jars with 'mvn clean compile assembly:single'
+Build consolidated jar with ./deploy.sh
 
-cp target/*.jar and contents of dist/generic to your working directory
+Run "./install.sh <your working directory>" to install Friendly-Backup.
 Edit var/BackupConfig.properties and set the values to those of your friends
 
 Once you've done so, you can start up the backup process with run.sh or run.cmd
@@ -10,7 +10,5 @@ Once you've done so, you can start up the backup process with run.sh or run.cmd
 See src/main/java/com/geekcommune/friendlybackup/main/FBNodeApp.java for the main method -
 that's the class we start to run a Friendly Backup client.
 
-To update Friendly-Backup-poc for consumption by Friendly-Backup-integration-test,
-mvn install deploy
-# TODO figure out when/if we need the following?
-# ./wurp-deploy.sh
+To update Friendly-Backup-poc for consumption by Friendly-Backup-integration-test, just run
+./deploy.sh
