@@ -373,6 +373,7 @@ public class BackupConfig {
 
     private synchronized void initFromProps() throws FriendlyBackupException {
         root = backupConfig.getParentFile();
+        log.info("Looking for properties in " + root);
 
         backupPath = getProp(BACKUP_ROOT_DIR_KEY);
         restorePath = getProp(RESTORE_ROOT_DIR_KEY);
@@ -403,6 +404,7 @@ public class BackupConfig {
         
         {
             String keyDataSourceClass = getProp(KEY_DATASOURCE_CLASS_KEY, false);
+            log.info("Using keyDataSource " + keyDataSourceClass);
             if( keyDataSourceClass == null ) {
                 keyDataSource = new SwingUIKeyDataSource();
             } else {
