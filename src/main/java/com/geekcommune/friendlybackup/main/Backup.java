@@ -107,7 +107,7 @@ public class Backup extends Action {
 
         BackupManifest bakman = new BackupManifest(new Date());
 
-        progressTracker.changeMessage("Building list of files to back up", 1);
+        progressTracker.changeMessage("Building list of files to back up in " + bakcfg.getBackupRootDir(), 1);
         List<File> files = bakcfg.getFilesToBackup();
 
         progressTracker.progress(3);

@@ -183,7 +183,7 @@ public class BackupConfig {
      * until I get the infrastructure in place to pull from many directories, with the ability to blacklist subtrees.
      * @return
      */
-    private File getBackupRootDir() {
+    public File getBackupRootDir() {
         return new File(root, backupPath);
     }
 
@@ -286,11 +286,11 @@ public class BackupConfig {
     }
 
     public File getPublicKeyringFile() {
-        return new File(getRoot(), "gnupg/pubring.gpg");
+        return new File(getRoot(), "var/gnupg/pubring.gpg");
     }
 
     public File getSecretKeyringFile() {
-        return new File(getRoot(), "gnupg/secring.gpg");
+        return new File(getRoot(), "var/gnupg/secring.gpg");
     }
 
     public File getRestoreRootDirectory() {
@@ -372,7 +372,7 @@ public class BackupConfig {
     }
 
     private synchronized void initFromProps() throws FriendlyBackupException {
-        root = backupConfig.getParentFile();
+        root = backupConfig.getParentFile().getParentFile();
         log.info("Looking for properties in " + root);
 
         backupPath = getProp(BACKUP_ROOT_DIR_KEY);
@@ -387,7 +387,7 @@ public class BackupConfig {
         if( "MyNickName".equals(getMyName()) ) {
             throw new FriendlyBackupException(
                     "Edit " + getRoot().getAbsolutePath() +
-                    "/BackupConfig.properties and set the values " +
+                    "/var/BackupConfig.properties and set the values " +
                     "appropriately (myName cannot be MyNickName).\nSee " +
                     "http://bobbymartin.name/friendlybackup/properties.html");
         }

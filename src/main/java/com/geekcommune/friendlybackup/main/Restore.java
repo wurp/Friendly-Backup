@@ -71,6 +71,7 @@ public class Restore extends Action {
                             Basic.BackupManifest.parseFrom(backupManifestContents));
 
                     progressTracker.rebase(bakman.getFileLabelIDs().size() * 2);
+                    UserLog.instance().logInfo("Restoring " + bakman.getFileLabelIDs().size() + " files");
                     
                     //loop over each label id in the backup manifest
                     for(HashIdentifier fileLabelId : bakman.getFileLabelIDs()) {
@@ -126,7 +127,7 @@ public class Restore extends Action {
     public void blockUntilDone() throws InterruptedException {
          ProgressTracker progressTracker = getProgressTracker();
          while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
-             Thread.sleep(1000);
+             Thread.sleep(300);
          }
     }
 
@@ -136,7 +137,7 @@ public class Restore extends Action {
         ProgressTracker progressTracker = getProgressTracker();
         while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
             UserLog.instance().info(progressTracker.getStatusMessage());
-            Thread.sleep(1000);
+            Thread.sleep(300);
         }
         
         UserLog.instance().logInfo("Restore complete");

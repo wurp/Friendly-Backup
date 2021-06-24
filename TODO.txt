@@ -1,0 +1,8 @@
+wurp@ubuntu-wurp:~/projects/Home/build/local-repo-copies/Friendly-Backup-integration-test$ cat target/integ-working/happy1/client*/bin/run.out 
+ERROR - Failed to initialize keyrings
+
+Dump tasks to persistent store, so we can catch up on tasks we can't accomplish now. E.g. if we back up and a friend is offline, remember that we want to back up to them later.
+* We need the tasks to support a tree, so "back up" can spawn off subtasks "send appropriate blocks to joe", which spawns off subtasks "send block XXX to joe"
+* Tasks must have an ID we can use to invalidate them, so when we finally figure out joe is never coming back online we can throw all his tasks away, or when we get a new revision to back up before joe gets back online, we can throw away the old "send block XXX to joe" in favor of the ones for the new file versions.
+* Upgrade bouncycastle and add support for gpg 2.1 (pubring.kbx, etc. rather than pubring.gpg and secring.gpg)
+* Update docs to include "gpg --export > pubring.gpg" and "gpg --export-secret-key > secring.gpg"

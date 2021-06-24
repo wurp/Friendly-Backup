@@ -1,0 +1,11 @@
+Generate a new keypair:
+BASEDIR=test/integ/happy1/client2/
+GNAME="joe smith"
+
+mkdir -p $BASEDIR/gnupg
+echo password | gpg --batch --yes --passphrase-fd 0 --homedir $BASEDIR/gnupg/ --quick-generate-key "$GNAME"
+(or do it interactively: gpg --homedir $BASEDIR/gnupg/ --quick-generate-key "$GNAME")
+gpg --homedir $BASEDIR/gnupg/ --export -a "$GNAME" > $BASEDIR/my.key
+
+Add a friend to your keyring:
+gpg --homedir $BASEDIR/gnupg --import path/to/friends/my.key
