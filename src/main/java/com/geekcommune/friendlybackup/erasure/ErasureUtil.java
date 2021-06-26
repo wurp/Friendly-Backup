@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import com.geekcommune.util.Pair;
 import com.onionnetworks.fec.FECCode;
@@ -12,7 +13,7 @@ import com.onionnetworks.fec.FECCodeFactory;
 import com.onionnetworks.util.Buffer;
 
 public class ErasureUtil {
-    private static final Logger log = Logger.getLogger(ErasureUtil.class);
+    private static final Logger log = LogManager.getLogger(ErasureUtil.class);
     private static Map<Pair<Integer,Integer>, FECCode> fecCodeMap = new HashMap<Pair<Integer, Integer>, FECCode>();;
 
     /**
@@ -49,7 +50,7 @@ public class ErasureUtil {
                     sourceBuffers[i] = new Buffer(helperBuff, 0, erasureSize);
                 }
             } catch(RuntimeException e) {
-                log.error("Error creating buffer " + i);
+                log.error("Error creating buffer {}", i);
                 throw e;
             }
         }

@@ -11,7 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.format.low.HashIdentifier;
@@ -22,7 +23,7 @@ import com.geekcommune.identity.Signature;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 public class DBDataStore extends DataStore {
-    private static final Logger log = Logger.getLogger(DBDataStore.class);
+    private static final Logger log = LogManager.getLogger(DBDataStore.class);
 
     private static DBDataStore instance;
 
@@ -68,7 +69,7 @@ public class DBDataStore extends DataStore {
               retval = content;
             }
 
-            log.info("Got " + (retval == null ? null : retval.length) + " bytes for " + id);
+            log.debug("Got {} bytes for {}", retval == null ? null : retval.length, id);
             return retval;
         } catch (SQLException e) {
             throw new FriendlyBackupException("Failed to retrieve data from database for " + id, e);
@@ -97,7 +98,7 @@ public class DBDataStore extends DataStore {
             insert.setBytes(1, id.getData());
             insert.setBytes(2, data);
             insert.execute();
-            log.info("Writing " + (data == null ? null : data.length) + " bytes for " + id);
+            log.debug("Writing {} bytes for {}", data == null ? null : data.length, id);
             
             addLeases(id, leases);
         } catch (SQLException e) {
@@ -117,7 +118,7 @@ public class DBDataStore extends DataStore {
                 insert.setBoolean(  4, lease.isSoft());
                 insert.setBytes(5, lease.getSignature().toProto().toByteArray());
                 insert.execute();
-                log.info("Writing lease " + lease + " for " + id);
+                log.debug("Writing lease {} for {}", lease, id);
             }
         } catch (SQLException e) {
             throw new FriendlyBackupException("Failed to store leases in database for " + id, e);
@@ -166,9 +167,9 @@ public class DBDataStore extends DataStore {
                             rs.getBoolean("soft"),
                             id);
                     retval.add(lease);
-                    log.info("Found " + lease + " for " + id);
+                    log.debug("Found {} for {}", lease, id);
                 } catch (InvalidProtocolBufferException e) {
-                    UserLog.instance().logError("Failed to reconstitute a lease on " + id, e);
+                    UserLog.instance().logException(e, "Failed to reconstitute a lease on {}", id);
                 }
             }
         } catch (SQLException e) {
@@ -176,7 +177,7 @@ public class DBDataStore extends DataStore {
         }
 
         if( retval.size() == 0 ) {
-            log.info("Found no leases for " + id);
+            log.info("Found no leases for {}", id);
         }
 
         return retval;
@@ -278,6 +279,6 @@ public class DBDataStore extends DataStore {
 //        updater.setData(updateStmt, obj);
 //
 //        updateStmt.execute();
-//        log.info("Updated " + obj);
+//        log.info("Updated {}", obj);
 //    }
 }

@@ -6,7 +6,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import com.geekcommune.communication.MessageHandler;
 import com.geekcommune.communication.MessageUtil;
@@ -37,7 +38,7 @@ import com.geekcommune.util.UnaryContinuation;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 public class BackupMessageUtil extends MessageUtil {
-    public static final Logger log = Logger.getLogger(BackupMessageUtil.class);
+    public static final Logger log = LogManager.getLogger(BackupMessageUtil.class);
 
     private static BackupMessageUtil instance;
 
@@ -276,7 +277,7 @@ public class BackupMessageUtil extends MessageUtil {
                                 
                                 fullContents = bakcfg.getAuthenticatedOwner().decrypt(fullContents);
                                 
-                                log.info("Rebuilt contents of " + label);
+                                log.info("Rebuilt contents of {}", label);
 
                                 continuation.run(label, fullContents);
                                 
@@ -312,7 +313,7 @@ public class BackupMessageUtil extends MessageUtil {
                         continuation.run();
                     } catch (FriendlyBackupException e) {
                         log.error(e.getMessage(), e);
-                        UserLog.instance().logError("Failed to retrieve " + id, e);
+                        UserLog.instance().logException(e, "Failed to retrieve {}", id);
                     }
                 }
             });
@@ -339,7 +340,7 @@ public class BackupMessageUtil extends MessageUtil {
         return new Continuation() {
 
             public void run() {
-                String exceptionMessage = "Failed to retrieve ";
+                String exceptionMessage = "Failed to retrieve {}";
                 try {
                     Basic.LabelledData proto =
                             Basic.LabelledData.parseFrom(DataStore.instance().getData(id));
@@ -353,16 +354,16 @@ public class BackupMessageUtil extends MessageUtil {
                     }
                     
                     final HashIdentifier erasureManifestId = labelledData.getPointingAt();
-                    log.debug("Retrieving " + label);
+                    log.debug("Retrieving {}", label);
                     
                     retrieve(storingNodes, erasureManifestId, makeErasureManifestHandler(continuation, labelledData,
                             erasureManifestId));
                     //TODO delete 'id' data from datastore
                 } catch (InvalidProtocolBufferException e) {
                     log.error(e.getMessage(), e);
-                    UserLog.instance().logError(exceptionMessage + id, e);
+                    UserLog.instance().logException(e, exceptionMessage, id);
                 } catch (FriendlyBackupException e) {
-                    UserLog.instance().logError(exceptionMessage + id, e);
+                    UserLog.instance().logException(e, exceptionMessage, id);
                 }
             }
         };

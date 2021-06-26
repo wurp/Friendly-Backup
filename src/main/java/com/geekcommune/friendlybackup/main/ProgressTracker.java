@@ -8,7 +8,7 @@ import com.geekcommune.util.Pair;
 
 public class ProgressTracker {
 
-    private String message;
+    private String message = "No status yet";
     private int progress;
     private int totalSteps;
     //list of sub-trackers and the number of supertracker steps each represents

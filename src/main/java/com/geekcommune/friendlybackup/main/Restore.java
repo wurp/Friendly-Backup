@@ -3,7 +3,8 @@ package com.geekcommune.friendlybackup.main;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import com.geekcommune.friendlybackup.FriendlyBackupException;
 import com.geekcommune.friendlybackup.communication.BackupMessageUtil;
@@ -29,7 +30,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
  *
  */
 public class Restore extends Action {
-    private static final Logger log = Logger.getLogger(Restore.class);
+    private static final Logger log = LogManager.getLogger(Restore.class);
     
     private ProgressTracker progressTracker;
     private BackupConfig bakcfg;
@@ -71,7 +72,7 @@ public class Restore extends Action {
                             Basic.BackupManifest.parseFrom(backupManifestContents));
 
                     progressTracker.rebase(bakman.getFileLabelIDs().size() * 2);
-                    UserLog.instance().logInfo("Restoring " + bakman.getFileLabelIDs().size() + " files");
+                    UserLog.instance().logInfo("Restoring {} files", bakman.getFileLabelIDs().size());
                     
                     //loop over each label id in the backup manifest
                     for(HashIdentifier fileLabelId : bakman.getFileLabelIDs()) {
@@ -98,10 +99,10 @@ public class Restore extends Action {
                     File file = new File(bakcfg.getRestorePath(label));
 
                     if( file.exists() ) {
-                        userlog.logError(file + " already exists; not overwriting");
+                        userlog.logError("{} already exists; not overwriting", file);
                         progressTracker.changeMessage("Not writing " + label, 2);
                     } else {
-                        log.info("Saving " + label);
+                        log.info("Saving {}", label);
 
                         progressTracker.changeMessage("Writing " + label, 1);
 
@@ -136,7 +137,7 @@ public class Restore extends Action {
         start(bakcfg.getAuthenticatedOwner());
         ProgressTracker progressTracker = getProgressTracker();
         while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
-            UserLog.instance().info(progressTracker.getStatusMessage());
+            UserLog.instance().logInfo(progressTracker.getStatusMessage());
             Thread.sleep(300);
         }
         

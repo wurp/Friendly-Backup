@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import com.geekcommune.communication.RemoteNodeHandle;
 import com.geekcommune.friendlybackup.FriendlyBackupException;
@@ -29,7 +30,7 @@ import com.geekcommune.identity.SecretIdentity;
  */
 public class Backup extends Action {
     
-    private static final Logger log = Logger.getLogger(Backup.class);
+    private static final Logger log = LogManager.getLogger(Backup.class);
 
     private Thread backupThread;
     private ProgressTracker progressTracker;
@@ -79,13 +80,13 @@ public class Backup extends Action {
             backupThread = null;
 
             while( !progressTracker.isFinished() && !progressTracker.isFailed() ) {
-                UserLog.instance().info(progressTracker.getStatusMessage());
+                UserLog.instance().logInfo(progressTracker.getStatusMessage());
                 Thread.sleep(1000);
             }
             
             UserLog.instance().logInfo("Backup complete");
         } catch (FriendlyBackupException e) {
-            log.error("Backup failed: " + e.getMessage(), e);
+            log.error("Backup failed: {}", e.getMessage(), e);
             UserLog.instance().logError("Backup failed", e);
         }
     }
@@ -144,9 +145,8 @@ public class Backup extends Action {
                 } catch(Exception e2) {
                     log.error(e2);
                 }
-                String msg = "Failed to back up " + filePath;
-                userlog.logError(msg, e);
-                log.error(msg + ": " + e.getMessage(), e);
+                userlog.logException(e, "Failed to back up ", filePath);
+                log.error("Failed to back up {}", filePath, e);
             } //end try/catch
         } //end for
 

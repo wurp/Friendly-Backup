@@ -17,7 +17,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
@@ -42,7 +43,7 @@ public class BackupConfig {
 
     private static final String SERVER_NAME = "backupserver";
 
-    private static final Logger log = Logger.getLogger(BackupConfig.class);
+    private static final Logger log = LogManager.getLogger(BackupConfig.class);
 
     private static final String FRIENDS_KEY = "friends";
     private static final String BACKUP_ROOT_DIR_KEY = "backupRootDir";
@@ -309,7 +310,7 @@ public class BackupConfig {
             
             path = new File(getRestoreRootDirectory(), path).getCanonicalPath();
         } else {
-            log.warn("Expected path " + path + " to start with " + backupRoot);
+            log.warn("Expected path {} to start with {}", path, backupRoot);
         }
 
         return path;
@@ -366,14 +367,14 @@ public class BackupConfig {
 
     void validate() {
         if( computerName.indexOf(BackupConfig.DELIM) != -1 ) {
-            UserLog.instance().logError("Computer name may not contain " + BackupConfig.DELIM);
+            UserLog.instance().logError("Computer name may not contain {}", BackupConfig.DELIM);
             throw new RuntimeException("Computer name may not contain " + BackupConfig.DELIM);
         }
     }
 
     private synchronized void initFromProps() throws FriendlyBackupException {
         root = backupConfig.getParentFile().getParentFile();
-        log.info("Looking for properties in " + root);
+        log.info("Looking for properties in {}", root);
 
         backupPath = getProp(BACKUP_ROOT_DIR_KEY);
         restorePath = getProp(RESTORE_ROOT_DIR_KEY);
@@ -404,7 +405,7 @@ public class BackupConfig {
         
         {
             String keyDataSourceClass = getProp(KEY_DATASOURCE_CLASS_KEY, false);
-            log.info("Using keyDataSource " + keyDataSourceClass);
+            log.info("Using keyDataSource {}", keyDataSourceClass);
             if( keyDataSourceClass == null ) {
                 keyDataSource = new SwingUIKeyDataSource();
             } else {

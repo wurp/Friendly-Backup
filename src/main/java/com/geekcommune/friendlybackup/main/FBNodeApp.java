@@ -59,7 +59,7 @@ public class FBNodeApp {
             backupFile = new File(fbNode.getBackupConfig().getRoot(), "backup.txt");
             
             nextBackupTime = findNextBackupTime();
-            UserLog.instance().logInfo("Next backup at " + nextBackupTime);
+            UserLog.instance().logInfo("Next backup at {}", nextBackupTime);
         } catch(IOException e) {
             UserLog.instance().logError("Could not start service", e);
             try { Thread.sleep(100); } catch(InterruptedException e1) {}
@@ -122,7 +122,7 @@ public class FBNodeApp {
                     UserLog.instance().logError("Backup failed", e);
                 }
                 nextBackupTime = findNextBackupTime();
-                UserLog.instance().logInfo("Next backup at " + nextBackupTime);
+                UserLog.instance().logInfo("Next backup at {}", nextBackupTime);
             }
         }
     }
