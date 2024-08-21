@@ -47,7 +47,7 @@ of files that go together to make a backup, are built out of this low level data
 4) A label is created which contains the identifier of the erasure manifest, the owner's identity, the label name itself, and a signature of all the data.
   *  The identifier of the label is the hash of the owner + label name.
 
-
+# Deleting files
 ## How data is deleted:
 Each chunk of data a node holds has a number of leases attached to it.  Each lease tells the leaseholder, the
 time the lease expires, whether the lease is hard or soft (i.e. if it is critical to keep the data or just
@@ -56,11 +56,16 @@ leases to a chunk of data (typically you would do this for all the chunks in a f
 leases are removed, the chunk is deleted.  If all the non-soft leases are removed, then the chunk may
 or may not be deleted, depending on how much space the node has available.
 
+# Securing files
 ## How data is encrypted:
 
-## How nodes & the server communicate:
+# Server interface
 ### Interactions with the server
 ### Interactions during a backup
 ### Interactions during a restore
 
+# Node interactions
+## How nodes & the server communicate:
+
+# Friends
 ## How friends are selected:
