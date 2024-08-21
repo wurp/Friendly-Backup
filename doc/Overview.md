@@ -1,4 +1,4 @@
-== How data is stored:
+## How data is stored:
 
 1) The list of files to be backed up is put together as a text file, along with the date of the backup.  This is called the backup manifest.
 2) Each of the files in the backup manifest are backed up, using the computer name + file name as a label.
@@ -6,7 +6,7 @@
   * (The backup stream is just a way of naming your backups so you can have multiple different serieses of backups.)
 
 
-== Types of data stored:
+## Types of data stored:
 * Immutable data is stored using Content Based Addressing.  The SHA1 hash of the contents of the data is the address of the data.  This data
   is incorruptible because the address is determined by the content, and FB uses a cryptographically secure algorithm to determine the address.
 
@@ -28,7 +28,7 @@ These are the equivalent of the low level data structures held on your hard driv
 of files that go together to make a backup, are built out of this low level data.
 
 
-== How a file is backed up:
+## How a file is backed up:
 1) The file to be backed up is broken into 60 erasure blocks, each 1/40th the size of the whole file.
   * Any 40 of these blocks can be used to recover the original file.
 2) Each erasure block is stored on a "friend node".
@@ -41,7 +41,7 @@ of files that go together to make a backup, are built out of this low level data
   *  The identifier of the label is the hash of the owner + label name.
 
 
-== How data is deleted:
+## How data is deleted:
 Each chunk of data a node holds has a number of leases attached to it.  Each lease tells the leaseholder, the
 time the lease expires, whether the lease is hard or soft (i.e. if it is critical to keep the data or just
 nice-to-have), and a signature to verify the leaseholder really requested the lease.  You can add or remove
@@ -49,11 +49,11 @@ leases to a chunk of data (typically you would do this for all the chunks in a f
 leases are removed, the chunk is deleted.  If all the non-soft leases are removed, then the chunk may
 or may not be deleted, depending on how much space the node has available.
 
-== How data is encrypted:
+## How data is encrypted:
 
-== How nodes & the server communicate:
-=== Interactions with the server
-=== Interactions during a backup
-=== Interactions during a restore
+## How nodes & the server communicate:
+### Interactions with the server
+### Interactions during a backup
+### Interactions during a restore
 
-== How friends are selected:
+## How friends are selected:
