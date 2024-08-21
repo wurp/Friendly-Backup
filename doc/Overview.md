@@ -1,7 +1,14 @@
+# Backing up
+## When backups happen
+TODESIGN Backups are made once an hour. You'll get a warning if the backup process runs behind (due to low bandwidth, huge changes, etc.)
+
+## What is stored
+Each time a backup is made, the exact content of all files is stored. Restoring from a backup will give the version of the file at the time of the backup was made, not the latest version of that file. TODESIGN You can see the latest version of a file as well as all previous backups by navigating to file history. Note that FB doesn't stop you from changing files while the backup is in progress, so it's not guaranteed that the files will all be a snapshot from the same time - file A might change after file B is backed up, but before file A is backed up. TODESIGN Each backup records when it started and ended.
+
 ## How data is stored:
 
 1) The list of files to be backed up is put together as a text file, along with the date of the backup.  This is called the backup manifest.
-2) Each of the files in the backup manifest are backed up, using the computer name + file name as a label.
+2) Each of the files in the backup manifest are backed up, using the computer name + file name as a label. The backup manifest is updated with the CBA of the file contents.
 3) The backup manifest itself is backed up, using the backup stream as a label.
   * (The backup stream is just a way of naming your backups so you can have multiple different serieses of backups.)
 
