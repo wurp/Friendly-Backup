@@ -5,29 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Friendly Backup - Secure, Affordable Data Protection for Windows</title>
     <style>
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        line-height: 1.6;
-        color: #333;
-        margin: 0;
-        padding: 0;
-        background-color: #f0f8ff;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Neuschwanstein_Castle_LOC_print.jpg/1280px-Neuschwanstein_Castle_LOC_print.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .overlay {
+            background-color: rgba(240, 248, 255, 0.8);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }    
+        .container * {
+        color: #333; /* Darker text color for better contrast */
+        text-shadow: 0 0 3px rgba(255, 255, 255, 0.5); /* Light text shadow for readability */
     }
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background-color: white;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    header {
-        background-color: #3498db;
-        color: white;
-        padding: 20px 0;
-        text-align: center;
-    }
+            header {
+            background-color: rgba(52, 152, 219, 0.9);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
     h1, h2, h3 {
         color: #2c3e50;
+    }
+        
+    /* Ensure buttons and other elements remain visible */
+    .cta-button, .collapsible {
+        background-color: rgba(231, 76, 60, 0.9); /* More opaque background for buttons */
+        color: white;
+        text-shadow: none;
+    }
+        /* Adjust header to be more transparent as well */
+        header {
+        background-color: rgba(52, 152, 219, 0.7);
     }
     .cta-button {
         display: inline-block;
@@ -182,12 +205,10 @@
         width: 100%;
     }
 
-    /* Adjust the container to remove whitespace */
-    .container > *:not(:first-child) {
-        margin-top: 10px;
-    }    </style>
+    </style>
 </head>
 <body>
+    <div class="overlay">
     <header>
         <h1>Friendly Backup</h1>
         <p>Secure &amp; Affordable Data Protection for Windows</p>
@@ -271,7 +292,8 @@
         <p>Questions? Reach out to us at support@friendlybackup.com</p>
     </footer>
 
-    <script>
+</div>
+<script>
         var coll = document.getElementsByClassName("collapsible");
         var i;
 
