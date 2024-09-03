@@ -5,157 +5,187 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Friendly Backup - Secure, Affordable Data Protection for Windows</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f8ff;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        header {
-            background-color: #3498db;
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-        }
-        h1, h2, h3 {
-            color: #2c3e50;
-        }
-        .cta-button {
-            display: inline-block;
-            background-color: #e74c3c;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-        .cta-button:hover {
-            background-color: #c0392b;
-        }
-        .feature-list {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .feature-list li {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .feature-list li:before {
-            content: "✓ ";
-            color: #2ecc71;
-            font-weight: bold;
-        }
-        .pricing {
-            background-color: #f1f8ff;
-            border-radius: 5px;
-            padding: 20px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        .strike {
-            text-decoration: line-through;
-            color: #7f8c8d;
-        }
-        .problem-agitation {
-            background-color: #fff5f5;
-            border-left: 4px solid #e74c3c;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .about-us {
-            background-color: #f0f8ff;
-            border-radius: 5px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .collapsible {
-            background-color: #3498db;
-            color: white;
-            cursor: pointer;
-            padding: 18px;
-            width: 100%;
-            border: none;
-            text-align: left;
-            outline: none;
-            font-size: 16px;
-            transition: 0.4s;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-        .active, .collapsible:hover {
-            background-color: #2980b9;
-        }
-        .collapsible:after {
-            content: '\002B';
-            color: white;
-            font-weight: bold;
-            float: right;
-            margin-left: 5px;
-        }
-        .active:after {
-            content: "\2212";
-        }
-        .content {
-            padding: 0 18px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.2s ease-out;
-            background-color: white;
-        }
-        .linkedin-link {
-            color: #0077b5;
-            text-decoration: none;
-        }
-        .linkedin-link:hover {
-            text-decoration: underline;
-        }
-        .quote {
-            font-style: italic;
-            border-left: 4px solid #3498db;
-            padding-left: 20px;
-            margin: 20px 0;
-        }
-        .hero-image {
-            background-image: url('/api/placeholder/800/400');
-            background-size: cover;
-            background-position: center;
-            height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .hero-text {
-            background-color: rgba(0,0,0,0.5);
-            padding: 20px;
-            border-radius: 5px;
-        }
-        footer {
-            background-color: #2c3e50;
-            color: white;
-            text-align: center;
-            padding: 20px 0;
-            margin-top: 20px;
-        }
-        .halloween-offer {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #e74c3c;
-            margin-top: 15px;
-        }
-    </style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f8ff;
+    }
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    header {
+        background-color: #3498db;
+        color: white;
+        padding: 20px 0;
+        text-align: center;
+    }
+    h1, h2, h3 {
+        color: #2c3e50;
+    }
+    .cta-button {
+        display: inline-block;
+        background-color: #e74c3c;
+        color: white;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .cta-button:hover {
+        background-color: #c0392b;
+    }
+    .feature-list {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    .feature-list li {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .feature-list li:before {
+        content: "✓ ";
+        color: #2ecc71;
+        font-weight: bold;
+    }
+    .pricing {
+        background-color: #f1f8ff;
+        border-radius: 5px;
+        padding: 20px;
+        margin-top: 20px;
+        text-align: center;
+    }
+    .strike {
+        text-decoration: line-through;
+        color: #7f8c8d;
+    }
+    .problem-agitation {
+        background-color: #fff5f5;
+        border-left: 4px solid #e74c3c;
+        padding: 20px;
+        margin: 20px 0;
+    }
+    .about-us {
+        background-color: #f0f8ff;
+        border-radius: 5px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    .collapsible {
+        background-color: #3498db;
+        color: white;
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 16px;
+        transition: 0.4s;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+    .active, .collapsible:hover {
+        background-color: #2980b9;
+    }
+    .collapsible:after {
+        content: '\002B';
+        color: white;
+        font-weight: bold;
+        float: right;
+        margin-left: 5px;
+    }
+    .active:after {
+        content: "\2212";
+    }
+    .content {
+        padding: 0 18px;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.2s ease-out;
+        background-color: white;
+    }
+    .linkedin-link {
+        color: #0077b5;
+        text-decoration: none;
+    }
+    .linkedin-link:hover {
+        text-decoration: underline;
+    }
+    .quote {
+        font-style: italic;
+        border-left: 4px solid #3498db;
+        padding-left: 20px;
+        margin: 20px 0;
+    }
+    .hero-image {
+        background-image: url('/api/placeholder/800/400');
+        background-size: cover;
+        background-position: center;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .hero-text {
+        background-color: rgba(0,0,0,0.5);
+        padding: 20px;
+        border-radius: 5px;
+    }
+    footer {
+        background-color: #2c3e50;
+        color: white;
+        text-align: center;
+        padding: 20px 0;
+        margin-top: 20px;
+    }
+    .halloween-offer {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #e74c3c;
+        margin-top: 15px;
+    }
+    /* Updated styles for the signup section */
+    #signup {
+        margin-top: 0; /* Remove top margin to eliminate whitespace */
+    }
+    #signup form {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    #signup label {
+        margin-right: 5px;
+    }
+    #signup input,
+    #signup select {
+        margin-right: 10px;
+        padding: 5px;
+    }
+    #signup .cta-button {
+        margin-left: auto; /* Push the button to the right */
+    }
+    #signup p {
+        margin-top: 15px;
+        width: 100%;
+    }
+
+    /* Adjust the container to remove whitespace */
+    .container > *:not(:first-child) {
+        margin-top: 20px;
+    }    </style>
 </head>
 <body>
     <header>
@@ -171,6 +201,23 @@
             </div>
         </div>
 
+<section id="signup">
+    <h2>Be a Backup Early Adopter</h2>
+    <p>Join the Friendly Backup family today and be part of the data security revolution!</p>
+    <form id="signup-form" action="https://docs.google.com/forms/d/e/1FAIpQLScWmIdiI2p0pO6cJ8WZZspuNn9gKsoMdZKZXxYeSoMeUqWkLA/formResponse" method="POST" target="_blank">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="entry.1325363105" required>
+        <label for="use-case">I want to protect:</label>
+        <select id="use-case" name="entry.1028185503">
+            <option value="personal">Personal Data</option>
+            <option value="small-business">Business Information</option>
+            <option value="other">Other Valuable Data</option>
+        </select>
+        <button type="submit" class="cta-button">Secure Your $5 Data Shield Now</button>
+    </form>
+    <p><small>No obligation - stay informed about our launch and be ready when we go live. This early adopter pricing is available only until Halloween 2024 🎃.</small></p>
+    <p><small>We value your privacy. Your email will be used exclusively for Friendly Backup updates. We despise spam as much as we despise data loss!</small></p>
+</section>
         <button class="collapsible">The Harsh Reality of Data Loss</button>
         <div class="content">
             <div class="problem-agitation">
@@ -205,25 +252,6 @@
                 <p class="halloween-offer">🎃 Act fast! This offer expires on Halloween 2024! 🦇</p>
             </section>
         </div>
-
-        <section id="signup">
-            <h2>Be a Data Security Pioneer for Only $5</h2>
-            <p>Join the Friendly Backup family today and be part of the data security revolution!</p>
-            <form id="signup-form" action="https://docs.google.com/forms/d/e/1FAIpQLScWmIdiI2p0pO6cJ8WZZspuNn9gKsoMdZKZXxYeSoMeUqWkLA/formResponse" method="POST" target="_blank">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="entry.1325363105" required>
-                <label for="use-case">I want to protect:</label>
-                <select id="use-case" name="entry.1028185503">
-                    <option value="personal">Personal Data</option>
-                    <option value="small-business">Business Information</option>
-                    <option value="other">Other Valuable Data</option>
-                </select>
-                <button type="submit" class="cta-button">Secure Your $5 Data Shield Now</button>
-            </form>
-            <p><small>No obligation - stay informed about our launch and be ready when we go live. This early adopter pricing is available only until Halloween 2024 🎃.</small></p>
-            <p><small>We value your privacy. Your email will be used exclusively for Friendly Backup updates. We despise spam as much as we despise data loss!</small></p>
-            <p><small>Be among the first to revolutionize how we protect our digital lives.</small></p>
-        </section>
 
         <button class="collapsible">About the Creator</button>
         <div class="content">
